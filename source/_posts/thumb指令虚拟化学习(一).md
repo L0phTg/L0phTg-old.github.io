@@ -22,6 +22,8 @@ tags:
 ## 环境搭建:
 - 需要安装python的capstone模块, 可以直接使用pip安装. (另外: **强烈建议下载capstone源码, 以便随时阅读**.)
 ```bash
+    sudo apt install libcapstone3
+    sudo apt install libcapstone-dev
     pip install capstone
 ```
 - ida/radare2 `在本节中, 提取指令的时候会用到`.
@@ -41,7 +43,7 @@ tags:
 5. 写代码, `此处参考了capstone源码中的/bindings/python/capstone/* 中的有关代码, 初学py, 代码写的差, 有什么建议还请多多交流)`.
 
 
-### 1. 提取指令.
+### 提取指令.
 
 我们提取的是下面程序中的 **judge** 函数.
 
@@ -168,7 +170,7 @@ buf = struct.pack ("126B", *[
 
 ### 了解capstone中对arm指令进行操作的函数 `接口`
 
-####   从源代码中提供的`example`, 来初步了解capstone提供给我们的可用的`接口`的使用
+#### 1. 从源代码中提供的`example`, 来初步了解capstone提供给我们的可用的`接口`的使用
 
 我们参考的主要是 `/bindings/python/test_arm.py` 和 `/bindings/python/test_detail.py`这两个文件:
 
@@ -237,7 +239,7 @@ def print_insn_detail(insn):
 ...............................
 
 
-# ## Test class Cs
+### Test class Cs
 def test_class():
 
     for (arch, mode, code, comment, syntax) in all_tests:
@@ -314,25 +316,212 @@ def print_detail(insn):
 操作很明显:
 **insn.regs_read**, **insn.regs_write**, **insn.groups**.
 
-####
 
 
+#### 2. 观察源代码中的`/bindings/python/capstone/__init__.py`来了解**CS** 和 **CsInsn** 的实现:
+
+```python
+class Cs(object):
+    def __init__(self, arch, mode):
+        ....
+        ....省略
 
 
-####   观察源代码中的`/bindings/python/capstone/__init__.py`来了解**CS** 和 CSIN的实现:
+    # Disassemble binary & return disassembled instructions in CsInsn objects	反汇编二进制代码&& 返回反汇编的指令in CsInsn对象中
+    def disasm(self, code, offset, count=0):
+        all_insn = ctypes.POINTER(_cs_insn)()
+        '''if not _python2:
+            print(code)
+            code = code.encode()
+            print(code)'''
+        # Hack, unicorn's memory accessors give you back bytearrays, but they
+        # cause TypeErrors when you hand them into Capstone.
+        if isinstance(code, bytearray):
+            code = bytes(code)
+        res = _cs.cs_disasm(self.csh, code, len(code), offset, count, ctypes.byref(all_insn))*************
+        if res > 0:
+            try:
+                for i in range(res):
+                    yield CsInsn(self, all_insn[i])			## all_info*********************************** 重点操作
+            finally:
+                _cs.cs_free(all_insn, res)
+        else:
+            status = _cs.cs_errno(self.csh)
+            if status != CS_ERR_OK:
+                raise CsError(status)
+            return
+            yield
+```
+
+通过观察**Cs**这个类的实现, 我们发现了它是一个生成器, 一直返回**CsInsn** 这个类的对象, 现在我们来看一下CsInsn 这个类的实现(从名字可以就可以看出来, 它保存了我们每条指令的性质)
+```python
+▼ CsInsn : class
+   +__init__ : function
+   +id : function           @property
+   +address : function      @property // 返回 指令的地址
+   +size : function         @property // 返回 大小
+   +bytes : function        @property // 返回 字节码 []
+   +mnemonic : function     @property // 返回 指令名称(助记符)
+   +op_str : function       @property // 返回 操作string
+   +regs_read : function    @property // 返回 会被*隐式*读的寄存器[]
+   +regs_write : function   @property // 返回 会被*隐式*写的寄存器[]
+   +groups : function       @property // 指令的group
+   -__gen_detail : function
+   -__getattr__ : function
+   +errno : function
+   +reg_name : function   (self, reg_id)  // 返回寄存器的名称
+   +insn_name : function                  // 返回指令名称, 不同于mnemonic
+   +group_name : function
+   +group : function
+   +reg_read : function   (self, reg_id)  // 识别该寄存器会被隐式read
+   +reg_write : function  (self, reg_id)  // 识别该寄存器是否会被隐式 write
+   +op_count : function
+   +op_find : function
+```
+这里我罗列了一下它的所有操作,  我们下面写代码的时候会用到.
+
+#### 这里我们先简单写一个.py, 来对上面的部分函数进行应用
+
+我们可以先看一下输出结果:
+
+```python
+l0phtg@l0phtg-PC:~/blogTest$ python test.py 
+0x1000:	push	{r4, r6, r7, lr}
+id:426	groups:[150, 151]	size:2	
+bytes:	0xd0 0xb5 
+	op_count: 4
+		operands[0].type: REG = r4
+		operands[1].type: REG = r6
+		operands[2].type: REG = r7
+		operands[3].type: REG = lr
+
+0x1002:	pop	{r4, r6, r7, pc}
+id:425	groups:[150, 151]	size:2	
+bytes:	0xd0 0xbd 
+	op_count: 4
+		operands[0].type: REG = r4
+		operands[1].type: REG = r6
+		operands[2].type: REG = r7
+		operands[3].type: REG = pc
+
+0x1004:	beq	#0x100e
+id:17	groups:[150, 151, 1]	size:2	
+bytes:	0x3 0xd0 
+	op_count: 1
+		operands[0].type: IMM = 0x100e
+
+0x1006:	movs	r0, #0
+id:80	groups:[150, 151]	size:2	
+bytes:	0x0 0x20 
+	op_count: 2
+		operands[0].type: REG = r0
+		operands[1].type: IMM = 0x0
+	Update-flags: True
+```
+每条指令的指令名称, 指令操作数, 操作数类型, 该指令是否更新flag都显示了出来.
+
+下面的代码(参考test\_arm.py的实现)
+
+```python
+#!/usr/bin/env python2
+#-*- coding:utf-8 -*-
+
+import sys
+from capstone import *
+from capstone.arm import *
+from xprint import to_hex, to_x, to_x_32
+
+my_thumb_code = b"\xd0\xb5\xd0\xbd\x03\xd0\x00\x20"
 
 
+def print_insn_detail(insn):
+    print("0x%x:\t%s\t%s" % (insn.address, insn.mnemonic, insn.op_str))
+    print("id:%d\tgroups:%s\tsize:%x\t" % (insn.id, insn.groups, insn.size))
+    sys.stdout.write('bytes:\t')
+    for i in insn.bytes:
+        sys.stdout.write("%s " % hex(i))
+    sys.stdout.write('\n')
 
+    if len(insn.operands) > 0:
+        print("\top_count: %u" % len(insn.operands))
+        c = 0
+        for i in insn.operands:
+            if i.type == ARM_OP_REG:
+                print("\t\toperands[%u].type: REG = %s" % (c, insn.reg_name(i.reg)))
+            if i.type == ARM_OP_IMM:
+                print("\t\toperands[%u].type: IMM = 0x%s" % (c, to_x_32(i.imm)))
+            if i.type == ARM_OP_PIMM:
+                print("\t\toperands[%u].type: P-IMM = %u" % (c, i.imm))
+            if i.type == ARM_OP_CIMM:
+                print("\t\toperands[%u].type: C-IMM = %u" % (c, i.imm))
+            if i.type == ARM_OP_FP:
+                print("\t\toperands[%u].type: FP = %f" % (c, i.fp))
+            if i.type == ARM_OP_SYSREG:
+                print("\t\toperands[%u].type: SYSREG = %u" % (c, i.reg))
+            if i.type == ARM_OP_SETEND:
+                if i.setend == ARM_SETEND_BE:
+                    print("\t\toperands[%u].type: SETEND = be" % c)
+                else:
+                    print("\t\toperands[%u].type: SETEND = le" % c)
+            if i.type == ARM_OP_MEM:
+                print("\t\toperands[%u].type: MEM" % c)
+                if i.mem.base != 0:
+                    print("\t\t\toperands[%u].mem.base: REG = %s" \
+                        % (c, insn.reg_name(i.mem.base)))
+                if i.mem.index != 0:
+                    print("\t\t\toperands[%u].mem.index: REG = %s" \
+                        % (c, insn.reg_name(i.mem.index)))
+                if i.mem.scale != 1:
+                    print("\t\t\toperands[%u].mem.scale: %u" \
+                        % (c, i.mem.scale))
+                if i.mem.disp != 0:
+                    print("\t\t\toperands[%u].mem.disp: 0x%s" \
+                        % (c, to_x_32(i.mem.disp)))
 
+            if i.shift.type != ARM_SFT_INVALID and i.shift.value:
+                print("\t\t\tShift: %u = %u" \
+                    % (i.shift.type, i.shift.value))
+            if i.vector_index != -1:
+                print("\t\t\toperands[%u].vector_index = %u" %(c, i.vector_index))
+            if i.subtracted:
+                print("\t\t\toperands[%u].subtracted = True" %c)
 
+            c += 1
 
+    if insn.update_flags:
+        print("\tUpdate-flags: True")
 
+def test_class():
 
+    md = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
+    md.detail=True
+    for insn in md.disasm(my_thumb_code, 0x1000):
+        print_insn_detail(insn)
+        sys.stdout.write('\n')
 
+if __name__ == '__main__':
+    test_class()
+```
 
+### 了解 thumb 的指令编码:
 
+在前面环境搭建的时候, 我向大家推荐了arm的一个文档, 本节主要针对该文档进行分析.
 
+首先定位到第`F3`章节, 观看目录:
+```
+Chapter F3
+T32 Base Instruction Set Encoding
 
+This chapter introduces the T32 instruction set and describes how it uses the ARM programmers’ model. It contains
+the following sections:
+
+• T32 instruction set encoding on page F3-2432.
+• 16-bit T32 instruction encoding on page F3-2435.
+• 32-bit T32 instruction encoding on page F3-2442.
+
+```
+
+我们在此分析的是**16-bit T32 instruction**, 再次定位到`F3-2435`.
 
 
 
