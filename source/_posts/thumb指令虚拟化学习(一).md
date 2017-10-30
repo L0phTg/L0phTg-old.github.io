@@ -170,7 +170,7 @@ buf = struct.pack ("126B", *[
 
 ### 了解capstone中对arm指令进行操作的函数 `接口`
 
-#### 1. 从源代码中提供的`example`, 来初步了解capstone提供给我们的可用的`接口`的使用
+#### 从源代码中提供的`example`, 来初步了解capstone提供给我们的可用的`接口`的使用
 
 我们参考的主要是 `/bindings/python/test_arm.py` 和 `/bindings/python/test_detail.py`这两个文件:
 
@@ -318,7 +318,7 @@ def print_detail(insn):
 
 
 
-#### 2. 观察源代码中的`/bindings/python/capstone/__init__.py`来了解**CS** 和 **CsInsn** 的实现:
+#### 观察源代码中的`/bindings/python/capstone/__init__.py`来了解**CS** 和 **CsInsn** 的实现:
 
 ```python
 class Cs(object):

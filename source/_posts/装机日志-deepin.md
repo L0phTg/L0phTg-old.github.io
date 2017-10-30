@@ -27,34 +27,78 @@ $checksum
 
 ## 下来就是激动人心的时刻了
 
-先放几张图
-{% asset_img desktop.png %}
+先放几张图:
 
+桌面
+{% asset_img desktop.png 桌面%}
 
+分屏
+{% asset_img splitScreen.png 分屏 %}
 
+我们最爱的vim
+{% asset_img vimMarkdownPreview.png vimMarkdown %}
+
+当然, 还有很多其它的不错的设计, 这里就不多放图了.
 
 ### 配置nvim/spacevim
 
 依赖项:
-- python支持: 建议先`pip install neovim`和`pip3 install neovim`
-- font支持:
-- tagbar支持:
+- python支持: 建议先`pip install neovim`和`pip3 install neovim`.
+- font支持: (读者可以自行查看readme进行安装) git地址: `https://github.com/powerline/fonts.git` , 用来更好的显示vim界面(字体, 状态栏...).
+- tagbar支持: 安装 `ctags`.
+
+```
+sudo apt install ctags
+```
+
+**安装**:
+
+- neovim安装: `sudo apt install neovim`
+- Spacevim安装: (读者可以自行查看readme进行安装) git地址: `https://github.com/SpaceVim/SpaceVim`
 
 
 
+- init.nvim(来, 放出我们的口号: **打造属于自己的编辑器**, 这个文件是用户配置文件, 读者可以自行配置)
 
-安装:
+我这里只是对自己的需求进行了简单的配置:
+
+1. 配置markdown预览:(因为它默认预览采用的插件是`iamcoo/MarkdownPreview.vim`, 所以根据该插件作者的说明进行配置)
+
+- 默认预览浏览器为`google-chrome`:
+```
+let g:mkdp_path_to_chrome = 'google-chrome'
+```
+
+- 映射预览为`F4`:
+```bash
+nmap <silent> <F4> <Plug>MarkdownPreview        " for normal mode
+imap <silent> <F4> <Plug>MarkdownPreview        " for insert mode
+```
+
+2.  设置状态栏分隔符为箭头:
+```
+let g:spacevim_statusline_separator = 'arrow'
+```
+
+### 配置zsh/oh-my-zsh
+
+1. 安装zsh
+```
+sudo apt install zsh
+```
+
+2. 安装oh-my-zsh
+
+```
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+```
+具体的配置看个人喜好.
+
+### 安装tools
+https://github.com/PikachuHy/...       `一位大佬写的net工具,  大家懂得`
 
 
+## 总结
 
-init.nvim(来, 放出我们的口号: **打造属于自己的编辑器**)
-
-
-
-
-
-
-
-
-
+总之, `deepin`还是带给我很大的惊喜的.  `deepin终端`, `深度截图`, 还可以愉快的使用网络, 开心的在linux下办公hahahahaha.
 
