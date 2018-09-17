@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>漏洞研究 on L0phTg&#39;s Blog</title>
+    <link>http://replace-this-with-your-hugo-site.com/tags/%E6%BC%8F%E6%B4%9E%E7%A0%94%E7%A9%B6/</link>
+    <description>Recent content in 漏洞研究 on L0phTg&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 01 Mar 2017 20:20:20 +0000</lastBuildDate>
+    
+	<atom:link href="http://replace-this-with-your-hugo-site.com/tags/%E6%BC%8F%E6%B4%9E%E7%A0%94%E7%A9%B6/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>第一篇博文-谈谈CVE-2014-7911</title>
+      <link>http://replace-this-with-your-hugo-site.com/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</link>
+      <pubDate>Wed, 01 Mar 2017 20:20:20 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</guid>
+      <description>漏洞成因: `java.io.ObjectInputStream`类没有对接受的数据进行验证, 导致可以传入一个不可序列化的对象.  利用的原理: android.os.binderproxy对象时不可序列化的, 并且它涉及到一个native代码可以将mObject和mOrgue当作一个指针. 具体来说就是android.os.BinderProxy对象在gc时会调用一个native的`destory`()函数导致任意代码执行. `native` 调用链`destroy()--&amp;gt; decStrong() --&amp;gt; refs-&amp;gt;mBase-&amp;gt;onLastStrongRef(id)`  基础知识 1. Java反序列化分析 每个java object在序列化时都有一个序列号, 这是这种机制称为序列化的原因.  java.io.ObjectOutputStream可以对对象进行序列化, 它的writeObject()方法可以将序列化后写到一个目标输出流中. java.io.ObjectInputStream可以对对象进行反序列化, 它的readObject()方法可以从目标输入流中读入序列化的对象并将其反序列化为原对象. 下面以实例来进行分析: 我们这里定义了一个Employee类(内部有三个实例域和一个构造函数)(其他内部函数已经省略)
+package hihihi; import java.io.*; import java.util.*; public class Employee implements Serializable { private String name; private double salary; private Date hireDay; public Employee(String n, double s, int year, int month, int day) { name = n; salary = s; GregorianCalendar calendar = new GregorianCalendar(year, month - 1, day); hireDay = calendar.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on L0phTg&#39;s Blog</title>
+    <link>http://replace-this-with-your-hugo-site.com/tags/</link>
+    <description>Recent content in Tags on L0phTg&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 16 Mar 2017 03:07:59 +0000</lastBuildDate>
+    
+	<atom:link href="http://replace-this-with-your-hugo-site.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Android</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/android/</link>
+      <pubDate>Thu, 16 Mar 2017 03:07:59 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/android/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Android源码</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/android%E6%BA%90%E7%A0%81/</link>
+      <pubDate>Sun, 19 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/android%E6%BA%90%E7%A0%81/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Capstone</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/capstone/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/capstone/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Jni</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/jni/</link>
+      <pubDate>Thu, 16 Mar 2017 03:07:59 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/jni/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>加固</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/%E5%8A%A0%E5%9B%BA/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/%E5%8A%A0%E5%9B%BA/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>文件格式</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/</link>
+      <pubDate>Sun, 19 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>日常生活</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/%E6%97%A5%E5%B8%B8%E7%94%9F%E6%B4%BB/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/%E6%97%A5%E5%B8%B8%E7%94%9F%E6%B4%BB/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>漏洞研究</title>
+      <link>http://replace-this-with-your-hugo-site.com/tags/%E6%BC%8F%E6%B4%9E%E7%A0%94%E7%A9%B6/</link>
+      <pubDate>Wed, 01 Mar 2017 20:20:20 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/tags/%E6%BC%8F%E6%B4%9E%E7%A0%94%E7%A9%B6/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

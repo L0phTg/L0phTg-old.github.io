@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Life on L0phTg&#39;s Blog</title>
+    <link>http://replace-this-with-your-hugo-site.com/categories/life/</link>
+    <description>Recent content in Life on L0phTg&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="http://replace-this-with-your-hugo-site.com/categories/life/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>装机日志-deepin</title>
+      <link>http://replace-this-with-your-hugo-site.com/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</guid>
+      <description>背景 最近一直在码代码和写.md, 深刻体会到在windows上办公有多么艰难. 安装了一下spacevim/neovim后, 意识到了高效率的办公会给人带来很大的乐趣. 所以, 在遇到了很多与环境配置相关的问题(却解决不了之后), 毅然决定更换系统.
+选择 犹豫了一天到底是该装Ubuntu16.04还是deepin(导致上课前, 忘了给舍友刷卡...).最终还是经不住deepin绚丽的UI设计的诱惑, 决定尝试一下deepin.(没错, 颜值在我心中就是这么重要)
+装机过程 装机过程很简单, 下载好官方的镜像源, 之后检验一下md5.
+$checksum  然后用官方的启动盘制作工具把U盘装入deepin, 重启时插入U盘, 设置为U盘启动就可以了.
+重点来了, 因为我不想用windows10了, 所以直接把系统装在c盘中, 因为原来的系统有3个分区, 所以装机时不用格式化 D 盘 和 E 盘(我的E盘有7/8个虚拟机文件, 在装好deepin后, 依然可以正常使用)
+装机总结: - deepin系统装入c盘.
+- D盘, E盘可以不用格式化.(当然, 如果电脑里没啥重要文件的, skip it)
+下来就是激动人心的时刻了 先放几张图:
+桌面 {% asset_img desktop.png 桌面%}
+分屏 {% asset_img splitScreen.png 分屏 %}
+我们最爱的vim {% asset_img vimMarkdownPreview.png vimMarkdown %}
+当然, 还有很多其它的不错的设计, 这里就不多放图了.
+配置nvim/spacevim 依赖项: - python支持: 建议先pip install neovim和pip3 install neovim.</description>
+    </item>
+    
+  </channel>
+</rss>

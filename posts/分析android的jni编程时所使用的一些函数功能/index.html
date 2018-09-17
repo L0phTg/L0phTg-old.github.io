@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>L0phTg&#39;s Blog  | 分析Android的JNI编程时所使用的一些函数功能</title>
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.49-DEV" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/dist/css/app.e08a958ae3e530145318b6373195c765.css" rel="stylesheet">
+    
+
+    
+
+    
+      
+    
+
+    
+
+    <meta property="og:title" content="分析Android的JNI编程时所使用的一些函数功能" />
+<meta property="og:description" content="基本类型 文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24\arch-arm\usr\include\jni.h
+现在来看一下jni.h头文件中内容:
+class _jobject {}; typedef _jobject* jobject; class _jclass : public _jobject {}; typedef _jclass* jclass; class _jstring : public _jobject {}; typedef _jstring* jstring; class _jarray : public _jobject {}; typedef _jarray* jarray; class _jobjectArray : public _jarray {}; typedef _jobjectArray* jobjectArray; class _jbooleanArray : public _jarray {}; typedef _jbooleanArray* jbooleanArray; class _jbyteArray : public _jarray {}; typedef _jbyteArray* jbyteArray; class _jcharArray : public _jarray {}; typedef _jcharArray* jcharArray; class _jshortArray : public _jarray {}; typedef _jshortArray* jshortArray; class _jintArray : public _jarray {}; typedef _jintArray* jintArray; class _jlongArray : public _jarray {}; typedef _jlongArray* jlongArray; class _jfloatArray : public _jarray {}; typedef _jfloatArray* jfloatArray; class _jdoubleArray : public _jarray {}; typedef _jdoubleArray* jdoubleArray; class _jthrowable : public _jobject {}; typedef _jthrowable* jthrowable;  从右边的typedef可以看出,每一个Jni中的cpp类型都有一个Java中的类型与之相对应." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://replace-this-with-your-hugo-site.com/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/" /><meta property="article:published_time" content="2017-03-16T03:07:59&#43;00:00"/>
+<meta property="article:modified_time" content="2017-03-16T03:07:59&#43;00:00"/>
+<meta itemprop="name" content="分析Android的JNI编程时所使用的一些函数功能">
+<meta itemprop="description" content="基本类型 文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24\arch-arm\usr\include\jni.h
+现在来看一下jni.h头文件中内容:
+class _jobject {}; typedef _jobject* jobject; class _jclass : public _jobject {}; typedef _jclass* jclass; class _jstring : public _jobject {}; typedef _jstring* jstring; class _jarray : public _jobject {}; typedef _jarray* jarray; class _jobjectArray : public _jarray {}; typedef _jobjectArray* jobjectArray; class _jbooleanArray : public _jarray {}; typedef _jbooleanArray* jbooleanArray; class _jbyteArray : public _jarray {}; typedef _jbyteArray* jbyteArray; class _jcharArray : public _jarray {}; typedef _jcharArray* jcharArray; class _jshortArray : public _jarray {}; typedef _jshortArray* jshortArray; class _jintArray : public _jarray {}; typedef _jintArray* jintArray; class _jlongArray : public _jarray {}; typedef _jlongArray* jlongArray; class _jfloatArray : public _jarray {}; typedef _jfloatArray* jfloatArray; class _jdoubleArray : public _jarray {}; typedef _jdoubleArray* jdoubleArray; class _jthrowable : public _jobject {}; typedef _jthrowable* jthrowable;  从右边的typedef可以看出,每一个Jni中的cpp类型都有一个Java中的类型与之相对应.">
+
+
+<meta itemprop="datePublished" content="2017-03-16T03:07:59&#43;00:00" />
+<meta itemprop="dateModified" content="2017-03-16T03:07:59&#43;00:00" />
+<meta itemprop="wordCount" content="287">
+
+
+
+<meta itemprop="keywords" content="JNI,Android," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="分析Android的JNI编程时所使用的一些函数功能"/>
+<meta name="twitter:description" content="基本类型 文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24\arch-arm\usr\include\jni.h
+现在来看一下jni.h头文件中内容:
+class _jobject {}; typedef _jobject* jobject; class _jclass : public _jobject {}; typedef _jclass* jclass; class _jstring : public _jobject {}; typedef _jstring* jstring; class _jarray : public _jobject {}; typedef _jarray* jarray; class _jobjectArray : public _jarray {}; typedef _jobjectArray* jobjectArray; class _jbooleanArray : public _jarray {}; typedef _jbooleanArray* jbooleanArray; class _jbyteArray : public _jarray {}; typedef _jbyteArray* jbyteArray; class _jcharArray : public _jarray {}; typedef _jcharArray* jcharArray; class _jshortArray : public _jarray {}; typedef _jshortArray* jshortArray; class _jintArray : public _jarray {}; typedef _jintArray* jintArray; class _jlongArray : public _jarray {}; typedef _jlongArray* jlongArray; class _jfloatArray : public _jarray {}; typedef _jfloatArray* jfloatArray; class _jdoubleArray : public _jarray {}; typedef _jdoubleArray* jdoubleArray; class _jthrowable : public _jobject {}; typedef _jthrowable* jthrowable;  从右边的typedef可以看出,每一个Jni中的cpp类型都有一个Java中的类型与之相对应."/>
+
+  </head>
+
+  <body class="ma0 avenir bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="http://replace-this-with-your-hugo-site.com/" class="f3 fw2 hover-white no-underline white-90 dib">
+      L0phTg&#39;s Blog
+    </a>
+    <div class="flex-l items-center">
+      
+      
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  <article class="flex-l flex-wrap justify-between mw8 center ph3 ph0-l">
+
+    <header class="mt4 w-100">
+      <p class="f6 b helvetica tracked">
+          
+        POSTS
+      </p>
+      <h1 class="f1 athelas mb1">分析Android的JNI编程时所使用的一些函数功能</h1>
+      
+      <time class="f6 mv4 dib tracked" datetime="2017-03-16T03:07:59Z">March 16, 2017</time>
+    </header>
+
+    <main class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l">
+
+<h2 id="基本类型">基本类型</h2>
+
+<p><jni.h>文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24\arch-arm\usr\include\jni.h</p>
+
+<p>现在来看一下jni.h头文件中内容:</p>
+
+<pre><code class="language-cpp">    class _jobject {};                                      typedef _jobject*       jobject;
+    class _jclass : public _jobject {};                     typedef _jclass*        jclass;         
+    class _jstring : public _jobject {};                    typedef _jstring*       jstring;
+    class _jarray : public _jobject {};                     typedef _jarray*        jarray;
+    class _jobjectArray : public _jarray {};                typedef _jobjectArray*  jobjectArray;
+    class _jbooleanArray : public _jarray {};               typedef _jbooleanArray* jbooleanArray;
+    class _jbyteArray : public _jarray {};                  typedef _jbyteArray*    jbyteArray;
+    class _jcharArray : public _jarray {};                  typedef _jcharArray*    jcharArray;
+    class _jshortArray : public _jarray {};                 typedef _jshortArray*   jshortArray;
+    class _jintArray : public _jarray {};                   typedef _jintArray*     jintArray;
+    class _jlongArray : public _jarray {};                  typedef _jlongArray*    jlongArray;
+    class _jfloatArray : public _jarray {};                 typedef _jfloatArray*   jfloatArray;
+    class _jdoubleArray : public _jarray {};                typedef _jdoubleArray*  jdoubleArray;
+    class _jthrowable : public _jobject {};                 typedef _jthrowable*    jthrowable;
+</code></pre>
+
+<p>从右边的typedef可以看出,每一个Jni中的cpp类型都有一个Java中的类型与之相对应.</p>
+
+<p>这里我们重点分析经常看到的_JNIEnv,_JavaVM,JNIEnv,JavaVM</p>
+
+<pre><code class="language-cpp">struct _JNIEnv;
+struct _JavaVM;
+typedef const struct JNINativeInterface* C_JNIEnv;
+
+#if defined(__cplusplus)
+typedef _JNIEnv JNIEnv;
+typedef _JavaVM JavaVM;
+#else
+typedef const struct JNINativeInterface* JNIEnv;
+typedef const struct JNIInvokeInterface* JavaVM;
+#endif
+</code></pre>
+
+<p>JNINativeInterface为Native层的接口函数指针表, Jni中的本地函数通过这些接口来调用java层的函数.
+/_JNIEnv是一个object, 包含一个指向JNINativeInterface的指针变量function和一些接口函数.
+JNIEnv在cpp中的定义为_JNIEnv, 在c中的定义为 struct JNINativeInterface*.
+JNIEnv: 每一个线程中都有一个属于自己线程的env, 且只在创建自己的线程内有效, 不能跨线程传递.
+下面分析JavaVM:</p>
+
+<pre><code class="language-c">struct _JavaVM {                                                               struct JNIInvokeInterface {                                                 
+    const struct JNIInvokeInterface* functions;                                 void*       reserved0;
+                                                                                void*       reserved1;
+                                                                                void*       reserved2;
+    #if defined(__cplusplus)                                                           
+    jint DestroyJavaVM()                                                       
+    { return functions-&gt;DestroyJavaVM(this); }                                  jint        (*DestroyJavaVM)(JavaVM*);
+    jint AttachCurrentThread(JNIEnv** p_env, void* thr_args)                    jint        (*AttachCurrentThread)(JavaVM*, JNIEnv**, void*);
+    { return functions-&gt;AttachCurrentThread(this, p_env, thr_args); }           jint        (*DetachCurrentThread)(JavaVM*);
+    jint DetachCurrentThread()                                                  jint        (*GetEnv)(JavaVM*, void**, jint);
+    { return functions-&gt;DetachCurrentThread(this); }                            jint        (*AttachCurrentThreadAsDaemon)(JavaVM*, JNIEnv**, void*);
+    jint GetEnv(void** env, jint version)                                      };
+    { return functions-&gt;GetEnv(this, env, version); }
+    jint AttachCurrentThreadAsDaemon(JNIEnv** p_env, void* thr_args)
+    { return functions-&gt;AttachCurrentThreadAsDaemon(this, p_env, thr_args); }
+    #endif /*__cplusplus*/
+};
+</code></pre>
+
+<p>JavaVM在cpp中定义为_JavaVM, 在c中定义为指向JNIInvokeInterface的指针.
+JavaVM只有一个, 因为它是java虚拟机在Jni中的表示.</p>
+
+<p>在用ida加载.apk中.so文件时会发现识别出来的native函数是这样的:</p>
+
+<pre><code>    int __fastcall Java_com_njctf_mobile_easycrack_MainActivity_parseText(int a1, int a2, int a3);
+</code></pre>
+
+<p>java层的函数调用是这样的:</p>
+
+<pre><code>    public native String parseText(String arg1); 
+</code></pre>
+
+<p>而这里的a1就是我们的env, a2就是jobject或者jclass, a3就是String arg1了.
+我们在导入<jni.h>头文件和添加了Structures之后, 就可以对ida中的参数类型和参数名字进行修改了.</p>
+
+<p>修改之后的结果:</p>
+
+<pre><code>int __fastcall Java_com_njctf_mobile_easycrack_MainActivity_parseText(_JNIEnv *env, jobject *obj, jstring inputString);
+</code></pre>
+<ul class="pa0">
+  
+   <li class="list">
+     <a href="/tags/jni" class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">JNI</a>
+   </li>
+  
+   <li class="list">
+     <a href="/tags/android" class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">Android</a>
+   </li>
+  
+</ul>
+<div class="mt6">
+        
+      </div>
+    </main>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-near-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="http://replace-this-with-your-hugo-site.com/" >
+    &copy; 2018 L0phTg&#39;s Blog
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+  </body>
+</html>

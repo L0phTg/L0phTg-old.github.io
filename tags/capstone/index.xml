@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Capstone on L0phTg&#39;s Blog</title>
+    <link>http://replace-this-with-your-hugo-site.com/tags/capstone/</link>
+    <description>Recent content in Capstone on L0phTg&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="http://replace-this-with-your-hugo-site.com/tags/capstone/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>thumb指令虚拟化学习(一)</title>
+      <link>http://replace-this-with-your-hugo-site.com/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://replace-this-with-your-hugo-site.com/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
+      <description>背景 上半年接触过一些 app加固 的知识, 对 vm 这块一直空有兴趣而没有了解过; 最近, 阅读了几篇文章, 有所启发, 所以决定学习一下 vm 这块的一些操作.
+阅读资料 Kcon2017 第五代加固技术ARM VMP原理与应用 ARM平台指令虚拟化探索
+环境搭建:  需要安装python的capstone模块, 可以直接使用pip安装. (另外: 强烈建议下载capstone源码, 以便随时阅读.) bash sudo apt install libcapstone3 sudo apt install libcapstone-dev pip install capstone  ida/radare2 在本节中, 提取指令的时候会用到.
+ arm官方文档(https://yurichev.com/mirrors/ARMv8-A_Architecture_Reference_Manual_(Issue_A.a).pdf)
+  本篇文章大致分为如下几个部分:  手动提取编译好的可执行文件中的 你想要加密的函数, 并转换为 16进制的格式.
+ 初步了解 capstone 中的 对Arm指令进行处理的操作函数.
+ 了解 thumb指令编码 , 此处研究thumb的原因是: 在提出函数的bytes时, 发现自定义的函数, 都被转换成了thumb指令的格式, 所以笔者先研究thumb; 当然, 要知道, thumb并不是独立于arm存在的, thumb的存在是为了提高效率.</description>
+    </item>
+    
+  </channel>
+</rss>
