@@ -2,91 +2,67 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>L0phTg&#39;s Blog</title>
-    <link>http://replace-this-with-your-hugo-site.com/</link>
+    <link>https://example.org/</link>
     <description>Recent content on L0phTg&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-zh</language>
+    <language>zh-cn</language>
     <lastBuildDate>Tue, 18 Sep 2018 00:25:36 +0800</lastBuildDate>
     
-	<atom:link href="http://replace-this-with-your-hugo-site.com/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://example.org/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>My First Post</title>
-      <link>http://replace-this-with-your-hugo-site.com/posts/my-first-post/</link>
+      <link>https://example.org/posts/my-first-post/</link>
       <pubDate>Tue, 18 Sep 2018 00:25:36 +0800</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/posts/my-first-post/</guid>
+      <guid>https://example.org/posts/my-first-post/</guid>
       <description></description>
     </item>
     
     <item>
       <title>elf文件格式和AndroidLinker加载.so的源码分析</title>
-      <link>http://replace-this-with-your-hugo-site.com/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
+      <link>https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
       <pubDate>Sun, 19 Mar 2017 00:00:00 +0000</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
-      <description>基础知识 最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总结一下. 首先我们先分析一下elf的文件格式, 然后再分析linker的源码.
-elf文件格式 本文只对elf文件格式进行简单的分析, 如果要进行深入的了解, 推荐&amp;lt;&amp;lt;程序员的自我修养&amp;gt;&amp;gt;中第3章. /usr/includ/elf.h中定义了elf文件头结构和相关的常数. 分析elf文件时, 建议使用010 editor这款十六进制编辑软件, 运行elf模板后可以清晰的将文件格式显示出来, 大致的显示是(坑, 此处应该用图片的)
-NAME Value Start Size Color Comment struct file 0h 109Ch struct elf_header 0h 34h struct program_header_table 34h 120h struct section_header_table 1B274h 460h struct dynamic_symbol_table 18Ch F10h  可以看到, 一个elf文件中包含一个header, 3个table, 我们一个一个的来分析一下. 首先分析Elf header, 它位于每一个elf文件开始的地方:
-typedef struct typedef struct { { unsigned char e_ident[EI_NIDENT]; /* Magic number and other info */ unsigned char e_ident[EI_NIDENT]; Elf32_Half e_type; /* Object file type */ Elf64_Half e_type; Elf32_Half e_machine; /* Architecture */ Elf64_Half e_machine; Elf32_Word e_version; /* Object file version */ Elf64_Word e_version; Elf32_Addr e_entry; /* Entry point virtual address */ Elf64_Addr e_entry; Elf32_Off e_phoff; /* Program header table file offset */ Elf64_Off e_phoff; Elf32_Off e_shoff; /* Section header table file offset */ Elf64_Off e_shoff; Elf32_Word e_flags; /* Processor-specific flags */ Elf64_Word e_flags; Elf32_Half e_ehsize; /* ELF header size in bytes */ Elf64_Half e_ehsize; Elf32_Half e_phentsize; /* Program header table entry size */ Elf64_Half e_phentsize; Elf32_Half e_phnum; /* Program header table entry count */ Elf64_Half e_phnum; Elf32_Half e_shentsize; /* Section header table entry size */ Elf64_Half e_shentsize; Elf32_Half e_shnum; /* Section header table entry count */ Elf64_Half e_shnum; Elf32_Half e_shstrndx; /* Section header string table index */ Elf64_Half e_shstrndx; } Elf32_Ehdr; } Elf64_Ehdr;  可以看到, header中包含了magic number, 文件类型, 目标文件版本, 入口地址(如果为0, 说明此文件为可重定位文件), program header的开始地址(即为在so文件中的offset), section header的开始地址, 标志位, elf头本身的大小, program header和section header的size和数量, 最后是section header中string section在section中的下标.</description>
+      <guid>https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
+      <description>最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总</description>
     </item>
     
     <item>
       <title>分析Android的JNI编程时所使用的一些函数功能</title>
-      <link>http://replace-this-with-your-hugo-site.com/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</link>
+      <link>https://example.org/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</link>
       <pubDate>Thu, 16 Mar 2017 03:07:59 +0000</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</guid>
-      <description>基本类型 文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24\arch-arm\usr\include\jni.h
-现在来看一下jni.h头文件中内容:
-class _jobject {}; typedef _jobject* jobject; class _jclass : public _jobject {}; typedef _jclass* jclass; class _jstring : public _jobject {}; typedef _jstring* jstring; class _jarray : public _jobject {}; typedef _jarray* jarray; class _jobjectArray : public _jarray {}; typedef _jobjectArray* jobjectArray; class _jbooleanArray : public _jarray {}; typedef _jbooleanArray* jbooleanArray; class _jbyteArray : public _jarray {}; typedef _jbyteArray* jbyteArray; class _jcharArray : public _jarray {}; typedef _jcharArray* jcharArray; class _jshortArray : public _jarray {}; typedef _jshortArray* jshortArray; class _jintArray : public _jarray {}; typedef _jintArray* jintArray; class _jlongArray : public _jarray {}; typedef _jlongArray* jlongArray; class _jfloatArray : public _jarray {}; typedef _jfloatArray* jfloatArray; class _jdoubleArray : public _jarray {}; typedef _jdoubleArray* jdoubleArray; class _jthrowable : public _jobject {}; typedef _jthrowable* jthrowable;  从右边的typedef可以看出,每一个Jni中的cpp类型都有一个Java中的类型与之相对应.</description>
+      <guid>https://example.org/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</guid>
+      <description>分析jni的一些函数及其功能 基本类型 文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24</description>
     </item>
     
     <item>
       <title>第一篇博文-谈谈CVE-2014-7911</title>
-      <link>http://replace-this-with-your-hugo-site.com/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</link>
+      <link>https://example.org/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</link>
       <pubDate>Wed, 01 Mar 2017 20:20:20 +0000</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</guid>
-      <description>漏洞成因: `java.io.ObjectInputStream`类没有对接受的数据进行验证, 导致可以传入一个不可序列化的对象.  利用的原理: android.os.binderproxy对象时不可序列化的, 并且它涉及到一个native代码可以将mObject和mOrgue当作一个指针. 具体来说就是android.os.BinderProxy对象在gc时会调用一个native的`destory`()函数导致任意代码执行. `native` 调用链`destroy()--&amp;gt; decStrong() --&amp;gt; refs-&amp;gt;mBase-&amp;gt;onLastStrongRef(id)`  基础知识 1. Java反序列化分析 每个java object在序列化时都有一个序列号, 这是这种机制称为序列化的原因.  java.io.ObjectOutputStream可以对对象进行序列化, 它的writeObject()方法可以将序列化后写到一个目标输出流中. java.io.ObjectInputStream可以对对象进行反序列化, 它的readObject()方法可以从目标输入流中读入序列化的对象并将其反序列化为原对象. 下面以实例来进行分析: 我们这里定义了一个Employee类(内部有三个实例域和一个构造函数)(其他内部函数已经省略)
-package hihihi; import java.io.*; import java.util.*; public class Employee implements Serializable { private String name; private double salary; private Date hireDay; public Employee(String n, double s, int year, int month, int day) { name = n; salary = s; GregorianCalendar calendar = new GregorianCalendar(year, month - 1, day); hireDay = calendar.</description>
+      <guid>https://example.org/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</guid>
+      <description>分析一个反序列化漏洞, 以及漏洞的产生的利用过程. 漏洞成因: `java.io.ObjectInputStream`类没有对接受的数据进行验证,</description>
     </item>
     
     <item>
       <title>thumb指令虚拟化学习(一)</title>
-      <link>http://replace-this-with-your-hugo-site.com/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
+      <link>https://example.org/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
-      <description>背景 上半年接触过一些 app加固 的知识, 对 vm 这块一直空有兴趣而没有了解过; 最近, 阅读了几篇文章, 有所启发, 所以决定学习一下 vm 这块的一些操作.
-阅读资料 Kcon2017 第五代加固技术ARM VMP原理与应用 ARM平台指令虚拟化探索
-环境搭建:  需要安装python的capstone模块, 可以直接使用pip安装. (另外: 强烈建议下载capstone源码, 以便随时阅读.) bash sudo apt install libcapstone3 sudo apt install libcapstone-dev pip install capstone  ida/radare2 在本节中, 提取指令的时候会用到.
- arm官方文档(https://yurichev.com/mirrors/ARMv8-A_Architecture_Reference_Manual_(Issue_A.a).pdf)
-  本篇文章大致分为如下几个部分:  手动提取编译好的可执行文件中的 你想要加密的函数, 并转换为 16进制的格式.
- 初步了解 capstone 中的 对Arm指令进行处理的操作函数.
- 了解 thumb指令编码 , 此处研究thumb的原因是: 在提出函数的bytes时, 发现自定义的函数, 都被转换成了thumb指令的格式, 所以笔者先研究thumb; 当然, 要知道, thumb并不是独立于arm存在的, thumb的存在是为了提高效率.</description>
+      <guid>https://example.org/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
+      <description>上半年接触过一些 app加固 的知识, 对 vm 这块一直空有兴趣而没有了解过; 最近, 阅读了几篇文章, 有所启发, 所以决定学习一下 vm 这块的一些操作. 背景 上</description>
     </item>
     
     <item>
       <title>装机日志-deepin</title>
-      <link>http://replace-this-with-your-hugo-site.com/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
+      <link>https://example.org/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</guid>
-      <description>背景 最近一直在码代码和写.md, 深刻体会到在windows上办公有多么艰难. 安装了一下spacevim/neovim后, 意识到了高效率的办公会给人带来很大的乐趣. 所以, 在遇到了很多与环境配置相关的问题(却解决不了之后), 毅然决定更换系统.
-选择 犹豫了一天到底是该装Ubuntu16.04还是deepin(导致上课前, 忘了给舍友刷卡...).最终还是经不住deepin绚丽的UI设计的诱惑, 决定尝试一下deepin.(没错, 颜值在我心中就是这么重要)
-装机过程 装机过程很简单, 下载好官方的镜像源, 之后检验一下md5.
-$checksum  然后用官方的启动盘制作工具把U盘装入deepin, 重启时插入U盘, 设置为U盘启动就可以了.
-重点来了, 因为我不想用windows10了, 所以直接把系统装在c盘中, 因为原来的系统有3个分区, 所以装机时不用格式化 D 盘 和 E 盘(我的E盘有7/8个虚拟机文件, 在装好deepin后, 依然可以正常使用)
-装机总结: - deepin系统装入c盘.
-- D盘, E盘可以不用格式化.(当然, 如果电脑里没啥重要文件的, skip it)
-下来就是激动人心的时刻了 先放几张图:
-桌面 {% asset_img desktop.png 桌面%}
-分屏 {% asset_img splitScreen.png 分屏 %}
-我们最爱的vim {% asset_img vimMarkdownPreview.png vimMarkdown %}
-当然, 还有很多其它的不错的设计, 这里就不多放图了.
-配置nvim/spacevim 依赖项: - python支持: 建议先pip install neovim和pip3 install neovim.</description>
+      <guid>https://example.org/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</guid>
+      <description>17年使用了一段时间deepin系统, 这里简单记录一些使用心得(现在已转ubuntu. 背景 最近一直在码代码和写.md, 深刻体会到在windo</description>
     </item>
     
   </channel>

@@ -2,25 +2,22 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Android源码 on L0phTg&#39;s Blog</title>
-    <link>http://replace-this-with-your-hugo-site.com/tags/android%E6%BA%90%E7%A0%81/</link>
+    <link>https://example.org/tags/android%E6%BA%90%E7%A0%81/</link>
     <description>Recent content in Android源码 on L0phTg&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-zh</language>
+    <language>zh-cn</language>
     <lastBuildDate>Sun, 19 Mar 2017 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="http://replace-this-with-your-hugo-site.com/tags/android%E6%BA%90%E7%A0%81/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://example.org/tags/android%E6%BA%90%E7%A0%81/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>elf文件格式和AndroidLinker加载.so的源码分析</title>
-      <link>http://replace-this-with-your-hugo-site.com/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
+      <link>https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
       <pubDate>Sun, 19 Mar 2017 00:00:00 +0000</pubDate>
       
-      <guid>http://replace-this-with-your-hugo-site.com/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
-      <description>基础知识 最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总结一下. 首先我们先分析一下elf的文件格式, 然后再分析linker的源码.
-elf文件格式 本文只对elf文件格式进行简单的分析, 如果要进行深入的了解, 推荐&amp;lt;&amp;lt;程序员的自我修养&amp;gt;&amp;gt;中第3章. /usr/includ/elf.h中定义了elf文件头结构和相关的常数. 分析elf文件时, 建议使用010 editor这款十六进制编辑软件, 运行elf模板后可以清晰的将文件格式显示出来, 大致的显示是(坑, 此处应该用图片的)
-NAME Value Start Size Color Comment struct file 0h 109Ch struct elf_header 0h 34h struct program_header_table 34h 120h struct section_header_table 1B274h 460h struct dynamic_symbol_table 18Ch F10h  可以看到, 一个elf文件中包含一个header, 3个table, 我们一个一个的来分析一下. 首先分析Elf header, 它位于每一个elf文件开始的地方:
-typedef struct typedef struct { { unsigned char e_ident[EI_NIDENT]; /* Magic number and other info */ unsigned char e_ident[EI_NIDENT]; Elf32_Half e_type; /* Object file type */ Elf64_Half e_type; Elf32_Half e_machine; /* Architecture */ Elf64_Half e_machine; Elf32_Word e_version; /* Object file version */ Elf64_Word e_version; Elf32_Addr e_entry; /* Entry point virtual address */ Elf64_Addr e_entry; Elf32_Off e_phoff; /* Program header table file offset */ Elf64_Off e_phoff; Elf32_Off e_shoff; /* Section header table file offset */ Elf64_Off e_shoff; Elf32_Word e_flags; /* Processor-specific flags */ Elf64_Word e_flags; Elf32_Half e_ehsize; /* ELF header size in bytes */ Elf64_Half e_ehsize; Elf32_Half e_phentsize; /* Program header table entry size */ Elf64_Half e_phentsize; Elf32_Half e_phnum; /* Program header table entry count */ Elf64_Half e_phnum; Elf32_Half e_shentsize; /* Section header table entry size */ Elf64_Half e_shentsize; Elf32_Half e_shnum; /* Section header table entry count */ Elf64_Half e_shnum; Elf32_Half e_shstrndx; /* Section header string table index */ Elf64_Half e_shstrndx; } Elf32_Ehdr; } Elf64_Ehdr;  可以看到, header中包含了magic number, 文件类型, 目标文件版本, 入口地址(如果为0, 说明此文件为可重定位文件), program header的开始地址(即为在so文件中的offset), section header的开始地址, 标志位, elf头本身的大小, program header和section header的size和数量, 最后是section header中string section在section中的下标.</description>
+      <guid>https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
+      <description>最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总</description>
     </item>
     
   </channel>
