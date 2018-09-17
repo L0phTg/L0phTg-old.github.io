@@ -2,66 +2,66 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on L0phTg&#39;s Blog</title>
-    <link>https://example.org/posts/</link>
+    <link>https://l0phtg.github.io/posts/</link>
     <description>Recent content in Posts on L0phTg&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <lastBuildDate>Tue, 18 Sep 2018 00:25:36 +0800</lastBuildDate>
     
-	<atom:link href="https://example.org/posts/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://l0phtg.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>My First Post</title>
-      <link>https://example.org/posts/my-first-post/</link>
+      <link>https://l0phtg.github.io/posts/my-first-post/</link>
       <pubDate>Tue, 18 Sep 2018 00:25:36 +0800</pubDate>
       
-      <guid>https://example.org/posts/my-first-post/</guid>
+      <guid>https://l0phtg.github.io/posts/my-first-post/</guid>
       <description></description>
     </item>
     
     <item>
       <title>elf文件格式和AndroidLinker加载.so的源码分析</title>
-      <link>https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
+      <link>https://l0phtg.github.io/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
       <pubDate>Sun, 19 Mar 2017 00:00:00 +0000</pubDate>
       
-      <guid>https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
+      <guid>https://l0phtg.github.io/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
       <description>最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总</description>
     </item>
     
     <item>
       <title>分析Android的JNI编程时所使用的一些函数功能</title>
-      <link>https://example.org/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</link>
+      <link>https://l0phtg.github.io/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</link>
       <pubDate>Thu, 16 Mar 2017 03:07:59 +0000</pubDate>
       
-      <guid>https://example.org/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</guid>
+      <guid>https://l0phtg.github.io/posts/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</guid>
       <description>分析jni的一些函数及其功能 基本类型 文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24</description>
     </item>
     
     <item>
       <title>第一篇博文-谈谈CVE-2014-7911</title>
-      <link>https://example.org/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</link>
+      <link>https://l0phtg.github.io/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</link>
       <pubDate>Wed, 01 Mar 2017 20:20:20 +0000</pubDate>
       
-      <guid>https://example.org/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</guid>
+      <guid>https://l0phtg.github.io/posts/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</guid>
       <description>分析一个反序列化漏洞, 以及漏洞的产生的利用过程. 漏洞成因: `java.io.ObjectInputStream`类没有对接受的数据进行验证,</description>
     </item>
     
     <item>
       <title>thumb指令虚拟化学习(一)</title>
-      <link>https://example.org/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
+      <link>https://l0phtg.github.io/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://example.org/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
+      <guid>https://l0phtg.github.io/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
       <description>上半年接触过一些 app加固 的知识, 对 vm 这块一直空有兴趣而没有了解过; 最近, 阅读了几篇文章, 有所启发, 所以决定学习一下 vm 这块的一些操作. 背景 上</description>
     </item>
     
     <item>
       <title>装机日志-deepin</title>
-      <link>https://example.org/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
+      <link>https://l0phtg.github.io/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://example.org/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</guid>
+      <guid>https://l0phtg.github.io/posts/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</guid>
       <description>17年使用了一段时间deepin系统, 这里简单记录一些使用心得(现在已转ubuntu. 背景 最近一直在码代码和写.md, 深刻体会到在windo</description>
     </item>
     

@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>加固 on L0phTg&#39;s Blog</title>
-    <link>https://example.org/tags/%E5%8A%A0%E5%9B%BA/</link>
+    <link>https://l0phtg.github.io/tags/%E5%8A%A0%E5%9B%BA/</link>
     <description>Recent content in 加固 on L0phTg&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     
-	<atom:link href="https://example.org/tags/%E5%8A%A0%E5%9B%BA/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://l0phtg.github.io/tags/%E5%8A%A0%E5%9B%BA/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>thumb指令虚拟化学习(一)</title>
-      <link>https://example.org/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
+      <link>https://l0phtg.github.io/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://example.org/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
+      <guid>https://l0phtg.github.io/posts/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
       <description>上半年接触过一些 app加固 的知识, 对 vm 这块一直空有兴趣而没有了解过; 最近, 阅读了几篇文章, 有所启发, 所以决定学习一下 vm 这块的一些操作. 背景 上</description>
     </item>
     

@@ -8,7 +8,7 @@
 <meta property="og:title" content="elf文件格式和AndroidLinker加载.so的源码分析" />
 <meta property="og:description" content="最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" /><meta property="article:published_time" content="2017-03-19T00:00:00&#43;00:00"/>
+<meta property="og:url" content="https://l0phtg.github.io/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" /><meta property="article:published_time" content="2017-03-19T00:00:00&#43;00:00"/>
 <meta property="article:modified_time" content="2017-03-19T00:00:00&#43;00:00"/>
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="elf文件格式和AndroidLinker加载.so的源码分析"/>
@@ -22,7 +22,7 @@
   "@context": "http://schema.org",
   "@type": "BlogPosting",
   "headline": "elf文件格式和AndroidLinker加载.so的源码分析",
-  "url": "https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/",
+  "url": "https://l0phtg.github.io/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/",
   "wordCount": "3530",
   "datePublished": "2017-03-19T00:00:00&#43;00:00",
   "dateModified": "2017-03-19T00:00:00&#43;00:00",
@@ -36,12 +36,12 @@
 
 
 
-    <link rel="canonical" href="https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+    <link rel="canonical" href="https://l0phtg.github.io/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
 
     <title>elf文件格式和AndroidLinker加载.so的源码分析 | L0phTg&#39;s Blog</title>
 
     <!-- combined, minified CSS -->
-    <link href="https://example.org/css/style.css" rel="stylesheet" integrity="sha384-6&#43;EGfPoOzk/n2DVJSlglKT8TV1TgIMvVcKI73IZgBswLasPBn94KommV6ilJqCXE" crossorigin="anonymous">
+    <link href="https://l0phtg.github.io/css/style.css" rel="stylesheet" integrity="sha384-6&#43;EGfPoOzk/n2DVJSlglKT8TV1TgIMvVcKI73IZgBswLasPBn94KommV6ilJqCXE" crossorigin="anonymous">
 
     
 
@@ -59,7 +59,7 @@
     <div class="blog-masthead">
       <div class="container">
         <nav class="nav blog-nav">
-          <a class="nav-link " href="https://example.org/">Home</a>
+          <a class="nav-link " href="https://l0phtg.github.io/">Home</a>
         </nav>
       </div>
     </div>
@@ -79,7 +79,7 @@
 
 <article class="blog-post">
   <header>
-    <h2 class="blog-post-title"><a href="https://example.org/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">elf文件格式和AndroidLinker加载.so的源码分析</a></h2>
+    <h2 class="blog-post-title"><a href="https://l0phtg.github.io/posts/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">elf文件格式和AndroidLinker加载.so的源码分析</a></h2>
     <p class="blog-post-meta"><time datetime="2017-03-19T00:00:00Z">Sun Mar 19, 2017</time> by L0phTg in 
 <i class="fa fa-folder" aria-hidden="true"></i>&nbsp;<a href="/categories/android" rel="category tag">Android</a>
 
@@ -491,10 +491,10 @@ const Elf32_Phdr* phdr = &amp;phdr<em>table</em>[i];   // 遍历program header t
     <section>
     <h4>Share</h4>
     <nav class="nav sharing-icons">
-      <a class="nav-item" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fexample.org%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Share on Facebook"><span class="fa fa-facebook fa-2x" aria-hidden="true"></span></a>
-      <a class="nav-item" href="https://plus.google.com/share?url=https%3a%2f%2fexample.org%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Share on Google+"><span class="fa fa-google-plus fa-2x" aria-hidden="true"></span></a>
-      <a class="nav-item" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fexample.org%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Share on LinkedIn"><span class="fa fa-linkedin fa-2x" aria-hidden="true"></span></a>
-      <a class="nav-item" href="https://twitter.com/home?status=https%3a%2f%2fexample.org%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Tweet this"><span class="fa fa-twitter fa-2x"></span></a>
+      <a class="nav-item" href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fl0phtg.github.io%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Share on Facebook"><span class="fa fa-facebook fa-2x" aria-hidden="true"></span></a>
+      <a class="nav-item" href="https://plus.google.com/share?url=https%3a%2f%2fl0phtg.github.io%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Share on Google+"><span class="fa fa-google-plus fa-2x" aria-hidden="true"></span></a>
+      <a class="nav-item" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fl0phtg.github.io%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Share on LinkedIn"><span class="fa fa-linkedin fa-2x" aria-hidden="true"></span></a>
+      <a class="nav-item" href="https://twitter.com/home?status=https%3a%2f%2fl0phtg.github.io%2fposts%2felf%25E6%2596%2587%25E4%25BB%25B6%25E6%25A0%25BC%25E5%25BC%258F%25E5%2592%258Candroidlinker%25E5%258A%25A0%25E8%25BD%25BD-so%25E7%259A%2584%25E6%25BA%2590%25E7%25A0%2581%25E5%2588%2586%25E6%259E%2590%2f" title="Tweet this"><span class="fa fa-twitter fa-2x"></span></a>
     </nav>
   </section>
 
