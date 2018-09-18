@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>分析Android的JNI编程时所使用的一些函数功能 - L0phTg&#39;s Blog</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="分析jni调用时的一些函数及其函数功能.
+如 GetEnv &amp;hellip;
+本文已长草.
+
+" />
+
+  <meta name="keywords" content="Hugo, theme, jane" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="分析Android的JNI编程时所使用的一些函数功能" />
+<meta property="og:description" content="分析jni调用时的一些函数及其函数功能.
+
+如 GetEnv &hellip;
+
+本文已长草.
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/" /><meta property="article:published_time" content="2017-03-16T03:07:59&#43;00:00"/>
+<meta property="article:modified_time" content="2017-03-16T03:07:59&#43;00:00"/>
+<meta itemprop="name" content="分析Android的JNI编程时所使用的一些函数功能">
+<meta itemprop="description" content="分析jni调用时的一些函数及其函数功能.
+
+如 GetEnv &hellip;
+
+本文已长草.
+
+">
+
+
+<meta itemprop="datePublished" content="2017-03-16T03:07:59&#43;00:00" />
+<meta itemprop="dateModified" content="2017-03-16T03:07:59&#43;00:00" />
+<meta itemprop="wordCount" content="932">
+
+
+
+<meta itemprop="keywords" content="JNI,Android," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="分析Android的JNI编程时所使用的一些函数功能"/>
+<meta name="twitter:description" content="分析jni调用时的一些函数及其函数功能.
+
+如 GetEnv &hellip;
+
+本文已长草.
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/post/">Archives</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/tags/">Tags</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/about/">About</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+              <i class="iconfont icon-new-window"></i>
+            </a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg's Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">分析Android的JNI编程时所使用的一些函数功能</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2017-03-16 </span>
+        <div class="post-category">
+            <a href="https://l0phtg.github.io/categories/android/"> Android </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#基本类型">基本类型</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>分析<strong>jni调用时</strong>的一些函数及其函数功能.</p>
+
+<p>如 GetEnv &hellip;</p>
+
+<p>本文已长草.</p>
+
+<p></p>
+
+<h2 id="基本类型">基本类型</h2>
+
+<p><jni.h>文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24\arch-arm\usr\include\jni.h</p>
+
+<p>现在来看一下jni.h头文件中内容:</p>
+
+<pre><code class="language-cpp">    class _jobject {};                                      typedef _jobject*       jobject;
+    class _jclass : public _jobject {};                     typedef _jclass*        jclass;         
+    class _jstring : public _jobject {};                    typedef _jstring*       jstring;
+    class _jarray : public _jobject {};                     typedef _jarray*        jarray;
+    class _jobjectArray : public _jarray {};                typedef _jobjectArray*  jobjectArray;
+    class _jbooleanArray : public _jarray {};               typedef _jbooleanArray* jbooleanArray;
+    class _jbyteArray : public _jarray {};                  typedef _jbyteArray*    jbyteArray;
+    class _jcharArray : public _jarray {};                  typedef _jcharArray*    jcharArray;
+    class _jshortArray : public _jarray {};                 typedef _jshortArray*   jshortArray;
+    class _jintArray : public _jarray {};                   typedef _jintArray*     jintArray;
+    class _jlongArray : public _jarray {};                  typedef _jlongArray*    jlongArray;
+    class _jfloatArray : public _jarray {};                 typedef _jfloatArray*   jfloatArray;
+    class _jdoubleArray : public _jarray {};                typedef _jdoubleArray*  jdoubleArray;
+    class _jthrowable : public _jobject {};                 typedef _jthrowable*    jthrowable;
+</code></pre>
+
+<p>从右边的typedef可以看出,每一个Jni中的cpp类型都有一个Java中的类型与之相对应.</p>
+
+<p>这里我们重点分析经常看到的_JNIEnv,_JavaVM,JNIEnv,JavaVM</p>
+
+<pre><code class="language-cpp">struct _JNIEnv;
+struct _JavaVM;
+typedef const struct JNINativeInterface* C_JNIEnv;
+
+#if defined(__cplusplus)
+typedef _JNIEnv JNIEnv;
+typedef _JavaVM JavaVM;
+#else
+typedef const struct JNINativeInterface* JNIEnv;
+typedef const struct JNIInvokeInterface* JavaVM;
+#endif
+</code></pre>
+
+<p>JNINativeInterface为Native层的接口函数指针表, Jni中的本地函数通过这些接口来调用java层的函数.
+/_JNIEnv是一个object, 包含一个指向JNINativeInterface的指针变量function和一些接口函数.
+JNIEnv在cpp中的定义为_JNIEnv, 在c中的定义为 struct JNINativeInterface*.
+JNIEnv: 每一个线程中都有一个属于自己线程的env, 且只在创建自己的线程内有效, 不能跨线程传递.
+下面分析JavaVM:</p>
+
+<pre><code class="language-c">struct _JavaVM {                                                               struct JNIInvokeInterface {                                                 
+    const struct JNIInvokeInterface* functions;                                 void*       reserved0;
+                                                                                void*       reserved1;
+                                                                                void*       reserved2;
+    #if defined(__cplusplus)                                                           
+    jint DestroyJavaVM()                                                       
+    { return functions-&gt;DestroyJavaVM(this); }                                  jint        (*DestroyJavaVM)(JavaVM*);
+    jint AttachCurrentThread(JNIEnv** p_env, void* thr_args)                    jint        (*AttachCurrentThread)(JavaVM*, JNIEnv**, void*);
+    { return functions-&gt;AttachCurrentThread(this, p_env, thr_args); }           jint        (*DetachCurrentThread)(JavaVM*);
+    jint DetachCurrentThread()                                                  jint        (*GetEnv)(JavaVM*, void**, jint);
+    { return functions-&gt;DetachCurrentThread(this); }                            jint        (*AttachCurrentThreadAsDaemon)(JavaVM*, JNIEnv**, void*);
+    jint GetEnv(void** env, jint version)                                      };
+    { return functions-&gt;GetEnv(this, env, version); }
+    jint AttachCurrentThreadAsDaemon(JNIEnv** p_env, void* thr_args)
+    { return functions-&gt;AttachCurrentThreadAsDaemon(this, p_env, thr_args); }
+    #endif /*__cplusplus*/
+};
+</code></pre>
+
+<p>JavaVM在cpp中定义为_JavaVM, 在c中定义为指向JNIInvokeInterface的指针.
+JavaVM只有一个, 因为它是java虚拟机在Jni中的表示.</p>
+
+<p>在用ida加载.apk中.so文件时会发现识别出来的native函数是这样的:</p>
+
+<pre><code>    int __fastcall Java_com_njctf_mobile_easycrack_MainActivity_parseText(int a1, int a2, int a3);
+</code></pre>
+
+<p>java层的函数调用是这样的:</p>
+
+<pre><code>    public native String parseText(String arg1); 
+</code></pre>
+
+<p>而这里的a1就是我们的env, a2就是jobject或者jclass, a3就是String arg1了.
+我们在导入<jni.h>头文件和添加了Structures之后, 就可以对ida中的参数类型和参数名字进行修改了.</p>
+
+<p>修改之后的结果:</p>
+
+<pre><code>int __fastcall Java_com_njctf_mobile_easycrack_MainActivity_parseText(_JNIEnv *env, jobject *obj, jstring inputString);
+</code></pre>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-03-16</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="https://l0phtg.github.io/tags/jni/">JNI</a>
+          <a href="https://l0phtg.github.io/tags/android/">Android</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">elf文件格式和AndroidLinker加载.so的源码分析</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/">
+            <span class="next-text nav-default">第一篇博文-谈谈CVE-2014-7911</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener alternate" type="application/rss&#43;xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+  </div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">
+        l0phtg
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://example.com/es/</loc>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://example.com/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="de"
+                href="https://example.com/de/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://example.com/es/"
+                />
+  </url>
+  
+  <url>
+    <loc>https://example.com/es/categories/</loc>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://example.com/categories/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="de"
+                href="https://example.com/de/categories/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://example.com/es/categories/"
+                />
+  </url>
+  
+  <url>
+    <loc>https://example.com/es/tags/</loc>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://example.com/tags/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="de"
+                href="https://example.com/de/tags/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://example.com/es/tags/"
+                />
+  </url>
+  
+  <url>
+    <loc>https://example.com/es/ua-47268287-3/</loc>
+    <priority>0</priority>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en"
+                href="https://example.com/ua-47268287-3/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="de"
+                href="https://example.com/de/ua-47268287-3/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="es"
+                href="https://example.com/es/ua-47268287-3/"
+                />
+  </url>
+  
+</urlset>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on L0phTg&#39;s Blog</title>
+    <link>https://l0phtg.github.io/post/</link>
+    <description>Recent content in Posts on L0phTg&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>l0phtg</copyright>
+    <lastBuildDate>Thu, 28 Dec 2017 11:47:58 +0000</lastBuildDate>
+    
+	<atom:link href="https://l0phtg.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>装机日志-deepin</title>
+      <link>https://l0phtg.github.io/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
+      <pubDate>Thu, 28 Dec 2017 11:47:58 +0000</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</guid>
+      <description>&lt;p&gt;17年使用了一段时间deepin系统, 这里简单记录一些使用心得(现在已转ubuntu.&lt;/p&gt;
+
+&lt;p&gt;主要就是&lt;strong&gt;装机的过程&lt;/strong&gt;, 以及&lt;strong&gt;装机后的效果展示&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>thumb指令虚拟化学习(一)</title>
+      <link>https://l0phtg.github.io/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
+      <pubDate>Tue, 24 Oct 2017 20:23:30 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
+      <description>&lt;p&gt;上半年接触过一些 &lt;strong&gt;app加固&lt;/strong&gt; 的知识, 对 &lt;strong&gt;vm&lt;/strong&gt; 这块一直空有兴趣而没有了解过;  最近, 阅读了几篇文章, &lt;code&gt;有所启发&lt;/code&gt;, 所以决定学习一下 &lt;strong&gt;vm&lt;/strong&gt; 这块的一些操作.&lt;/p&gt;
+
+&lt;p&gt;主要内容分为:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;环境搭建&lt;/li&gt;
+&lt;li&gt;提取指令&lt;/li&gt;
+&lt;li&gt;capstone处理&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>elf文件格式和AndroidLinker加载.so的源码分析</title>
+      <link>https://l0phtg.github.io/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
+      <pubDate>Sun, 19 Mar 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
+      <description>&lt;p&gt;最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总结一下.&lt;/p&gt;
+
+&lt;p&gt;本文主要内容:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;elf的文件格式&lt;/li&gt;
+&lt;li&gt;分析linker的源码, 主要dlopen流程.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>分析Android的JNI编程时所使用的一些函数功能</title>
+      <link>https://l0phtg.github.io/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</link>
+      <pubDate>Thu, 16 Mar 2017 03:07:59 +0000</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</guid>
+      <description>&lt;p&gt;分析&lt;strong&gt;jni调用时&lt;/strong&gt;的一些函数及其函数功能.&lt;/p&gt;
+
+&lt;p&gt;如 GetEnv &amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;本文已长草.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>第一篇博文-谈谈CVE-2014-7911</title>
+      <link>https://l0phtg.github.io/post/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</link>
+      <pubDate>Wed, 01 Mar 2017 20:20:20 +0000</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</guid>
+      <description>&lt;p&gt;分析一个反序列化漏洞, 以及漏洞的产生的利用过程.&lt;/p&gt;
+
+&lt;p&gt;本文主要内容:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;漏洞成因&lt;/li&gt;
+&lt;li&gt;漏洞利用的原理&lt;/li&gt;
+&lt;li&gt;基础知识&lt;/li&gt;
+&lt;li&gt;漏洞利用流程&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
