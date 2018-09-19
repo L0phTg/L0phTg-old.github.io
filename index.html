@@ -306,6 +306,74 @@
     
       <article class="post bg-white">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/">Iqiyi开源hook框架XHook分析</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2018-09-19 </span>
+      <div class="post-category">
+          <a href="https://l0phtg.github.io/categories/hook/"> hook </a>
+          
+        </div>
+      
+      
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p>Got Hook 可以使用dlsym得到目标函数的地址, 然后遍历got表进行Hook.</p>
+
+<p>但是有时候我们不能通过dlsym得到函数地址. 这时我们需要怎么办呢? iqiyi的xhook很好的解决了这个问题, (可以参考linker的实现, <strong>有问题, 看源码</strong>.</p>
+
+<p>通过找到目标函数地址存放在got表中位置, 只要找到了目标symbol在got表中的offset, 想要修改或者得到目标函数的实际地址就轻松多了.</p>
+
+<p>symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/" class="read-more-link">Read more</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/">InlineHook学习分析</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2018-09-19 </span>
+      <div class="post-category">
+          <a href="https://l0phtg.github.io/categories/hook/"> Hook </a>
+          
+        </div>
+      
+      
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p>分析开源的inlineHook代码, 总结inlineHook的原理与实现.</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/" class="read-more-link">Read more</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/">装机日志-deepin</a></h1>
     
     <div class="post-meta">
@@ -370,79 +438,6 @@
     </div>
     <div class="read-more">
       <a href="/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">elf文件格式和AndroidLinker加载.so的源码分析</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2017-03-19 </span>
-      <div class="post-category">
-          <a href="https://l0phtg.github.io/categories/android/"> Android </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总结一下.</p>
-
-<p>本文主要内容:</p>
-
-<ul>
-<li>elf的文件格式</li>
-<li>分析linker的源码, 主要dlopen流程.</li>
-</ul>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/">分析Android的JNI编程时所使用的一些函数功能</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2017-03-16 </span>
-      <div class="post-category">
-          <a href="https://l0phtg.github.io/categories/android/"> Android </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>分析<strong>jni调用时</strong>的一些函数及其函数功能.</p>
-
-<p>如 GetEnv &hellip;</p>
-
-<p>本文已长草.</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/" class="read-more-link">Read more</a>
     </div>
     
   </div>

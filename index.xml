@@ -27,6 +27,1276 @@
     </item>
     
     <item>
+      <title>Iqiyi开源hook框架XHook分析</title>
+      <link>https://l0phtg.github.io/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/</link>
+      <pubDate>Wed, 19 Sep 2018 02:19:05 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/</guid>
+      
+        <description>&lt;p&gt;Got Hook 可以使用dlsym得到目标函数的地址, 然后遍历got表进行Hook.&lt;/p&gt;
+
+&lt;p&gt;但是有时候我们不能通过dlsym得到函数地址. 这时我们需要怎么办呢? iqiyi的xhook很好的解决了这个问题, (可以参考linker的实现, &lt;strong&gt;有问题, 看源码&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;通过找到目标函数地址存放在got表中位置, 只要找到了目标symbol在got表中的offset, 想要修改或者得到目标函数的实际地址就轻松多了.&lt;/p&gt;
+
+&lt;p&gt;symbol -&amp;gt; symid -&amp;gt; 在got表中的offset  -&amp;gt; 目标函数实际地址&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;阅读readme&#34;&gt;阅读Readme&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/iqiyi/xHook/blob/master/README.zh-CN.md&#34;&gt;https://github.com/iqiyi/xHook/blob/master/README.zh-CN.md&lt;/a&gt;
+&lt;a href=&#34;https://github.com/iqiyi/xHook/blob/master/docs/overview/android_plt_hook_overview.zh-CN.md&#34;&gt;https://github.com/iqiyi/xHook/blob/master/docs/overview/android_plt_hook_overview.zh-CN.md&lt;/a&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;//监测内存泄露
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;malloc&amp;quot;,  my_malloc,  NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;calloc&amp;quot;,  my_calloc,  NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;realloc&amp;quot;, my_realloc, NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;free&amp;quot;,    my_free,    NULL);
+
+//监控 sockets 生命周期
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;getaddrinfo&amp;quot;, my_getaddrinfo, NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;socket&amp;quot;,      my_socket,      NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;setsockopt&amp;quot;   my_setsockopt,  NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;bind&amp;quot;,        my_bind,        NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;listen&amp;quot;,      my_listen,      NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;connect&amp;quot;,     my_connect,     NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;shutdown&amp;quot;,    my_shutdown,    NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;close&amp;quot;,       my_close,       NULL);
+
+//过滤出和保存部分安卓 log 到本地文件
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_write&amp;quot;,  my_log_write,  NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_print&amp;quot;,  my_log_print,  NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_vprint&amp;quot;, my_log_vprint, NULL);
+xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_assert&amp;quot;, my_log_assert, NULL);
+
+//追踪某些调用 (忽略 linker 和 linker64)
+xhook_register(&amp;quot;^/system/.*$&amp;quot;, &amp;quot;mmap&amp;quot;,   my_mmap,   NULL);
+xhook_register(&amp;quot;^/vendor/.*$&amp;quot;, &amp;quot;munmap&amp;quot;, my_munmap, NULL);
+xhook_ignore  (&amp;quot;.*/linker$&amp;quot;,   &amp;quot;mmap&amp;quot;);
+xhook_ignore  (&amp;quot;.*/linker$&amp;quot;,   &amp;quot;munmap&amp;quot;);
+xhook_ignore  (&amp;quot;.*/linker64$&amp;quot;, &amp;quot;mmap&amp;quot;);
+xhook_ignore  (&amp;quot;.*/linker64$&amp;quot;, &amp;quot;munmap&amp;quot;);
+
+//防御某些注入攻击
+xhook_register(&amp;quot;.*com\\.hacker.*\\.so$&amp;quot;, &amp;quot;malloc&amp;quot;,  my_malloc_always_return_NULL, NULL);
+xhook_register(&amp;quot;.*/libhacker\\.so$&amp;quot;,     &amp;quot;connect&amp;quot;, my_connect_with_recorder,     NULL);
+
+//修复某些系统 bug
+xhook_register(&amp;quot;.*some_vendor.*/libvictim\\.so$&amp;quot;, &amp;quot;bad_func&amp;quot;, my_nice_func, NULL);
+
+//忽略 libwebviewchromium.so 的所有 hook 信息
+xhook_ignore(&amp;quot;.*/libwebviewchromium.so$&amp;quot;, NULL);
+
+//现在执行 hook!
+xhook_refresh(1);
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;发现重点为下面几个函数:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;xhook_register&lt;/li&gt;
+&lt;li&gt;xhook_ignore&lt;/li&gt;
+&lt;li&gt;xhook_refresh&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;接下来依次分析&lt;/p&gt;
+
+&lt;h1 id=&#34;分析&#34;&gt;分析&lt;/h1&gt;
+
+&lt;h2 id=&#34;xhook-register-hook函数注册&#34;&gt;xhook_register Hook函数注册&lt;/h2&gt;
+
+&lt;h3 id=&#34;函数申明&#34;&gt;函数申明&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;int xhook_register(const char *pathname_regex_str, const char *symbol,
+                   void *new_func, void **old_func) XHOOK_EXPORT;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;函数实现分析&#34;&gt;函数实现分析&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;int xhook_register(const char *pathname_regex_str, const char *symbol,
+                   void *new_func, void **old_func)
+{
+    return xh_core_register(pathname_regex_str, symbol, new_func, old_func);
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;xh_core_register&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;int xh_core_register(const char *pathname_regex_str, const char *symbol,
+                     void *new_func, void **old_func)
+{
+    xh_core_hook_info_t *hi;
+    regex_t              regex;
+
+    if(NULL == pathname_regex_str || NULL == symbol || NULL == new_func) return XH_ERRNO_INVAL;
+
+    if(xh_core_inited)
+    {
+        XH_LOG_ERROR(&amp;quot;do not register hook after refresh(): %s, %s&amp;quot;, pathname_regex_str, symbol);
+        return XH_ERRNO_INVAL;
+    }
+
+    if(0 != regcomp(&amp;amp;regex, pathname_regex_str, REG_NOSUB)) return XH_ERRNO_INVAL;
+
+    if(NULL == (hi = malloc(sizeof(xh_core_hook_info_t)))) return XH_ERRNO_NOMEM;
+    if(NULL == (hi-&amp;gt;symbol = strdup(symbol)))
+    {
+        free(hi);
+        return XH_ERRNO_NOMEM;
+    }
+#if XH_CORE_DEBUG
+    if(NULL == (hi-&amp;gt;pathname_regex_str = strdup(pathname_regex_str)))
+    {
+        free(hi-&amp;gt;symbol);
+        free(hi);
+        return XH_ERRNO_NOMEM;
+    }
+#endif
+    hi-&amp;gt;pathname_regex = regex;
+    hi-&amp;gt;new_func = new_func;
+    hi-&amp;gt;old_func = old_func;
+    
+    pthread_mutex_lock(&amp;amp;xh_core_mutex);
+    TAILQ_INSERT_TAIL(&amp;amp;xh_core_hook_info, hi, link); // 核心
+    pthread_mutex_unlock(&amp;amp;xh_core_mutex);
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;xh_elf_init:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;设置 load_bias, elf_header, Program header地址.&lt;/li&gt;
+&lt;li&gt;找到第一个PT_LOAD段&lt;/li&gt;
+&lt;li&gt;找到dynamic_header. 之后解析dynamic segment, 找到strtab, symtab, rel.plt, .rel,等
+```&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;int xh_elf_init(xh_elf_t *self, uintptr_t base_addr, const char *pathname)
+{
+    if(0 == base_addr || NULL == pathname) return XH_ERRNO_INVAL;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;//always reset
+memset(self, 0, sizeof(xh_elf_t));
+
+self-&amp;gt;pathname = pathname;
+self-&amp;gt;base_addr = (ElfW(Addr))base_addr;
+self-&amp;gt;ehdr = (ElfW(Ehdr) *)base_addr;
+self-&amp;gt;phdr = (ElfW(Phdr) *)(base_addr + self-&amp;gt;ehdr-&amp;gt;e_phoff); //segmentation fault sometimes
+
+//find the first load-segment with offset 0
+ElfW(Phdr) *phdr0 = xh_elf_get_first_segment_by_type_offset(self, PT_LOAD, 0);
+if(NULL == phdr0)
+{
+    XH_LOG_ERROR(&amp;quot;Can NOT found the first load segment. %s&amp;quot;, pathname);
+    return XH_ERRNO_FORMAT;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;#if XH_ELF_DEBUG
+    if(0 != phdr0-&amp;gt;p_vaddr)
+        XH_LOG_DEBUG(&amp;ldquo;first load-segment vaddr NOT 0 (vaddr: %p). %s&amp;rdquo;,
+                     (void *)(phdr0-&amp;gt;p_vaddr), pathname);
+#endif&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;//save load bias addr
+if(self-&amp;gt;base_addr &amp;lt; phdr0-&amp;gt;p_vaddr) return XH_ERRNO_FORMAT;
+self-&amp;gt;bias_addr = self-&amp;gt;base_addr - phdr0-&amp;gt;p_vaddr;
+
+//find dynamic-segment
+ElfW(Phdr) *dhdr = xh_elf_get_first_segment_by_type(self, PT_DYNAMIC);
+if(NULL == dhdr)
+{
+    XH_LOG_ERROR(&amp;quot;Can NOT found dynamic segment. %s&amp;quot;, pathname);
+    return XH_ERRNO_FORMAT;
+}
+
+//parse dynamic-segment
+self-&amp;gt;dyn          = (ElfW(Dyn) *)(self-&amp;gt;bias_addr + dhdr-&amp;gt;p_vaddr);
+self-&amp;gt;dyn_sz       = dhdr-&amp;gt;p_memsz;
+ElfW(Dyn) *dyn     = self-&amp;gt;dyn;
+ElfW(Dyn) *dyn_end = self-&amp;gt;dyn + (self-&amp;gt;dyn_sz / sizeof(ElfW(Dyn)));
+uint32_t  *raw;
+for(; dyn &amp;lt; dyn_end; dyn++)
+{
+    switch(dyn-&amp;gt;d_tag) //segmentation fault sometimes
+    {
+    case DT_NULL:
+        //the end of the dynamic-section
+        dyn = dyn_end;
+        break;
+    case DT_STRTAB:
+        {
+            self-&amp;gt;strtab = (const char *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
+            if((ElfW(Addr))(self-&amp;gt;strtab) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
+            break;
+        }
+    case DT_SYMTAB:
+        {
+            self-&amp;gt;symtab = (ElfW(Sym) *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
+            if((ElfW(Addr))(self-&amp;gt;symtab) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
+            break;
+        }
+    case DT_PLTREL:
+        //use rel or rela?
+        self-&amp;gt;is_use_rela = (dyn-&amp;gt;d_un.d_val == DT_RELA ? 1 : 0);
+        break;
+    case DT_JMPREL:
+        {
+            self-&amp;gt;relplt = (ElfW(Addr))(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
+            if((ElfW(Addr))(self-&amp;gt;relplt) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
+            break;
+        }
+    case DT_PLTRELSZ:
+        self-&amp;gt;relplt_sz = dyn-&amp;gt;d_un.d_val;
+        break;
+    case DT_REL:
+    case DT_RELA:
+        {
+            self-&amp;gt;reldyn = (ElfW(Addr))(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
+            if((ElfW(Addr))(self-&amp;gt;reldyn) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
+            break;
+        }
+    case DT_RELSZ:
+    case DT_RELASZ:
+        self-&amp;gt;reldyn_sz = dyn-&amp;gt;d_un.d_val;
+        break;
+    case DT_ANDROID_REL:
+    case DT_ANDROID_RELA:
+        {
+            self-&amp;gt;relandroid = (ElfW(Addr))(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
+            if((ElfW(Addr))(self-&amp;gt;relandroid) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
+            break;
+        }
+    case DT_ANDROID_RELSZ:
+    case DT_ANDROID_RELASZ:
+        self-&amp;gt;relandroid_sz = dyn-&amp;gt;d_un.d_val;
+        break;
+    case DT_HASH:
+        {
+            raw = (uint32_t *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
+            if((ElfW(Addr))raw &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
+            self-&amp;gt;bucket_cnt  = raw[0];
+            self-&amp;gt;chain_cnt   = raw[1];
+            self-&amp;gt;bucket      = &amp;amp;raw[2];
+            self-&amp;gt;chain       = &amp;amp;(self-&amp;gt;bucket[self-&amp;gt;bucket_cnt]);
+            break;
+        }
+    case DT_GNU_HASH:
+        {
+            raw = (uint32_t *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
+            if((ElfW(Addr))raw &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
+            self-&amp;gt;bucket_cnt  = raw[0];
+            self-&amp;gt;symoffset   = raw[1];
+            self-&amp;gt;bloom_sz    = raw[2];
+            self-&amp;gt;bloom_shift = raw[3];
+            self-&amp;gt;bloom       = (ElfW(Addr) *)(&amp;amp;raw[4]);
+            self-&amp;gt;bucket      = (uint32_t *)(&amp;amp;(self-&amp;gt;bloom[self-&amp;gt;bloom_sz]));
+            self-&amp;gt;chain       = (uint32_t *)(&amp;amp;(self-&amp;gt;bucket[self-&amp;gt;bucket_cnt]));
+            self-&amp;gt;is_use_gnu_hash = 1;
+            break;
+        }
+    default:
+        break;
+    }
+}
+
+//check android rel/rela
+if(0 != self-&amp;gt;relandroid)
+{
+    const char *rel = (const char *)self-&amp;gt;relandroid;
+    if(self-&amp;gt;relandroid_sz &amp;lt; 4 ||
+       rel[0] != &#39;A&#39; ||
+       rel[1] != &#39;P&#39; ||
+       rel[2] != &#39;S&#39; ||
+       rel[3] != &#39;2&#39;)
+    {
+        XH_LOG_ERROR(&amp;quot;android rel/rela format error\n&amp;quot;);
+        return XH_ERRNO_FORMAT;
+    }
+
+    self-&amp;gt;relandroid += 4;
+    self-&amp;gt;relandroid_sz -= 4;
+}
+
+//check elf info
+if(0 != xh_elf_check(self))
+{
+    XH_LOG_ERROR(&amp;quot;elf init check failed. %s&amp;quot;, pathname);
+    return XH_ERRNO_FORMAT;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;#if XH_ELF_DEBUG
+    xh_elf_dump(self);
+#endif&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;XH_LOG_INFO(&amp;quot;init OK: %s (%s %s PLT:%u DYN:%u ANDROID:%u)\n&amp;quot;, self-&amp;gt;pathname,
+            self-&amp;gt;is_use_rela ? &amp;quot;RELA&amp;quot; : &amp;quot;REL&amp;quot;,
+            self-&amp;gt;is_use_gnu_hash ? &amp;quot;GNU_HASH&amp;quot; : &amp;quot;ELF_HASH&amp;quot;,
+            self-&amp;gt;relplt_sz, self-&amp;gt;reldyn_sz, self-&amp;gt;relandroid_sz);
+
+return 0;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;}&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+
+## xh_refresh
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;xh_refresh -&amp;gt; xh_core_refresh -&amp;gt; xh_core_init_once&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;                          -&amp;gt; xh_core_refresh_impl 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;xh_core_refresh_impl -&amp;gt; xh_core_check_elf_header
+                     -&amp;gt; xh_core_hook             -&amp;gt; xh_core_hook_impl&lt;/p&gt;
+
+&lt;p&gt;xh_core_hook_impl    -&amp;gt; xh_elf_init
+                     -&amp;gt; xh_elf_hook&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+
+
+
+### xh_elf_hook
+
+1. xh_elf_find_symidx_by_name    //find symbol index by symbol name
+2. replace.
+
+寻找symidx, 遍历symtab, 
+
+rel, rela表中存放这r_offset, 和symidx. 
+
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;```&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>InlineHook学习分析</title>
+      <link>https://l0phtg.github.io/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/</link>
+      <pubDate>Wed, 19 Sep 2018 02:14:31 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/</guid>
+      
+        <description>&lt;p&gt;分析开源的inlineHook代码, 总结inlineHook的原理与实现.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;本文首发于&lt;strong&gt;看雪论坛&lt;/strong&gt;, 转载请注明出处.&lt;/p&gt;
+
+&lt;h2 id=&#34;前言&#34;&gt;前言&lt;/h2&gt;
+
+&lt;p&gt;最近在面试某大厂的安全岗位时，面试官问到了一些有关hook的知识, 在简单分析了下F8大牛的开源代码之后, 有了这篇文章.&lt;/p&gt;
+
+&lt;h2 id=&#34;参考文章和项目代码&#34;&gt;参考文章和项目代码&lt;/h2&gt;
+
+&lt;p&gt;文章:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;http://ele7enxxh.com/Android-Arm-Inline-Hook.html
+http://gslab.qq.com/portal.php?mod=view&amp;amp;aid=168
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;项目:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;https://github.com/ele7enxxh/Android-Inline-Hook
+https://github.com/F8LEFT/FAInHook
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;使用方法&#34;&gt;使用方法&lt;/h2&gt;
+
+&lt;p&gt;MainActivity:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;static {
+        System.loadLibrary(&amp;quot;FHook&amp;quot;);
+    }
+    
+public native String stringFromJNI();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们会将会测试Hook 这个&amp;rdquo;stringFromJNI()&amp;ldquo;函数.&lt;/p&gt;
+
+&lt;h2 id=&#34;分析&#34;&gt;分析&lt;/h2&gt;
+
+&lt;h4 id=&#34;使用&#34;&gt;使用&lt;/h4&gt;
+
+&lt;p&gt;在native层, 我们的main.cpp中&lt;/p&gt;
+
+&lt;p&gt;会在JNI_OnLoad中有一个init函数&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;jstring stringFromJNI(
+        JNIEnv *env,
+        jobject ) {
+     doInHook();
+    // doGotHook();
+    return env-&amp;gt;NewStringUTF(getStr());
+}
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void *reserved) {
+    JNIEnv* env = nullptr;
+    jint resultstr = -1;
+    if (vm-&amp;gt;GetEnv((void **) &amp;amp;env, JNI_VERSION_1_6) != JNI_OK) {
+        return -1;
+    }
+
+    auto jclazz = env-&amp;gt;FindClass(&amp;quot;com/example/l0phtg/hookstudyf8/MainActivity&amp;quot;);
+    JNINativeMethod natives[] = {
+            {&amp;quot;stringFromJNI&amp;quot;, &amp;quot;()Ljava/lang/String;&amp;quot;, (void*)stringFromJNI}};
+    env-&amp;gt;RegisterNatives(jclazz, natives, 1);
+    env-&amp;gt;DeleteLocalRef(jclazz);
+
+    init();
+
+    return JNI_VERSION_1_6;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在Hook.cpp我们来看一下init函数:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool init() {
+    auto hook = FAInHook::instance();
+    hook-&amp;gt;registerHook((Elf_Addr)getStr,
+                       (Elf_Addr)inlCallback,
+                       (Elf_Addr*)&amp;amp;inlCallbackSrc);
+    auto lib = dlopen(&amp;quot;libFHook.so&amp;quot;, RTLD_NOW);
+    gotCallbackSrc = (const char* (*)())dlsym(lib, &amp;quot;_Z6getStrv&amp;quot;);
+    dlclose(lib);
+
+    return false;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;可以看到, 我们实例化了一个FAInHook对象, &lt;code&gt;new FAInHook()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;并调用了&lt;code&gt;registerHook&lt;/code&gt;函数来注册对getStr的hook.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;
+FAInHook *FAInHook::instance() {
+    static FAInHook* mIns = nullptr;
+    if(mIns == nullptr) {
+        mIns = new FAInHook();
+    }
+    return mIns;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们在使用是还会用到的&lt;code&gt;doInHook&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bool doInHook() {
+    static bool isHooked = false;
+    if (isHooked) {
+        isHooked = false;
+        FAInHook::instance()-&amp;gt;unhookAll();
+    } else {
+        isHooked = true;
+        FAInHook::instance()-&amp;gt;hookAll();
+    }
+    return true;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;现在可以看到, 我们主要的任务就是分析&lt;code&gt;registerHook&lt;/code&gt;和&lt;code&gt;doInHook&lt;/code&gt;这两个函数的实现.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;registerhook函数&#34;&gt;registerHook函数&lt;/h4&gt;
+
+&lt;p&gt;我们现在主要分析&lt;code&gt;registerHook&lt;/code&gt;函数.&lt;/p&gt;
+
+&lt;p&gt;先来分析参数:
+在Hook之前我们首先要注册这个函数&lt;/p&gt;
+
+&lt;p&gt;函数申明:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    HOOK_STATUS registerHook(Elf_Addr orginalFunAddr, Elf_Addr newFunAddr,
+                             Elf_Addr* callOrigin);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;参数(原始函数地址, 新函数地址, 调用原始函数).&lt;/p&gt;
+
+&lt;p&gt;函数主要流程:
+1. 注册函数信息, 计算hook stub.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;首先判断`originFunAddr`和`newFunAddr`是否是函数地址.
+
+auto info = getHookInfo(originFunAddr); 得到函数信息
+
+然后判断函数是否已经被Hook. 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;检查判断指令类型(thumb or arm or x86 &amp;hellip;)&lt;/li&gt;
+&lt;li&gt;createStub(info)     创建stub, 就是thumb下创建ldr.w pc, [pc],   addr 来执行跳转到newFuncAddr功能&lt;/li&gt;
+&lt;li&gt;createCallOriginalStub(info) 创建originalFunAddr的stub, 主要会涉及一些对pc相关指令的处理.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;//  register hook
+FAInHook::HOOK_STATUS FAInHook::registerHook(
+        Elf_Addr orginalFunAddr, Elf_Addr newFunAddr, Elf_Addr *callOrigin) {
+    // register hook information, calc hook stub at the same time.
+    if(!FAHook::MemHelper::isFunctionAddr((void *) orginalFunAddr)
+       || !FAHook::MemHelper::isFunctionAddr((void *) newFunAddr)) {
+        return FERROR_NOT_EXECUTABLE;
+    }
+
+    auto info = getHookInfo(orginalFunAddr);
+    if(nullptr != info) {
+        auto hookStatus = info-&amp;gt;getHookStatus();
+        if(FAHook::HOOKED == hookStatus) {
+            return FERROR_ALREADY_HOOKED;
+        } else if(FAHook::REGISTERED == hookStatus) {
+            delHookInfo(info);
+        }
+    }
+
+    // check for FunctionType
+    auto type = FAHook::Instruction::getFunctionType(orginalFunAddr);
+    if(FAHook::ERRTYPE == type) {
+        return FERROR_UNKNOWN;
+    }
+
+    info = new FAHook::HookInfo((void *) orginalFunAddr, (void *) newFunAddr);
+    info-&amp;gt;setOriginalFunctionType(type);
+
+    FAHook::Instruction* instruction = nullptr;
+    switch(type) {
+#if defined(__arm__)
+        case FAHook::ARM:
+            instruction = new FAHook::ArmInstruction();
+            break;
+        case FAHook::THUMB:
+            instruction = new FAHook::ThumbInstruction();
+            break;
+#elif defined(__aarch64__)
+        case FAHook::ARM64:
+            instruction = new FAHook::Arm64Instruction();
+            break;
+#elif defined(__i386__) || defined(__x86_64__)
+        case FAHook::X86:
+        case FAHook::X64:
+            instruction = new FAHook::IntelInstruction();
+            break;
+#elif defined(__mips64__)
+            case FAHook::MIPS64:
+            instruction = new FAHook::Mips64Instruction();
+            break;
+#elif defined(__mips__)
+        case FAHook::MIPS:
+            instruction = new FAHook::MipsInstruction();
+            break;
+#endif
+        default:
+            assert(false &amp;amp;&amp;amp; &amp;quot;not support abi&amp;quot;);
+            return FERROR_UNKNOWN;
+            break;
+    }
+
+    if(!instruction-&amp;gt;createStub(info)
+       || !instruction-&amp;gt;createBackStub(info)
+       || (callOrigin != nullptr) ?
+            !instruction-&amp;gt;createCallOriginalStub(info) : false  // want a callback
+       ) {
+        delete instruction;
+        delete info;
+        return FERROR_MEMORY;
+    }
+
+    addHookInfo(info);
+    info-&amp;gt;setHookStatus(FAHook::REGISTERED);
+
+    if(callOrigin != nullptr) {
+        *callOrigin = (Elf_Addr) info-&amp;gt;getCallOriginalIns();
+    }
+
+    delete instruction;
+    return FERROR_SUCCESS;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;判断该地址是否是函数地址&#34;&gt;判断该地址是否是函数地址&lt;/h5&gt;
+
+&lt;ol&gt;
+&lt;li&gt;打开&lt;code&gt;/proc/self/maps&lt;/code&gt;， 读取每行的信息, 用strstr根据权限做出判断.(r-x, 表示可读可执行, 即为code)()&lt;/li&gt;
+&lt;li&gt;addr &amp;gt;= startAddr &amp;amp;&amp;amp; addr &amp;lt;= endAddr&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code&gt;bool FAHook::MemHelper::isFunctionAddr(void *addr) {
+    char buf[MAX_BUF];
+    auto fp = fopen(maps, &amp;quot;r&amp;quot;);
+    if(nullptr == fp) {
+        return false;
+    }
+
+    while(fgets(buf, MAX_BUF, fp)) {
+        if(strstr(buf, &amp;quot;r-xp&amp;quot;) != nullptr) {
+            void* startAddr = (void*)strtoul(strtok(buf, &amp;quot;-&amp;quot;), nullptr, 16);
+            void* endAddr = (void*)strtoul(strtok(nullptr, &amp;quot; &amp;quot;), nullptr, 16);
+            if(addr &amp;gt;= startAddr &amp;amp;&amp;amp; addr &amp;lt;= endAddr) {
+                fclose(fp);
+                return true;
+            }
+        }
+    }
+    fclose(fp);
+    FLOGE(this functionAddr is not a function!);
+    return false;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;得到hook地址的信息-是否已经hook&#34;&gt;得到Hook地址的信息, 是否已经Hook.&lt;/h5&gt;
+
+&lt;p&gt;hook_map是一个std::map&lt;Elf_Addr, FAInHook::HookInfo*&gt;的map类型. find函数会返回返回一个迭代器, 可以用&lt;code&gt;it-&amp;gt;first&lt;/code&gt;和&lt;code&gt;it-&amp;gt;second&lt;/code&gt;来访问它的成员(key和value). 这个过程其实对已经注册过的hook函数的处理.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;FAHook::HookInfo *FAInHook::getHookInfo(Elf_Addr origFunAddr) {
+    auto it = hook_map.find(origFunAddr);
+    if(it == hook_map.end()) {
+        return nullptr;
+    }
+    return it-&amp;gt;second;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;得到originlfunaddr的指令类型&#34;&gt;得到originlFunAddr的指令类型,&lt;/h5&gt;
+
+&lt;p&gt;auto type = FAHook::Instruction::getFunctionType(orginalFunAddr);&lt;/p&gt;
+
+&lt;p&gt;下面是&lt;code&gt;getFunctionAddr&lt;/code&gt;的实现, 可以看到. 判断指令类型的方式, 是通过自己定义宏来实现的. 当然, 在Arm指令中, 我们还要是否该指令为thumb指令.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static FunctionType getFunctionType(Elf_Addr functionAddr) {
+#if defined(__arm__)
+            if(0 == functionAddr) {
+                return ERRTYPE;
+            } else if((functionAddr &amp;amp; 3) == 0) {
+                return ARM;
+            } else {
+                return THUMB;
+            }
+#elif defined(__aarch64__)
+            return ARM64;
+#elif defined(__i386__)
+            return X86;
+#elif defined(__x86_64__)
+            return X64;
+#elif defined(__mips64__)  /* mips64el-* toolchain defines __mips__ too */
+            return MIPS64;
+#elif defined(__mips__)
+            return MIPS;
+#endif
+        }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;接下来-我们分析最重要的过程&#34;&gt;接下来, 我们分析最重要的过程:&lt;/h5&gt;
+
+&lt;ol&gt;
+&lt;li&gt;info = new HookInfo(originFunAddr, newFunAddr);&lt;/li&gt;
+&lt;li&gt;info.setOriginalFunctionType(type);   设置指令类型为(Arm或者thumb)&lt;/li&gt;
+&lt;li&gt;instruction = new FAHook::ArmInstruction();        new arm或者thumb指令. 我发现无构造函数.&lt;/li&gt;
+&lt;li&gt;instruction-&amp;gt;createStub(info);        创建stub.(stub为 jump stub来jump到newFuncAddr)&lt;/li&gt;
+&lt;li&gt;instruction-&amp;gt;createCallOriginalStub(info)    创建原函数的call back stub.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;在看&lt;code&gt;HookInfo.h&lt;/code&gt;时, 我们可以看到&lt;code&gt;FAHook&lt;/code&gt;是一个&lt;code&gt;namespace&lt;/code&gt;, 而里面主要包含了一个&lt;code&gt;HookInfo&lt;/code&gt;的类:&lt;/p&gt;
+
+&lt;p&gt;我们先来分析它的构造函数:&lt;/p&gt;
+
+&lt;p&gt;这里运用了c++中的构造函数初始化列表来初始化类成员.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;        HookInfo(void* originalAddr, void* hookAddr)
+            : original_addr_(originalAddr), hook_addr_(hookAddr),
+              original_stub_back_(nullptr), back_len_(0), call_original_ins_(nullptr),
+              hook_status_(ERRSTATUS),
+              original_function_type_(ERRTYPE), hook_function_type_(ERRTYPE){}
+              
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;分析&lt;code&gt;createStub(info)&lt;/code&gt;
+我们这里分析&lt;code&gt;FAHook::ThumbInstrution::createStub(FAHook::HookInfo *info)&lt;/code&gt;:
+1. 将地址按4字节对齐.
+2. 保存我们的stub指令, (方便之后path)指令为: &lt;code&gt;LDR.W PC, [PC]&lt;/code&gt;. 可参考(&lt;a href=&#34;http://ele7enxxh.com/Android-Arm-Inline-Hook.html&#34;&gt;http://ele7enxxh.com/Android-Arm-Inline-Hook.html&lt;/a&gt;).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bool FAHook::ThumbInstruction::createStub(FAHook::HookInfo *info) {
+    auto stubSize = 0;
+    uint8_t *stub = nullptr;
+
+    uint32_t addr = (uint32_t)info-&amp;gt;getOriginalAddr();
+    auto clearBit0 = addr &amp;amp; 0xFFFFFFFE;
+
+    if (clearBit0 % 4 != 0) {                       // need to align 4, just patch with nop
+        stub = new uint8_t[10];
+        ((uint16_t*)stub)[stubSize++] = 0xBF00;     //NOP
+    } else {
+        stub = new uint8_t[8];
+    }
+    ((uint16_t*)stub)[stubSize++] = 0xF8DF;
+    ((uint16_t*)stub)[stubSize++] = 0xF000; // LDR.W PC, [PC]
+    ((uint16_t*)stub)[stubSize++] = (uint32_t)info-&amp;gt;getHookAddr() &amp;amp; 0xFFFF;
+    ((uint16_t*)stub)[stubSize++] = (uint32_t)info-&amp;gt;getHookAddr() &amp;gt;&amp;gt; 16;
+
+    info-&amp;gt;setJumpStubLen(stubSize * 2);
+    info-&amp;gt;setJumpStubBack(stub);
+    return true;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;下面分析-createcalloriginalstub-hookinfo-info&#34;&gt;下面分析 &lt;code&gt;createCallOriginalStub(HookInfo *info)&lt;/code&gt;:&lt;/h5&gt;
+
+&lt;p&gt;thumbInstruction.cpp的实现:&lt;/p&gt;
+
+&lt;p&gt;基础知识:&lt;/p&gt;
+
+&lt;p&gt;reinterpret_cast&lt;uint16_t*&gt;   为类型转换&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;处理ldr.w指令.&lt;/li&gt;
+&lt;li&gt;调用createExecMemory(length);              // 分配buffer空间&lt;/li&gt;
+&lt;li&gt;修正pc相关指令. (ldr liternal.  b.  b.  bl.  cbz. ldrw. add)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;code&gt;为什么要修正pc相关指令?&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;举例分析: b &amp;lt;label&amp;gt;:
+指令编码分析: [15:12] 1101 [11:8] cond [7:0] imm8
+解析时: imm32 = ZeroExtend(imm8:&#39;0&#39;, 32); 
+        BranchWritePC(PC+imm32)
+可以看到, b指令的指令编码中, 存放的立即数为imm8, 而真实的跳转地址为(pc + imm32).
+由于我们是要inlineHook, 所以我们的hook函数执行完成之后还有继续执行我们原来的函数,那么我们就要执行被patch掉的那些指令（我们已经将这些指令保存了下来），但由于存放这些指令的内存是我们mmap出来的,所以我们 要想能够在这里成功运行pc相关指令的话, 我们需要将pc相关的指令转换为其它pc无关的指令。
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;inlineHook原理图, 来源于gslab.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://gslab.qq.com/data/attachment/portal/201605/04/165921tz43a3sm4vi2s4s4.png&#34; alt=&#34;inlineHook原理图 ---  来源于gslab&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool FAHook::ThumbInstruction::createCallOriginalStub(FAHook::HookInfo *info) {
+    uint16_t *area(reinterpret_cast&amp;lt;uint16_t *&amp;gt;(getOriginalAddr(info)));    // 起始地址
+
+
+    uint16_t *trail(reinterpret_cast&amp;lt;uint16_t *&amp;gt;(
+                            reinterpret_cast&amp;lt;uintptr_t &amp;gt;(area) + info-&amp;gt;getJumpStubLen())); // 结束地址
+
+    if(T$pcrel$ldrw(area[0]) &amp;amp;&amp;amp;  // 第一条指令
+        area[1] == 0xF000   // 判断第一条指令是否为 ldr pc, [pc]  
+            ) {
+        uint32_t *arm(reinterpret_cast&amp;lt;uint32_t *&amp;gt;(area));
+        info-&amp;gt;setCallOriginalIns(reinterpret_cast&amp;lt;uint8_t *&amp;gt;(arm[1]));
+        return true;
+    }
+
+    size_t required((trail - area) * sizeof(uint16_t)); // required == 需要patch多少字节
+
+    size_t used(0);
+    while (used &amp;lt; required)
+        used += MSGetInstructionWidthThumb(reinterpret_cast&amp;lt;uint8_t *&amp;gt;(area) + used);
+    used = (used + sizeof(uint16_t) - 1) / sizeof(uint16_t) * sizeof(uint16_t);
+
+    size_t blank((used - required) / sizeof(uint16_t));
+
+    uint16_t backup[used / sizeof(uint16_t)];
+    memcpy(backup, area, used);
+
+
+    size_t length(used);
+    for (unsigned offset(0); offset != used / sizeof(uint16_t); ++offset)
+        if (T$pcrel$ldr(backup[offset]))
+            length += 3 * sizeof(uint16_t);
+        else if (T$pcrel$b(backup[offset]))
+            length += 6 * sizeof(uint16_t);
+        else if (T2$pcrel$b(backup + offset)) {
+            length += 5 * sizeof(uint16_t);
+            ++offset;
+        } else if (T$pcrel$bl(backup + offset)) {
+            length += 5 * sizeof(uint16_t);
+            ++offset;
+        } else if (T$pcrel$cbz(backup[offset])) {
+            length += 16 * sizeof(uint16_t);
+        } else if (T$pcrel$ldrw(backup[offset])) {
+            length += 4 * sizeof(uint16_t);
+            ++offset;
+        } else if (T$pcrel$add(backup[offset]))
+            length += 6 * sizeof(uint16_t);
+        else if (T$32bit$i(backup[offset]))
+            ++offset;
+
+        unsigned pad((length &amp;amp; 0x2) == 0 ? 0 : 1);
+        length += (pad + 2) * sizeof(uint16_t) + 2 * sizeof(uint32_t);
+
+    uint16_t *buffer = (uint16_t *) MemHelper::createExecMemory(length);
+    if(buffer == nullptr) {
+        return false;
+    }
+
+    size_t start(pad), end(length / sizeof(uint16_t));
+    uint32_t *trailer(reinterpret_cast&amp;lt;uint32_t *&amp;gt;(buffer + end));
+    for (unsigned offset(0); offset != used / sizeof(uint16_t); ++offset) {
+        if (T$pcrel$ldr(backup[offset])) {
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t immediate : 8;
+                    uint16_t rd : 3;
+                    uint16_t : 5;
+                };
+            } bits = {backup[offset+0]};
+
+            buffer[start+0] = T$ldr_rd_$pc_im_4$(bits.rd, T$Label(start+0, end-2) / 4);
+            buffer[start+1] = T$ldr_rd_$rn_im_4$(bits.rd, bits.rd, 0);
+
+            // XXX: this code &amp;quot;works&amp;quot;, but is &amp;quot;wrong&amp;quot;: the mechanism is more complex than this
+            *--trailer = ((reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4) &amp;amp; ~0x2) + bits.immediate * 4;
+
+            start += 2;
+            end -= 2;
+        } else if (T$pcrel$b(backup[offset])) {
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t imm8 : 8;
+                    uint16_t cond : 4;
+                    uint16_t /*1101*/ : 4;
+                };
+            } bits = {backup[offset+0]};
+
+            intptr_t jump(bits.imm8 &amp;lt;&amp;lt; 1);
+            jump |= 1;
+            jump &amp;lt;&amp;lt;= 23;
+            jump &amp;gt;&amp;gt;= 23;
+
+            buffer[start+0] = T$b$_$im(bits.cond, (end-6 - (start+0)) * 2 - 4);
+
+            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
+            *--trailer = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
+            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$bx(A$pc);
+
+            start += 1;
+            end -= 6;
+        } else if (T2$pcrel$b(backup + offset)) {
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t imm6 : 6;
+                    uint16_t cond : 4;
+                    uint16_t s : 1;
+                    uint16_t : 5;
+                };
+            } bits = {backup[offset+0]};
+
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t imm11 : 11;
+                    uint16_t j2 : 1;
+                    uint16_t a : 1;
+                    uint16_t j1 : 1;
+                    uint16_t : 2;
+                };
+            } exts = {backup[offset+1]};
+
+            intptr_t jump(1);
+            jump |= exts.imm11 &amp;lt;&amp;lt; 1;
+            jump |= bits.imm6 &amp;lt;&amp;lt; 12;
+
+            if (exts.a) {
+                jump |= bits.s &amp;lt;&amp;lt; 24;
+                jump |= (~(bits.s ^ exts.j1) &amp;amp; 0x1) &amp;lt;&amp;lt; 23;
+                jump |= (~(bits.s ^ exts.j2) &amp;amp; 0x1) &amp;lt;&amp;lt; 22;
+                jump |= bits.cond &amp;lt;&amp;lt; 18;
+                jump &amp;lt;&amp;lt;= 7;
+                jump &amp;gt;&amp;gt;= 7;
+            } else {
+                jump |= bits.s &amp;lt;&amp;lt; 20;
+                jump |= exts.j2 &amp;lt;&amp;lt; 19;
+                jump |= exts.j1 &amp;lt;&amp;lt; 18;
+                jump &amp;lt;&amp;lt;= 11;
+                jump &amp;gt;&amp;gt;= 11;
+            }
+
+            buffer[start+0] = T$b$_$im(exts.a ? A$al : bits.cond, (end-6 - (start+0)) * 2 - 4);
+
+            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
+            *--trailer = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
+            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$bx(A$pc);
+
+            ++offset;
+            start += 1;
+            end -= 6;
+        } else if (T$pcrel$bl(backup + offset)) {
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t immediate : 10;
+                    uint16_t s : 1;
+                    uint16_t : 5;
+                };
+            } bits = {backup[offset+0]};
+
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t immediate : 11;
+                    uint16_t j2 : 1;
+                    uint16_t x : 1;
+                    uint16_t j1 : 1;
+                    uint16_t : 2;
+                };
+            } exts = {backup[offset+1]};
+
+            int32_t jump(0);
+            jump |= bits.s &amp;lt;&amp;lt; 24;
+            jump |= (~(bits.s ^ exts.j1) &amp;amp; 0x1) &amp;lt;&amp;lt; 23;
+            jump |= (~(bits.s ^ exts.j2) &amp;amp; 0x1) &amp;lt;&amp;lt; 22;
+            jump |= bits.immediate &amp;lt;&amp;lt; 12;
+            jump |= exts.immediate &amp;lt;&amp;lt; 1;
+            jump |= exts.x;
+            jump &amp;lt;&amp;lt;= 7;
+            jump &amp;gt;&amp;gt;= 7;
+
+            buffer[start+0] = T$push_r(1 &amp;lt;&amp;lt; A$r7);
+            buffer[start+1] = T$ldr_rd_$pc_im_4$(A$r7, ((end-2 - (start+1)) * 2 - 4 + 2) / 4);
+            buffer[start+2] = T$mov_rd_rm(A$lr, A$r7);
+            buffer[start+3] = T$pop_r(1 &amp;lt;&amp;lt; A$r7);
+            buffer[start+4] = T$blx(A$lr);
+
+            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
+
+            ++offset;
+            start += 5;
+            end -= 2;
+        } else if (T$pcrel$cbz(backup[offset])) {
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t rn : 3;
+                    uint16_t immediate : 5;
+                    uint16_t : 1;
+                    uint16_t i : 1;
+                    uint16_t : 1;
+                    uint16_t op : 1;
+                    uint16_t : 4;
+                };
+            } bits = {backup[offset+0]};
+
+            intptr_t jump(1);
+            jump |= bits.i &amp;lt;&amp;lt; 6;
+            jump |= bits.immediate &amp;lt;&amp;lt; 1;
+
+            //jump &amp;lt;&amp;lt;= 24;
+            //jump &amp;gt;&amp;gt;= 24;
+
+            unsigned rn(bits.rn);
+            unsigned rt(rn == A$r7 ? A$r6 : A$r7);
+
+            buffer[start+0] = T$push_r(1 &amp;lt;&amp;lt; rt);
+            buffer[start+1] = T1$mrs_rd_apsr(rt);
+            buffer[start+2] = T2$mrs_rd_apsr(rt);
+            buffer[start+3] = T$cbz$_rn_$im(bits.op, rn, (end-10 - (start+3)) * 2 - 4);
+            buffer[start+4] = T1$msr_apsr_nzcvqg_rn(rt);
+            buffer[start+5] = T2$msr_apsr_nzcvqg_rn(rt);
+            buffer[start+6] = T$pop_r(1 &amp;lt;&amp;lt; rt);
+
+            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
+            *--trailer = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
+            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$bx(A$pc);
+            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$pop_r(1 &amp;lt;&amp;lt; rt);
+            *--trailer = T$msr_apsr_nzcvqg_rn(rt);
+
+#if 0
+            if ((start &amp;amp; 0x1) == 0)
+                buffer[start++] = T$nop;
+            buffer[start++] = T$bx(A$pc);
+            buffer[start++] = T$nop;
+
+            uint32_t *arm(reinterpret_cast&amp;lt;uint32_t *&amp;gt;(buffer + start));
+            arm[0] = A$add(A$lr, A$pc, 1);
+            arm[1] = A$ldr_rd_$rn_im$(A$pc, A$pc, (trailer - arm) * sizeof(uint32_t) - 8);
+#endif
+
+            start += 7;
+            end -= 10;
+        } else if (T$pcrel$ldrw(backup[offset])) {
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t : 7;
+                    uint16_t u : 1;
+                    uint16_t : 8;
+                };
+            } bits = {backup[offset+0]};
+
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t immediate : 12;
+                    uint16_t rt : 4;
+                };
+            } exts = {backup[offset+1]};
+
+            buffer[start+0] = T1$ldr_rt_$rn_im$(exts.rt, A$pc, T$Label(start+0, end-2));
+            buffer[start+1] = T2$ldr_rt_$rn_im$(exts.rt, A$pc, T$Label(start+0, end-2));
+
+            buffer[start+2] = T1$ldr_rt_$rn_im$(exts.rt, exts.rt, 0);
+            buffer[start+3] = T2$ldr_rt_$rn_im$(exts.rt, exts.rt, 0);
+
+            // XXX: this code &amp;quot;works&amp;quot;, but is &amp;quot;wrong&amp;quot;: the mechanism is more complex than this
+            *--trailer = ((reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4) &amp;amp; ~0x2) + (bits.u == 0 ? -exts.immediate : exts.immediate);
+
+            ++offset;
+            start += 4;
+            end -= 2;
+        } else if (T$pcrel$add(backup[offset])) {
+            union {
+                uint16_t value;
+
+                struct {
+                    uint16_t rd : 3;
+                    uint16_t rm : 3;
+                    uint16_t h2 : 1;
+                    uint16_t h1 : 1;
+                    uint16_t : 8;
+                };
+            } bits = {backup[offset+0]};
+
+            if (bits.h1) {
+                return false;
+            }
+
+            unsigned rt(bits.rd == A$r7 ? A$r6 : A$r7);
+
+            buffer[start+0] = T$push_r(1 &amp;lt;&amp;lt; rt);
+            buffer[start+1] = T$mov_rd_rm(rt, (bits.h1 &amp;lt;&amp;lt; 3) | bits.rd);
+            buffer[start+2] = T$ldr_rd_$pc_im_4$(bits.rd, T$Label(start+2, end-2) / 4);
+            buffer[start+3] = T$add_rd_rm((bits.h1 &amp;lt;&amp;lt; 3) | bits.rd, rt);
+            buffer[start+4] = T$pop_r(1 &amp;lt;&amp;lt; rt);
+            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4;
+
+            start += 5;
+            end -= 2;
+        } else if (T$32bit$i(backup[offset])) {
+            buffer[start++] = backup[offset];
+            buffer[start++] = backup[++offset];
+        } else {
+            buffer[start++] = backup[offset];
+        }
+    }
+
+    buffer[start++] = T$bx(A$pc);
+    buffer[start++] = T$nop;
+
+    uint32_t *transfer = reinterpret_cast&amp;lt;uint32_t *&amp;gt;(buffer + start);
+    transfer[0] = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
+    transfer[1] = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + used / sizeof(uint16_t)) + 1;
+
+    info-&amp;gt;setCallOriginalIns(reinterpret_cast&amp;lt;uint8_t *&amp;gt;(buffer + pad) + 1);
+
+    return true;
+}
+
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;msgetinstructionwiththumb&#34;&gt;MSGetInstructionWithThumb&lt;/h5&gt;
+
+&lt;p&gt;调用    used += MSGetInstructionWithThumb(reinterpret_cast&lt;uint8_t *&gt;(area) + used);
+MSGetInstructionWithThumb: 参数为(uint16_t*).
+返回结果: 为这条指令是多少字节的指令.(4 or 2)&lt;/p&gt;
+
+&lt;p&gt;T$32bit$i的作用: (指令(ic) &amp;amp; 1110 0000 0000 0000) &amp;amp;&amp;amp; (ic &amp;amp; 0001 1000 0000 0000 != 0x0000);
+第一个判断为确定高位3个bit(即bit[15], bit[14], bit[13])为1. 第二个判断为确保bit[12], bit[11]有值(即至少这两位有 1 位为 1).&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;其实就是判断是该thumb指令是否为thumb32指令,&lt;/code&gt;
+&lt;code&gt;thumb32指令的判断依据是 b[15:11] 为 0b11101或0b11110或0b11111.&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;MSGetInstructionWithThumb:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;        static size_t MSGetInstructionWidthThumb(void *start) {
+            uint16_t *thumb(reinterpret_cast&amp;lt;uint16_t *&amp;gt;(start));   //
+            return T$32bit$i(thumb[0]) ? 4 : 2;
+        }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;T$32bit$i:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;        static inline bool T$32bit$i(uint16_t ic) {
+            return ((ic &amp;amp; 0xe000) == 0xe000 &amp;amp;&amp;amp; (ic &amp;amp; 0x1800) != 0x0000);
+        }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;分析memhelper类&#34;&gt;分析MemHelper类&lt;/h4&gt;
+
+&lt;p&gt;有4个方法:
+1. static bool isFunctionAddr(void* addr);
+2. static bool unProtectMemory(void* addr, uint32_t size);  remove 写保护
+3. static bool protectMemory(void* addr, uint32_t size);    add    写保护
+4. static void* createExecMemory(uint32_t size);            创建一个可执行的内存&lt;/p&gt;
+
+&lt;p&gt;有4个field:
+1. std::vector&lt;void*&gt; all_memory_page;
+2. void* current_page = nullptr;
+3. uint32_t page_ptr  = 0;
+4. static uint32_t page_size;      // 构造函数&lt;code&gt;page_size = sysconf(_SC_PAGESIZE).&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;我们现在分析一下&lt;code&gt;createExecMemory(uint32_t size)&lt;/code&gt;:
+1. 可以看到, 分配内存的操作是通过&lt;code&gt;mmap&lt;/code&gt;实现的.
+2. all_memory_page是一个vector, 每个单位保存一个指针, 指向mmap的内存.&lt;/p&gt;
+
+&lt;p&gt;createExecMemory:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;void *FAHook::MemHelper::createExecMemory(uint32_t size) {
+    if(size &amp;amp; 1) {
+        size ++;
+    }
+    if(size &amp;gt; page_size) {
+        return nullptr;
+    }
+    if(gMemHelper.current_page != nullptr &amp;amp;&amp;amp; page_size - gMemHelper.page_ptr_ &amp;gt;= size) {
+        auto funPtr = (void*)((size_t)gMemHelper.current_page + gMemHelper.page_ptr_);
+        gMemHelper.page_ptr_ += size;
+        // Align 4
+        while(gMemHelper.page_ptr_ &amp;amp; 0x3) {
+            gMemHelper.page_ptr_ ++;
+        }
+        return funPtr;
+    }
+    // scroll to next page
+    auto newPage = mmap(nullptr, page_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+    if(newPage != MAP_FAILED) {
+        gMemHelper.alloc_memory_page_.push_back(newPage);
+
+        gMemHelper.current_page = newPage;
+        gMemHelper.page_ptr_ = 0;
+        return createExecMemory(size);
+    }
+    return nullptr;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;分析doinhook&#34;&gt;分析doInHook&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;主要操作: FAInHook::instance()-&amp;gt;hookAll();&lt;/li&gt;
+&lt;li&gt;FAInHook::instance()-&amp;gt;unHookAll();&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool doInHook() {
+    static bool isHooked = false;
+    if (isHooked) {
+        isHooked = false;
+        FAInHook::instance()-&amp;gt;unhookAll();
+    } else {
+        isHooked = true;
+        FAInHook::instance()-&amp;gt;hookAll();
+    }
+    return true;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;hookAll():&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;void FAInHook::hookAll() {
+    for(auto it: hook_map) {
+        if(it.second-&amp;gt;getHookStatus() == FAHook::REGISTERED) {
+            Hook(it.second);
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;进而转到Hook函数
+1. 调用`enableJumpStub(info)
+2. info-&amp;gt;setHookStatus(FAHook::HOOKED)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bool FAInHook::Hook(FAHook::HookInfo *info) {
+    if(!FAHook::Instruction::enableJumpStub(info)) {
+        return false;
+    }
+    info-&amp;gt;setHookStatus(FAHook::HOOKED);
+    return true;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;分析&lt;code&gt;enableJumpStub(info)&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bool FAHook::Instruction::enableJumpStub(FAHook::HookInfo *info) {
+    auto origAddr = getOriginalAddr(info);
+    auto len = info-&amp;gt;getJumpStubLen();
+    auto stubAddr = info-&amp;gt;getJumpStubBack();
+    return patchMemory(origAddr, stubAddr, len);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;可以看到, 在得到了&lt;code&gt;origAddr&lt;/code&gt;和&lt;code&gt;stubAddr&lt;/code&gt;和&lt;code&gt;len&lt;/code&gt;之后,我们会进入到patch函数&lt;code&gt;patchMemory&lt;/code&gt;, 根据我们前面的分析, 它会patch原函数的入口指令的前(8 or 10?)个字节.&lt;/p&gt;
+
+&lt;p&gt;patchMemory:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bool FAHook::Instruction::patchMemory(void *dest, void *src, uint32_t len) {
+    if(dest == nullptr || src == nullptr || len == 0) {
+        return false;
+    }
+    if(!MemHelper::unProtectMemory(dest, len)) {
+        return false;
+    }
+
+    memcpy(dest, src, len);
+    MemHelper::protectMemory(dest, len);
+#ifdef __arm__
+    cacheflush((Elf_Addr)dest, (Elf_Addr)dest + len, 0);
+#endif
+    return true;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;首先会调用&lt;code&gt;unProtectMemory&lt;/code&gt;函数来将对应内存修改为(rwx), 然后调用&lt;code&gt;memcpy&lt;/code&gt;来修改内存, 最后调用&lt;code&gt;protectMemory&lt;/code&gt;来修改对应内存为(r-x).&lt;/p&gt;
+
+&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
+
+&lt;p&gt;现在我们就基本对该项目进行了简单的分析, 我这里总结一下:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;registerHook
+主要操作其实就是:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;createStub:  创建代理(这个代理就是要执行跳转到我们的&lt;code&gt;newFuncAddr&lt;/code&gt;函数)&lt;/li&gt;
+&lt;li&gt;createCallOriginalStub:  call back代理(这个代理就是执行回调, 回调我们的&lt;code&gt;originalFunAddr&lt;/code&gt;.) 主要涉及处理pc相关指令(原因在文中已经有介绍).
+&lt;br /&gt;
+&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;doInHook&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;主要就是patchMemory. patch我们originalFunAddr的函数起始处的几个指令为&lt;code&gt;stubInstruction&lt;/code&gt;.之后函数涉及pc相关指令的修复, 方便继续执行原函数.&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;unHook&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;也是patchMemory.
+就是将我们原函数的原始指令进行复原.&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>装机日志-deepin</title>
       <link>https://l0phtg.github.io/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
       <pubDate>Thu, 28 Dec 2017 11:47:58 +0000</pubDate>
