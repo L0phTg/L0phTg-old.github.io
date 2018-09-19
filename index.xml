@@ -27,6 +27,170 @@
     </item>
     
     <item>
+      <title>Hugo搭建博客</title>
+      <link>https://l0phtg.github.io/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/</link>
+      <pubDate>Wed, 19 Sep 2018 20:04:10 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/</guid>
+      
+        <description>&lt;p&gt;博客半年多没更新了. 正好最近时间比较多, 想着把博客更新下, 再把几篇平时总结的文章上传在Blog里面.&lt;/p&gt;
+
+&lt;p&gt;以前使用hexo搭的, 最近发现了好多人在用&lt;code&gt;hugo&lt;/code&gt;, 自己使用hugo重新搭建了一下, 简单方便, 好感指数五颗星.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gohugo.io/getting-started/quick-start/&#34;&gt;https://gohugo.io/getting-started/quick-start/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;hugo 搭建&lt;/p&gt;
+
+&lt;h2 id=&#34;linux平台安装hugo&#34;&gt;linux平台安装hugo&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;源码安装&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;安装go:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/install?download=go1.11.linux-amd64.tar.gz&#34;&gt;https://golang.org/doc/install?download=go1.11.linux-amd64.tar.gz&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;$tar&lt;/span&gt; -C /usr/local -xzf go1.11.linux-amd64.tar.gz
+$ vim /etc/profile
+&lt;span style=&#34;color:#366&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color:#033&#34;&gt;PATH&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;$PATH&lt;/span&gt;:/usr/local/go/bin&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;下载源码安装hugo:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;mkdir &lt;span style=&#34;color:#033&#34;&gt;$HOME&lt;/span&gt;/src
+&lt;span style=&#34;color:#366&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color:#033&#34;&gt;$HOME&lt;/span&gt;/src
+git clone https://github.com/gohugoio/hugo.git
+&lt;span style=&#34;color:#366&#34;&gt;cd&lt;/span&gt; hugo
+go install&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;apt安装&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt install hugo&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&#34;使用&#34;&gt;使用&lt;/h2&gt;
+
+&lt;h3 id=&#34;创建new-site&#34;&gt;创建New site&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;$hugo&lt;/span&gt; new site quickstart&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&#34;创建md&#34;&gt;创建md&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;$hugo&lt;/span&gt; new posts/my-first-post.md&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&#34;预览&#34;&gt;预览&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;$hugo&lt;/span&gt; server -D &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Navigate to your new site at &lt;a href=&#34;http://localhost:1313/&#34;&gt;http://localhost:1313/&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;个性化主题&#34;&gt;个性化主题&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://themes.gohugo.io/&#34;&gt;https://themes.gohugo.io/&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;网站配置&#34;&gt;网站配置&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;config.toml&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;baseURL&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;https://example.org/&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;languageCode&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;en-us&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;title&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;My New Hugo Site&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#033&#34;&gt;theme&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;ananke&amp;#34;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&#34;post到github-pages上&#34;&gt;post到github pages上&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;升级git&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;Debian/Ubuntu
+For the latest stable version &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;for&lt;/span&gt; your release of Debian/Ubuntu
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# apt-get install git
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;For Ubuntu, this PPA provides the latest stable upstream Git version
+# add-apt-repository ppa:git-core/ppa # apt update; apt install git&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;github上创建USER_NAME.github.io的repo.&lt;/li&gt;
+&lt;li&gt;clone repo到public目录&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;git submodule add -b master git@github.com:&amp;lt;USERNAME&amp;gt;/&amp;lt;USERNAME&amp;gt;.github.io.git public&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;push&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;code&gt;depl4oy.sh&lt;/code&gt;如下&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#099&#34;&gt;#!/bin/bash
+&lt;/span&gt;&lt;span style=&#34;color:#099&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#366&#34;&gt;echo&lt;/span&gt; -e &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;\033[0;32mDeploying updates to GitHub...\033[0m&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# Build the project.
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;hugo &lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# if using a theme, replace with `hugo -t &amp;lt;YOURTHEME&amp;gt;`
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# Go To Public folder
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#366&#34;&gt;cd&lt;/span&gt; public
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# Add changes to git.
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;git add .
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# Commit changes.
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;msg&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;rebuilding site `date`&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#033&#34;&gt;$#&lt;/span&gt; -eq &lt;span style=&#34;color:#f60&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;]&lt;/span&gt;
+  &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;then&lt;/span&gt; &lt;span style=&#34;color:#033&#34;&gt;msg&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;$1&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;fi&lt;/span&gt;
+git commit -m &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;$msg&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# Push source and build repos.
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;git push origin master
+
+&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;# Come Back up to the Project Root
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#366&#34;&gt;cd&lt;/span&gt; ..&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&#34;内容编写&#34;&gt;内容编写&lt;/h2&gt;
+
+&lt;h3 id=&#34;插入图片&#34;&gt;插入图片&lt;/h3&gt;
+
+&lt;p&gt;图片放在static目录下&lt;/p&gt;
+
+&lt;p&gt;例如&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;目录下的文件:
+- static
+   - deepin
+      - desktop.png
+      - splitScreen.png
+      - vimMarkdownPreview.png&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;使用的时候:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;![](/deepin/desktop.png)&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&#34;文章摘要&#34;&gt;文章摘要&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;&amp;lt;!--more--&amp;gt;&lt;/code&gt;前面的会成为文章的摘要, 在首页显示.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;---
+title : &amp;#34;hihi&amp;#34;
+tags :  &amp;#34;blog&amp;#34;
+---
+
+&amp;lt;!--more--&amp;gt;
+
+正文&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&#34;显示toc&#34;&gt;显示toc&lt;/h3&gt;
+
+&lt;p&gt;toc : true&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;---
+title: &amp;#34;Iqiyi开源hook框架XHook分析&amp;#34;
+date: 2018-09-19T02:19:05+08:00
+lastmod: 2018-09-19T02:19:05+08:00
+draft: false
+keywords: []
+description: &amp;#34;&amp;#34;
+tags: [&amp;#34;hook&amp;#34;]
+categories: [&amp;#34;hook&amp;#34;]
+author: &amp;#34;&amp;#34;
+
+# You can also close(false) or open(true) something for this content.
+# P.S. comment can only be closed
+comment: false
+toc: true
+autoCollapseToc: false
+# You can also define another contentCopyright. e.g. contentCopyright: &amp;#34;This is another copyright.&amp;#34;
+contentCopyright: false
+reward: false
+mathjax: false
+---&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&#34;语法高亮&#34;&gt;语法高亮&lt;/h3&gt;
+
+&lt;p&gt;hugo &lt;strong&gt;使用chroma默认进行语法高亮&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;pygmentsCodefences&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#366&#34;&gt;true&lt;/span&gt; &lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;#高亮markdown的代码块
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;pygmentsCodefencesGuessSyntax&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#366&#34;&gt;true&lt;/span&gt; &lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;#高亮markdown中没有标注语言的代码块
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;pygmentsStyle&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;manni&amp;#39;&lt;/span&gt; #高亮主题&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Iqiyi开源hook框架XHook分析</title>
       <link>https://l0phtg.github.io/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/</link>
       <pubDate>Wed, 19 Sep 2018 02:19:05 +0800</pubDate>

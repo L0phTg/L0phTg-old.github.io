@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>L0phTg&#39;s Blog</title>
+  <title>Blog · L0phTg&#39;s Blog</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -36,8 +36,8 @@
 <meta name="generator" content="Hugo 0.49-DEV" />
 
 
-<link rel="canonical" href="https://l0phtg.github.io/" />
-<link href="https://l0phtg.github.io/index.xml" rel="alternate" type="application/rss+xml" title="L0phTg&#39;s Blog" />
+<link rel="canonical" href="https://l0phtg.github.io/categories/blog/" />
+<link href="https://l0phtg.github.io/categories/blog/index.xml" rel="alternate" type="application/rss+xml" title="L0phTg&#39;s Blog" />
 
 
 
@@ -57,16 +57,16 @@
 
 
 
-<meta property="og:title" content="L0phTg&#39;s Blog" />
+<meta property="og:title" content="Blog" />
 <meta property="og:description" content="L0phTg&#39;s Blog" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://l0phtg.github.io/" />
-<meta property="og:updated_time" content="2018-08-20T21:38:52&#43;08:00"/>
-<meta itemprop="name" content="L0phTg&#39;s Blog">
+<meta property="og:url" content="https://l0phtg.github.io/categories/blog/" />
+<meta property="og:updated_time" content="2018-09-19T20:04:10&#43;08:00"/>
+<meta itemprop="name" content="Blog">
 <meta itemprop="description" content="L0phTg&#39;s Blog">
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="L0phTg&#39;s Blog"/>
+<meta name="twitter:title" content="Blog"/>
 <meta name="twitter:description" content="L0phTg&#39;s Blog"/>
 
 <!--[if lte IE 9]>
@@ -300,151 +300,32 @@
       <div class="content-wrapper">
         <div id="content" class="content container">
           
-  <section id="posts" class="posts">
+
+<section id="archive" class="archive">
+  
     
+      <div class="archive-title category">
+        <h2 class="archive-name">Category: Blog</h2>
+      </div>
     
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/">Hugo搭建博客</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2018-09-19 </span>
-      <div class="post-category">
-          <a href="https://l0phtg.github.io/categories/blog/"> Blog </a>
-          <a href="https://l0phtg.github.io/categories/life/"> life </a>
-          
-        </div>
-      
-      
-      
+  
+
+  
+    <div class="archive-post">
+      <span class="archive-post-time">
+        2018-09-19
+      </span>
+      <span class="archive-post-title">
+        <a href="/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/" class="archive-post-link">
+          Hugo搭建博客
+        </a>
+      </span>
     </div>
-  </header>
   
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>博客半年多没更新了. 正好最近时间比较多, 想着把博客更新下, 再把几篇平时总结的文章上传在Blog里面.</p>
+</section>
 
-<p>以前使用hexo搭的, 最近发现了好多人在用<code>hugo</code>, 自己使用hugo重新搭建了一下, 简单方便, 好感指数五颗星.</p>
 
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
 
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/">Iqiyi开源hook框架XHook分析</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2018-09-19 </span>
-      <div class="post-category">
-          <a href="https://l0phtg.github.io/categories/hook/"> hook </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>Got Hook 可以使用dlsym得到目标函数的地址, 然后遍历got表进行Hook.</p>
-
-<p>但是有时候我们不能通过dlsym得到函数地址. 这时我们需要怎么办呢? iqiyi的xhook很好的解决了这个问题, (可以参考linker的实现, <strong>有问题, 看源码</strong>.</p>
-
-<p>通过找到目标函数地址存放在got表中位置, 只要找到了目标symbol在got表中的offset, 想要修改或者得到目标函数的实际地址就轻松多了.</p>
-
-<p>symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/">InlineHook学习分析</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2018-09-19 </span>
-      <div class="post-category">
-          <a href="https://l0phtg.github.io/categories/hook/"> Hook </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>分析开源的inlineHook代码, 总结inlineHook的原理与实现.</p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/">装机日志-deepin</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2017-12-28 </span>
-      <div class="post-category">
-          <a href="https://l0phtg.github.io/categories/life/"> life </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>17年使用了一段时间deepin系统, 这里简单记录一些使用心得(现在已转ubuntu.</p>
-
-<p>主要就是<strong>装机的过程</strong>, 以及<strong>装机后的效果展示</strong>.</p>
-
-<p><img src="/deepin/desktop.png" alt="" /></p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/" class="read-more-link">Read more</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-  </section>
-
-  
-  
 
 
 
@@ -460,22 +341,6 @@
 
   
   
-
-  
-  
-  <nav class="pagination">
-    <ul>
-      
-      <li  class="active" >
-        <a href="/">1</a>
-      </li>
-      
-      <li >
-        <a href="/page/2/">2</a>
-      </li>
-      
-    </ul>
-  </nav>
 
   
   
