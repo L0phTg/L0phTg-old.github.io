@@ -74,7 +74,7 @@
 
 <meta itemprop="datePublished" content="2018-09-19T02:14:31&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-19T02:14:31&#43;08:00" />
-<meta itemprop="wordCount" content="4707">
+<meta itemprop="wordCount" content="4697">
 
 
 
@@ -1127,21 +1127,30 @@ MSGetInstructionWithThumb: 参数为(uint16_t*).
 
 <h4 id="分析memhelper类">分析MemHelper类</h4>
 
-<p>有4个方法:
-1. static bool isFunctionAddr(void* addr);
-2. static bool unProtectMemory(void* addr, uint32_t size);  remove 写保护
-3. static bool protectMemory(void* addr, uint32_t size);    add    写保护
-4. static void* createExecMemory(uint32_t size);            创建一个可执行的内存</p>
+<p>有4个方法:</p>
 
-<p>有4个field:
-1. std::vector<void*> all_memory_page;
-2. void* current_page = nullptr;
-3. uint32_t page_ptr  = 0;
-4. static uint32_t page_size;      // 构造函数<code>page_size = sysconf(_SC_PAGESIZE).</code></p>
+<ol>
+<li>static bool isFunctionAddr(void* addr);</li>
+<li>static bool unProtectMemory(void* addr, uint32_t size);  remove 写保护</li>
+<li>static bool protectMemory(void* addr, uint32_t size);    add    写保护</li>
+<li>static void* createExecMemory(uint32_t size);            创建一个可执行的内存</li>
+</ol>
 
-<p>我们现在分析一下<code>createExecMemory(uint32_t size)</code>:
-1. 可以看到, 分配内存的操作是通过<code>mmap</code>实现的.
-2. all_memory_page是一个vector, 每个单位保存一个指针, 指向mmap的内存.</p>
+<p>有4个field:</p>
+
+<ol>
+<li>std::vector<void*> all_memory_page;</li>
+<li>void* current_page = nullptr;</li>
+<li>uint32_t page_ptr  = 0;</li>
+<li>static uint32_t page_size;      // 构造函数<code>page_size = sysconf(_SC_PAGESIZE).</code></li>
+</ol>
+
+<p>我们现在分析一下<code>createExecMemory(uint32_t size)</code>:</p>
+
+<ol>
+<li>可以看到, 分配内存的操作是通过<code>mmap</code>实现的.</li>
+<li>all_memory_page是一个vector, 每个单位保存一个指针, 指向mmap的内存.</li>
+</ol>
 
 <p>createExecMemory:</p>
 

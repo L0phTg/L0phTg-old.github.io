@@ -1217,21 +1217,30 @@ MSGetInstructionWithThumb: 参数为(uint16_t*).
 
 &lt;h4 id=&#34;分析memhelper类&#34;&gt;分析MemHelper类&lt;/h4&gt;
 
-&lt;p&gt;有4个方法:
-1. static bool isFunctionAddr(void* addr);
-2. static bool unProtectMemory(void* addr, uint32_t size);  remove 写保护
-3. static bool protectMemory(void* addr, uint32_t size);    add    写保护
-4. static void* createExecMemory(uint32_t size);            创建一个可执行的内存&lt;/p&gt;
+&lt;p&gt;有4个方法:&lt;/p&gt;
 
-&lt;p&gt;有4个field:
-1. std::vector&lt;void*&gt; all_memory_page;
-2. void* current_page = nullptr;
-3. uint32_t page_ptr  = 0;
-4. static uint32_t page_size;      // 构造函数&lt;code&gt;page_size = sysconf(_SC_PAGESIZE).&lt;/code&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;static bool isFunctionAddr(void* addr);&lt;/li&gt;
+&lt;li&gt;static bool unProtectMemory(void* addr, uint32_t size);  remove 写保护&lt;/li&gt;
+&lt;li&gt;static bool protectMemory(void* addr, uint32_t size);    add    写保护&lt;/li&gt;
+&lt;li&gt;static void* createExecMemory(uint32_t size);            创建一个可执行的内存&lt;/li&gt;
+&lt;/ol&gt;
 
-&lt;p&gt;我们现在分析一下&lt;code&gt;createExecMemory(uint32_t size)&lt;/code&gt;:
-1. 可以看到, 分配内存的操作是通过&lt;code&gt;mmap&lt;/code&gt;实现的.
-2. all_memory_page是一个vector, 每个单位保存一个指针, 指向mmap的内存.&lt;/p&gt;
+&lt;p&gt;有4个field:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;std::vector&lt;void*&gt; all_memory_page;&lt;/li&gt;
+&lt;li&gt;void* current_page = nullptr;&lt;/li&gt;
+&lt;li&gt;uint32_t page_ptr  = 0;&lt;/li&gt;
+&lt;li&gt;static uint32_t page_size;      // 构造函数&lt;code&gt;page_size = sysconf(_SC_PAGESIZE).&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;我们现在分析一下&lt;code&gt;createExecMemory(uint32_t size)&lt;/code&gt;:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;可以看到, 分配内存的操作是通过&lt;code&gt;mmap&lt;/code&gt;实现的.&lt;/li&gt;
+&lt;li&gt;all_memory_page是一个vector, 每个单位保存一个指针, 指向mmap的内存.&lt;/li&gt;
+&lt;/ol&gt;
 
 &lt;p&gt;createExecMemory:&lt;/p&gt;
 
@@ -1383,6 +1392,8 @@ MSGetInstructionWithThumb: 参数为(uint16_t*).
 
 &lt;p&gt;主要就是&lt;strong&gt;装机的过程&lt;/strong&gt;, 以及&lt;strong&gt;装机后的效果展示&lt;/strong&gt;.&lt;/p&gt;
 
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/deepin/desktop.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
 &lt;p&gt;&lt;/p&gt;
 
 &lt;h2 id=&#34;背景&#34;&gt;背景&lt;/h2&gt;
@@ -1413,14 +1424,17 @@ MSGetInstructionWithThumb: 参数为(uint16_t*).
 
 &lt;p&gt;先放几张图:&lt;/p&gt;
 
-&lt;p&gt;桌面
-{% asset_img desktop.png 桌面%}&lt;/p&gt;
+&lt;p&gt;桌面&lt;/p&gt;
 
-&lt;p&gt;分屏
-{% asset_img splitScreen.png 分屏 %}&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/deepin/desktop.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;我们最爱的vim
-{% asset_img vimMarkdownPreview.png vimMarkdown %}&lt;/p&gt;
+&lt;p&gt;分屏&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/deepin/splitScreen.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;我们最爱的vim&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/deepin/vimMarkdownPreview.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;当然, 还有很多其它的不错的设计, 这里就不多放图了.&lt;/p&gt;
 
@@ -1503,7 +1517,9 @@ let g:spacevim_statusline_separator = &#39;arrow&#39;
       
       <guid>https://l0phtg.github.io/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
       
-        <description>&lt;p&gt;上半年接触过一些 &lt;strong&gt;app加固&lt;/strong&gt; 的知识, 对 &lt;strong&gt;vm&lt;/strong&gt; 这块一直空有兴趣而没有了解过;  最近, 阅读了几篇文章, &lt;code&gt;有所启发&lt;/code&gt;, 所以决定学习一下 &lt;strong&gt;vm&lt;/strong&gt; 这块的一些操作.&lt;/p&gt;
+        <description>&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/thumb-vmp/thumb16.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;上半年接触过一些 &lt;strong&gt;app加固&lt;/strong&gt; 的知识, 对 &lt;strong&gt;vm&lt;/strong&gt; 这块一直空有兴趣而没有了解过;  最近, 阅读了几篇文章, &lt;code&gt;有所启发&lt;/code&gt;, 所以决定学习一下 &lt;strong&gt;vm&lt;/strong&gt; 这块的一些操作.&lt;/p&gt;
 
 &lt;p&gt;主要内容分为:&lt;/p&gt;
 
@@ -1517,8 +1533,9 @@ let g:spacevim_statusline_separator = &#39;arrow&#39;
 
 &lt;h2 id=&#34;阅读资料&#34;&gt;阅读资料&lt;/h2&gt;
 
-&lt;p&gt;&lt;a href=&#34;https://github.com/knownsec/KCon/blob/master/2017/%5BKCon%202017%5D0827_3_%E9%99%88%E6%84%89%E9%91%AB_%E7%AC%AC%E4%BA%94%E4%BB%A3%E5%8A%A0%E5%9B%BA%E6%8A%80%E6%9C%AFARM%20VMP%E5%8E%9F%E7%90%86%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%BA%94%E7%94%A8.pdf&#34;&gt;Kcon2017 第五代加固技术ARM VMP原理与应用&lt;/a&gt;
-&lt;a href=&#34;http://www.cnblogs.com/2014asm/p/6534897.html&#34;&gt;ARM平台指令虚拟化探索&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/knownsec/KCon/blob/master/2017/%5BKCon%202017%5D0827_3_%E9%99%88%E6%84%89%E9%91%AB_%E7%AC%AC%E4%BA%94%E4%BB%A3%E5%8A%A0%E5%9B%BA%E6%8A%80%E6%9C%AFARM%20VMP%E5%8E%9F%E7%90%86%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%BA%94%E7%94%A8.pdf&#34;&gt;Kcon2017 第五代加固技术ARM VMP原理与应用&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.cnblogs.com/2014asm/p/6534897.html&#34;&gt;ARM平台指令虚拟化探索&lt;/a&gt;&lt;/p&gt;
 
 &lt;h2 id=&#34;环境搭建&#34;&gt;环境搭建:&lt;/h2&gt;
 
@@ -2023,7 +2040,9 @@ the following sections:
 
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;我们在此分析的是&lt;strong&gt;16-bit T32 instruction&lt;/strong&gt;, 再次定位到&lt;code&gt;F3-2435&lt;/code&gt;.&lt;/p&gt;</description>
+&lt;p&gt;我们在此分析的是&lt;strong&gt;16-bit T32 instruction&lt;/strong&gt;, 再次定位到&lt;code&gt;F3-2435&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/thumb-vmp/thumb16.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;</description>
       
     </item>
     
