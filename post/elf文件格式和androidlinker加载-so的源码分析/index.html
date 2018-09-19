@@ -89,7 +89,7 @@ elf的文件格式
 
 <meta itemprop="datePublished" content="2017-03-19T00:00:00&#43;00:00" />
 <meta itemprop="dateModified" content="2017-03-19T00:00:00&#43;00:00" />
-<meta itemprop="wordCount" content="3535">
+<meta itemprop="wordCount" content="3520">
 
 
 
@@ -395,386 +395,344 @@ elf的文件格式
 <p>/usr/includ/elf.h中定义了elf文件头结构和相关的常数.</p>
 
 <p>分析elf文件时, 建议使用<code>010 editor</code>这款十六进制编辑软件, 运行elf模板后可以清晰的将文件格式显示出来, 大致的显示是(坑, 此处应该用图片的)</p>
-
-<pre><code class="language-c">                NAME                           Value            Start       Size        Color       Comment
-    struct file                                                 0h          109Ch
-        struct elf_header                                       0h          34h
-        struct program_header_table                             34h         120h
-        struct section_header_table                             1B274h      460h
-        struct dynamic_symbol_table                             18Ch        F10h
-</code></pre>
-
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">                NAME                           Value            Start       Size        Color       Comment
+    <span style="color:#069;font-weight:bold">struct</span> file                                                 <span style="color:#f60">0</span>h          <span style="color:#f60">109</span>Ch
+        <span style="color:#069;font-weight:bold">struct</span> elf_header                                       <span style="color:#f60">0</span>h          <span style="color:#f60">34</span>h
+        <span style="color:#069;font-weight:bold">struct</span> program_header_table                             <span style="color:#f60">34</span>h         <span style="color:#f60">120</span>h
+        <span style="color:#069;font-weight:bold">struct</span> section_header_table                             <span style="color:#f60">1</span>B274h      <span style="color:#f60">460</span>h
+        <span style="color:#069;font-weight:bold">struct</span> dynamic_symbol_table                             <span style="color:#f60">18</span>Ch        F10h</code></pre></div>
 <p>可以看到, 一个elf文件中包含一个header, 3个table, 我们一个一个的来分析一下.
 首先分析<code>Elf header</code>, 它位于每一个elf文件开始的地方:</p>
-
-<pre><code class="language-c">typedef struct                                                            typedef struct
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#069;font-weight:bold">typedef</span> <span style="color:#069;font-weight:bold">struct</span>                                                            <span style="color:#069;font-weight:bold">typedef</span> <span style="color:#069;font-weight:bold">struct</span>
 {                                                                         {
-    unsigned char e_ident[EI_NIDENT]; /* Magic number and other info */     unsigned char e_ident[EI_NIDENT];
-    Elf32_Half    e_type;         /* Object file type */                    Elf64_Half    e_type;     
-    Elf32_Half    e_machine;      /* Architecture */                        Elf64_Half    e_machine;  
-    Elf32_Word    e_version;      /* Object file version */                 Elf64_Word    e_version;  
-    Elf32_Addr    e_entry;        /* Entry point virtual address */         Elf64_Addr    e_entry;    
-    Elf32_Off e_phoff;        /* Program header table file offset */        Elf64_Off e_phoff;        
-    Elf32_Off e_shoff;        /* Section header table file offset */        Elf64_Off e_shoff;        
-    Elf32_Word    e_flags;        /* Processor-specific flags */            Elf64_Word    e_flags;    
-    Elf32_Half    e_ehsize;       /* ELF header size in bytes */            Elf64_Half    e_ehsize;   
-    Elf32_Half    e_phentsize;        /* Program header table entry size */ Elf64_Half    e_phentsize;
-    Elf32_Half    e_phnum;        /* Program header table entry count */    Elf64_Half    e_phnum;    
-    Elf32_Half    e_shentsize;        /* Section header table entry size */ Elf64_Half    e_shentsize;
-    Elf32_Half    e_shnum;        /* Section header table entry count */    Elf64_Half    e_shnum;    
-    Elf32_Half    e_shstrndx;     /* Section header string table index */   Elf64_Half    e_shstrndx; 
-} Elf32_Ehdr;                                                              } Elf64_Ehdr;
-</code></pre>
-
+    <span style="color:#078;font-weight:bold">unsigned</span> <span style="color:#078;font-weight:bold">char</span> e_ident[EI_NIDENT]; <span style="color:#09f;font-style:italic">/* Magic number and other info */</span>     <span style="color:#078;font-weight:bold">unsigned</span> <span style="color:#078;font-weight:bold">char</span> e_ident[EI_NIDENT];
+    Elf32_Half    e_type;         <span style="color:#09f;font-style:italic">/* Object file type */</span>                    Elf64_Half    e_type;     
+    Elf32_Half    e_machine;      <span style="color:#09f;font-style:italic">/* Architecture */</span>                        Elf64_Half    e_machine;  
+    Elf32_Word    e_version;      <span style="color:#09f;font-style:italic">/* Object file version */</span>                 Elf64_Word    e_version;  
+    Elf32_Addr    e_entry;        <span style="color:#09f;font-style:italic">/* Entry point virtual address */</span>         Elf64_Addr    e_entry;    
+    Elf32_Off e_phoff;        <span style="color:#09f;font-style:italic">/* Program header table file offset */</span>        Elf64_Off e_phoff;        
+    Elf32_Off e_shoff;        <span style="color:#09f;font-style:italic">/* Section header table file offset */</span>        Elf64_Off e_shoff;        
+    Elf32_Word    e_flags;        <span style="color:#09f;font-style:italic">/* Processor-specific flags */</span>            Elf64_Word    e_flags;    
+    Elf32_Half    e_ehsize;       <span style="color:#09f;font-style:italic">/* ELF header size in bytes */</span>            Elf64_Half    e_ehsize;   
+    Elf32_Half    e_phentsize;        <span style="color:#09f;font-style:italic">/* Program header table entry size */</span> Elf64_Half    e_phentsize;
+    Elf32_Half    e_phnum;        <span style="color:#09f;font-style:italic">/* Program header table entry count */</span>    Elf64_Half    e_phnum;    
+    Elf32_Half    e_shentsize;        <span style="color:#09f;font-style:italic">/* Section header table entry size */</span> Elf64_Half    e_shentsize;
+    Elf32_Half    e_shnum;        <span style="color:#09f;font-style:italic">/* Section header table entry count */</span>    Elf64_Half    e_shnum;    
+    Elf32_Half    e_shstrndx;     <span style="color:#09f;font-style:italic">/* Section header string table index */</span>   Elf64_Half    e_shstrndx; 
+} Elf32_Ehdr;                                                              } Elf64_Ehdr;</code></pre></div>
 <p>可以看到, header中包含了magic number, 文件类型, 目标文件版本, 入口地址(如果为0, 说明此文件为可重定位文件), program header的开始地址(即为在so文件中的offset), section header的开始地址, 标志位, elf头本身的大小, program header和section header的size和数量, 最后是section header中string section在section中的下标.(用010 editor可以看到清楚的看到一个.so文件包含众多的program header 和 section header, 这两个段在做.so混淆时会经常分析)</p>
 
 <p>现在分析<code>program header</code></p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#09f;font-style:italic">/* Program segment header.  */</span>
 
-<pre><code class="language-c">/* Program segment header.  */
-
-typedef struct                                                      typedef struct
+<span style="color:#069;font-weight:bold">typedef</span> <span style="color:#069;font-weight:bold">struct</span>                                                      <span style="color:#069;font-weight:bold">typedef</span> <span style="color:#069;font-weight:bold">struct</span>
 {                                                                   {
-    Elf32_Word    p_type;         /* Segment type */                    Elf64_Word    p_type;   
-    Elf32_Off p_offset;       /* Segment file offset */                 Elf64_Off p_offset;     
-    Elf32_Addr    p_vaddr;        /* Segment virtual address */         Elf64_Addr    p_vaddr;  
-    Elf32_Addr    p_paddr;        /* Segment physical address */        Elf64_Addr    p_paddr;  
-    Elf32_Word    p_filesz;       /* Segment size in file */            Elf64_Word    p_filesz; 
-    Elf32_Word    p_memsz;        /* Segment size in memory */          Elf64_Word    p_memsz;  
-    Elf32_Word    p_flags;        /* Segment flags */                   Elf64_Word    p_flags;  
-    Elf32_Word    p_align;        /* Segment alignment */               Elf64_Word    p_align;  
-} Elf32_Phdr;                                                       } Elf64_Phdr;
-</code></pre>
-
+    Elf32_Word    p_type;         <span style="color:#09f;font-style:italic">/* Segment type */</span>                    Elf64_Word    p_type;   
+    Elf32_Off p_offset;       <span style="color:#09f;font-style:italic">/* Segment file offset */</span>                 Elf64_Off p_offset;     
+    Elf32_Addr    p_vaddr;        <span style="color:#09f;font-style:italic">/* Segment virtual address */</span>         Elf64_Addr    p_vaddr;  
+    Elf32_Addr    p_paddr;        <span style="color:#09f;font-style:italic">/* Segment physical address */</span>        Elf64_Addr    p_paddr;  
+    Elf32_Word    p_filesz;       <span style="color:#09f;font-style:italic">/* Segment size in file */</span>            Elf64_Word    p_filesz; 
+    Elf32_Word    p_memsz;        <span style="color:#09f;font-style:italic">/* Segment size in memory */</span>          Elf64_Word    p_memsz;  
+    Elf32_Word    p_flags;        <span style="color:#09f;font-style:italic">/* Segment flags */</span>                   Elf64_Word    p_flags;  
+    Elf32_Word    p_align;        <span style="color:#09f;font-style:italic">/* Segment alignment */</span>               Elf64_Word    p_align;  
+} Elf32_Phdr;                                                       } Elf64_Phdr;</code></pre></div>
 <p>接下来分析<code>section header</code>, section相信了解过汇编的同学都非常熟悉了, 这个section header里面就存放了我们elf中各个段的信息.
 看一下section header段描述符的结构:(64位的与32位的结构体大致相同, 只是把类型改为了Elf64的类型)</p>
-
-<pre><code class="language-c">typedef struct
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#069;font-weight:bold">typedef</span> <span style="color:#069;font-weight:bold">struct</span>
 {
-    Elf32_Word    sh_name;        /* Section name (string tbl index) 段名*/
-    Elf32_Word    sh_type;        /* Section type 段类型*/
-    Elf32_Word    sh_flags;       /* Section flags 标志位*/
-    Elf32_Addr    sh_addr;        /* Section virtual addr at execution 段虚拟地址*/
-    Elf32_Off sh_offset;          /* Section file offset 段偏移*/
-    Elf32_Word    sh_size;        /* Section size in bytes 段的长度*/
-    Elf32_Word    sh_link;        /* Link to another section 段的链接信息*/
-    Elf32_Word    sh_info;        /* Additional section information 段链接的相关信息*/
-    Elf32_Word    sh_addralign;   /* Section alignment 段地址对齐*/
-    Elf32_Word    sh_entsize;     /* Entry size if section holds table 项的长度*/
-} Elf32_Shdr;
-</code></pre>
-
+    Elf32_Word    sh_name;        <span style="color:#09f;font-style:italic">/* Section name (string tbl index) 段名*/</span>
+    Elf32_Word    sh_type;        <span style="color:#09f;font-style:italic">/* Section type 段类型*/</span>
+    Elf32_Word    sh_flags;       <span style="color:#09f;font-style:italic">/* Section flags 标志位*/</span>
+    Elf32_Addr    sh_addr;        <span style="color:#09f;font-style:italic">/* Section virtual addr at execution 段虚拟地址*/</span>
+    Elf32_Off sh_offset;          <span style="color:#09f;font-style:italic">/* Section file offset 段偏移*/</span>
+    Elf32_Word    sh_size;        <span style="color:#09f;font-style:italic">/* Section size in bytes 段的长度*/</span>
+    Elf32_Word    sh_link;        <span style="color:#09f;font-style:italic">/* Link to another section 段的链接信息*/</span>
+    Elf32_Word    sh_info;        <span style="color:#09f;font-style:italic">/* Additional section information 段链接的相关信息*/</span>
+    Elf32_Word    sh_addralign;   <span style="color:#09f;font-style:italic">/* Section alignment 段地址对齐*/</span>
+    Elf32_Word    sh_entsize;     <span style="color:#09f;font-style:italic">/* Entry size if section holds table 项的长度*/</span>
+} Elf32_Shdr;</code></pre></div>
 <p>最后分析动态符号表(<code>symbol table</code>):</p>
-
-<pre><code class="language-c">typedef struct
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#069;font-weight:bold">typedef</span> <span style="color:#069;font-weight:bold">struct</span>
 {
-    Elf32_Word    st_name;        /* Symbol name (string tbl index) */
-    Elf32_Addr    st_value;       /* Symbol value */
-    Elf32_Word    st_size;        /* Symbol size */
-    unsigned char st_info;        /* Symbol type and binding */
-    unsigned char st_other;       /* Symbol visibility */
-    Elf32_Section st_shndx;       /* Section index */
-} Elf32_Sym;
-</code></pre>
-
+    Elf32_Word    st_name;        <span style="color:#09f;font-style:italic">/* Symbol name (string tbl index) */</span>
+    Elf32_Addr    st_value;       <span style="color:#09f;font-style:italic">/* Symbol value */</span>
+    Elf32_Word    st_size;        <span style="color:#09f;font-style:italic">/* Symbol size */</span>
+    <span style="color:#078;font-weight:bold">unsigned</span> <span style="color:#078;font-weight:bold">char</span> st_info;        <span style="color:#09f;font-style:italic">/* Symbol type and binding */</span>
+    <span style="color:#078;font-weight:bold">unsigned</span> <span style="color:#078;font-weight:bold">char</span> st_other;       <span style="color:#09f;font-style:italic">/* Symbol visibility */</span>
+    Elf32_Section st_shndx;       <span style="color:#09f;font-style:italic">/* Section index */</span>
+} Elf32_Sym;</code></pre></div>
 <p>包含的信息有符号名, 符号相对应的值, 符号大小, 符号类型和绑定信息, 符号所在的段.</p>
 
 <h2 id="android-linker加载-so的源码分析">Android Linker加载.so的源码分析</h2>
 
 <p>Android中的本地文件.so是通过Linker加载到内存中去并且执行的.(本文分析的源码为Android4.4.4)
                 &mdash;- 推荐一款好用的源码阅读工具 source Insight</p>
-
-<pre><code class="language-cpp">java层:  System.LoadLibrary(&quot;function&quot;);
-native:         ---&gt;  Dalvik/vm/native/java_lang_Runtime.cpp: Dalvik_java_lang_Runtime_nativeLoad 
-                        ---&gt;Dalvik/vm/Native.cpp: dvmLoadNativeCode(const char* fileName, Object* ClassLoader, char** reason)
-                                ---&gt;bionic/linker/dlfcn.c: dlopen(const char* pathName, RTLD_LAZY)
-                                        ---&gt;bionic/linker/linker.cpp: do_dlopen(const char* name, int flags)
-</code></pre>
-
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#99f">java层</span>:  System.LoadLibrary(<span style="color:#c30">&#34;function&#34;</span>);
+<span style="color:#99f">native</span>:         <span style="color:#555">---&gt;</span>  Dalvik<span style="color:#555">/</span>vm<span style="color:#555">/</span>native<span style="color:#555">/</span>java_lang_Runtime.<span style="color:#99f">cpp</span>: Dalvik_java_lang_Runtime_nativeLoad 
+                        <span style="color:#555">---&gt;</span>Dalvik<span style="color:#555">/</span>vm<span style="color:#555">/</span>Native.<span style="color:#99f">cpp</span>: dvmLoadNativeCode(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> fileName, Object<span style="color:#555">*</span> ClassLoader, <span style="color:#078;font-weight:bold">char</span><span style="color:#555">**</span> reason)
+                                <span style="color:#555">---&gt;</span>bionic<span style="color:#555">/</span>linker<span style="color:#555">/</span>dlfcn.<span style="color:#99f">c</span>: dlopen(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> pathName, RTLD_LAZY)
+                                        <span style="color:#555">---&gt;</span>bionic<span style="color:#555">/</span>linker<span style="color:#555">/</span>linker.<span style="color:#99f">cpp</span>: do_dlopen(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> name, <span style="color:#078;font-weight:bold">int</span> flags)
+</code></pre></div>
 <ol>
-<li>核心函数为<code>do_dlopen</code>:
-<code>cpp
-soinfo* do_dlopen(const char* name, int flags) {  // 函数的参数为
-if ((flags &amp; ~(RTLD_NOW|RTLD_LAZY|RTLD_LOCAL|RTLD_GLOBAL)) != 0) {
-    DL_ERR(&quot;invalid flags to dlopen: %x&quot;, flags);
-    return NULL;
+<li>核心函数为<code>do_dlopen</code>:</li>
+</ol>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">soinfo<span style="color:#555">*</span> <span style="color:#c0f">do_dlopen</span>(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> name, <span style="color:#078;font-weight:bold">int</span> flags) {  <span style="color:#09f;font-style:italic">// 函数的参数为
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> ((flags <span style="color:#555">&amp;</span> <span style="color:#555">~</span>(RTLD_NOW<span style="color:#555">|</span>RTLD_LAZY<span style="color:#555">|</span>RTLD_LOCAL<span style="color:#555">|</span>RTLD_GLOBAL)) <span style="color:#555">!=</span> <span style="color:#f60">0</span>) {
+        DL_ERR(<span style="color:#c30">&#34;invalid flags to dlopen: %x&#34;</span>, flags);
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">NULL</span>;
+    }
+    set_soinfo_pool_protection(PROT_READ <span style="color:#555">|</span> PROT_WRITE); <span style="color:#09f;font-style:italic">// 设置so信息池的访问权限为可读可写
+</span><span style="color:#09f;font-style:italic"></span>    soinfo<span style="color:#555">*</span> si <span style="color:#555">=</span> find_library(name);                    <span style="color:#09f;font-style:italic">// 找到name函数, 装载so, 并返回指向.soinfo的指针
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (si <span style="color:#555">!=</span> <span style="color:#366">NULL</span>) {
+                      si<span style="color:#555">-&gt;</span>CallConstructors();           <span style="color:#09f;font-style:italic">// 初始化so库
+</span><span style="color:#09f;font-style:italic"></span>    }
+    set_soinfo_pool_protection(PROT_READ);              <span style="color:#09f;font-style:italic">// 设置so信息池的访问权限为只读
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">return</span> si;
 }
-set_soinfo_pool_protection(PROT_READ | PROT_WRITE); // 设置so信息池的访问权限为可读可写
-soinfo* si = find_library(name);                    // 找到name函数, 装载so, 并返回指向.soinfo的指针
-if (si != NULL) {
-                  si-&gt;CallConstructors();           // 初始化so库
+</code></pre></div>
+<ol>
+<li>查看<code>find_library</code>函数可以发现它调用了<code>find_library_internal</code>函数,</li>
+</ol>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#069;font-weight:bold">static</span> soinfo<span style="color:#555">*</span> <span style="color:#c0f">find_library</span>(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> name) {
+    soinfo<span style="color:#555">*</span> si <span style="color:#555">=</span> find_library_internal(name);
+    <span style="color:#069;font-weight:bold">if</span> (si <span style="color:#555">!=</span> <span style="color:#366">NULL</span>) {
+        si<span style="color:#555">-&gt;</span>ref_count<span style="color:#555">++</span>;
+    }
+    <span style="color:#069;font-weight:bold">return</span> si;
 }
-set_soinfo_pool_protection(PROT_READ);              // 设置so信息池的访问权限为只读
-return si;
-}
-</code></li>
-
-<li><p>查看<code>find_library</code>函数可以发现它调用了<code>find_library_internal</code>函数,</p>
-
-<pre><code class="language-cpp">static soinfo* find_library(const char* name) {
-soinfo* si = find_library_internal(name);
-if (si != NULL) {
-    si-&gt;ref_count++;
-}
-return si;
-}
-</code></pre>
-
+</code></pre></div>
 <p>分析<code>find_library_internal</code>函数, 发现其主要调用了<code>load_library()</code>函数和 <code>soinfo_link_image()</code> 函数.
 _</p>
-
-<pre><code class="language-cpp">static soinfo* find_library_internal(const char* name) {
-if (name == NULL) {
-    return somain;
-}
-soinfo* si = find_loaded_library(name);         // 判断.so是否完全加载, 如果加载: 返回有效的指针;如果没有加载, 返回null;
-if (si != NULL) {                               // 如果已经加载，返回
-    if (si-&gt;flags &amp; FLAG_LINKED) {
-        return si;
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#069;font-weight:bold">static</span> soinfo<span style="color:#555">*</span> <span style="color:#c0f">find_library_internal</span>(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> name) {
+    <span style="color:#069;font-weight:bold">if</span> (name <span style="color:#555">==</span> <span style="color:#366">NULL</span>) {
+        <span style="color:#069;font-weight:bold">return</span> somain;
     }
-    DL_ERR(&quot;OOPS: recursive link to \&quot;%s\&quot;&quot;, si-&gt;name);
-    return NULL;
-}
+    soinfo<span style="color:#555">*</span> si <span style="color:#555">=</span> find_loaded_library(name);         <span style="color:#09f;font-style:italic">// 判断.so是否完全加载, 如果加载: 返回有效的指针;如果没有加载, 返回null;
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (si <span style="color:#555">!=</span> <span style="color:#366">NULL</span>) {                               <span style="color:#09f;font-style:italic">// 如果已经加载，返回
+</span><span style="color:#09f;font-style:italic"></span>        <span style="color:#069;font-weight:bold">if</span> (si<span style="color:#555">-&gt;</span>flags <span style="color:#555">&amp;</span> FLAG_LINKED) {
+            <span style="color:#069;font-weight:bold">return</span> si;
+        }
+        DL_ERR(<span style="color:#c30">&#34;OOPS: recursive link to </span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">%s</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">&#34;</span>, si<span style="color:#555">-&gt;</span>name);
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">NULL</span>;
+    }
 
-TRACE(&quot;[ '%s' has not been loaded yet.  Locating...]&quot;, name);  // 打印so还没有加载
-si = load_library(name);        // 加载.so
-if (si == NULL) {
-    return NULL;
-}
-// At this point we know that whatever is loaded @ base is a valid ELF
-// shared library whose segments are properly mapped in.
-TRACE(&quot;[ init_library base=0x%08x sz=0x%08x name='%s' ]&quot;,
-        si-&gt;base, si-&gt;size, si-&gt;name);
+    TRACE(<span style="color:#c30">&#34;[ &#39;%s&#39; has not been loaded yet.  Locating...]&#34;</span>, name);  <span style="color:#09f;font-style:italic">// 打印so还没有加载
+</span><span style="color:#09f;font-style:italic"></span>    si <span style="color:#555">=</span> load_library(name);        <span style="color:#09f;font-style:italic">// 加载.so
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (si <span style="color:#555">==</span> <span style="color:#366">NULL</span>) {
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">NULL</span>;
+    }
+    <span style="color:#09f;font-style:italic">// At this point we know that whatever is loaded @ base is a valid ELF
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#09f;font-style:italic">// shared library whose segments are properly mapped in.
+</span><span style="color:#09f;font-style:italic"></span>    TRACE(<span style="color:#c30">&#34;[ init_library base=0x%08x sz=0x%08x name=&#39;%s&#39; ]&#34;</span>,
+            si<span style="color:#555">-&gt;</span>base, si<span style="color:#555">-&gt;</span>size, si<span style="color:#555">-&gt;</span>name);
 
-if (!soinfo_link_image(si)) {       // 完成.so的重定位
-    munmap(reinterpret_cast&lt;void*&gt;(si-&gt;base), si-&gt;size);
-    soinfo_free(si);
-    return NULL;
+    <span style="color:#069;font-weight:bold">if</span> (<span style="color:#555">!</span>soinfo_link_image(si)) {       <span style="color:#09f;font-style:italic">// 完成.so的重定位
+</span><span style="color:#09f;font-style:italic"></span>        munmap(<span style="color:#069;font-weight:bold">reinterpret_cast</span><span style="color:#555">&lt;</span><span style="color:#078;font-weight:bold">void</span><span style="color:#555">*&gt;</span>(si<span style="color:#555">-&gt;</span>base), si<span style="color:#555">-&gt;</span>size);
+        soinfo_free(si);
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">NULL</span>;
+    }
+    <span style="color:#069;font-weight:bold">return</span> si;
 }
-return si;
-}
-</code></pre></li>
-</ol>
-
+</code></pre></div>
 <p>分析<code>load_library</code>函数, 会找到elf_read.<code>Load()</code>方法, 这个方法就是load</p>
-
-<pre><code class="language-cpp">static soinfo* load_library(const char* name) {
-// Open the file.
-    int fd = open_library(name);                        // 打开文件, 获取fd
-    if (fd == -1) {
-        DL_ERR(&quot;library \&quot;%s\&quot; not found&quot;, name);
-        return NULL;
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#069;font-weight:bold">static</span> soinfo<span style="color:#555">*</span> <span style="color:#c0f">load_library</span>(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> name) {
+<span style="color:#09f;font-style:italic">// Open the file.
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#078;font-weight:bold">int</span> fd <span style="color:#555">=</span> open_library(name);                        <span style="color:#09f;font-style:italic">// 打开文件, 获取fd
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (fd <span style="color:#555">==</span> <span style="color:#555">-</span><span style="color:#f60">1</span>) {
+        DL_ERR(<span style="color:#c30">&#34;library </span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">%s</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30"> not found&#34;</span>, name);
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">NULL</span>;
     }
 
-    // Read the ELF header and load the segments.
-    ElfReader elf_reader(name, fd);                     // 初始化elfReader对象
-    if (!elf_reader.Load()) {                           // 通过elfReader对象的Load()方法, 将so文件装载到内存
-        return NULL;
+    <span style="color:#09f;font-style:italic">// Read the ELF header and load the segments.
+</span><span style="color:#09f;font-style:italic"></span>    ElfReader elf_reader(name, fd);                     <span style="color:#09f;font-style:italic">// 初始化elfReader对象
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (<span style="color:#555">!</span>elf_reader.Load()) {                           <span style="color:#09f;font-style:italic">// 通过elfReader对象的Load()方法, 将so文件装载到内存
+</span><span style="color:#09f;font-style:italic"></span>        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">NULL</span>;
     }
 
-    const char* bname = strrchr(name, '/');
-    soinfo* si = soinfo_alloc(bname ? bname + 1 : name);    // 分配so_info结构, 并按照装载结果更新相应的成员变量
-    if (si == NULL) {
-        return NULL;
+    <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> bname <span style="color:#555">=</span> strrchr(name, <span style="color:#c30">&#39;/&#39;</span>);
+    soinfo<span style="color:#555">*</span> si <span style="color:#555">=</span> soinfo_alloc(bname <span style="color:#555">?</span> bname <span style="color:#555">+</span> <span style="color:#f60">1</span> <span style="color:#555">:</span> name);    <span style="color:#09f;font-style:italic">// 分配so_info结构, 并按照装载结果更新相应的成员变量
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (si <span style="color:#555">==</span> <span style="color:#366">NULL</span>) {
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">NULL</span>;
     }
-    si-&gt;base = elf_reader.load_start();
-    si-&gt;size = elf_reader.load_size();
-    si-&gt;load_bias = elf_reader.load_bias();
-    si-&gt;flags = 0;
-    si-&gt;entry = 0;
-    si-&gt;dynamic = NULL;
-    si-&gt;phnum = elf_reader.phdr_count();
-    si-&gt;phdr = elf_reader.loaded_phdr();
+    si<span style="color:#555">-&gt;</span>base <span style="color:#555">=</span> elf_reader.load_start();
+    si<span style="color:#555">-&gt;</span>size <span style="color:#555">=</span> elf_reader.load_size();
+    si<span style="color:#555">-&gt;</span>load_bias <span style="color:#555">=</span> elf_reader.load_bias();
+    si<span style="color:#555">-&gt;</span>flags <span style="color:#555">=</span> <span style="color:#f60">0</span>;
+    si<span style="color:#555">-&gt;</span>entry <span style="color:#555">=</span> <span style="color:#f60">0</span>;
+    si<span style="color:#555">-&gt;</span>dynamic <span style="color:#555">=</span> <span style="color:#366">NULL</span>;
+    si<span style="color:#555">-&gt;</span>phnum <span style="color:#555">=</span> elf_reader.phdr_count();
+    si<span style="color:#555">-&gt;</span>phdr <span style="color:#555">=</span> elf_reader.loaded_phdr();
 
-    return si;
+    <span style="color:#069;font-weight:bold">return</span> si;
 }
 
-这里放一个ElfReader结构:
-class ElfReader {
-public:
-    ElfReader(const char* name, int fd);
-    ~ElfReader();
+<span style="color:#a00;background-color:#faa">这里放一个</span><span style="color:#99f">ElfReader结构</span>:
+<span style="color:#069;font-weight:bold">class</span><span style="color:#a00;background-color:#faa"> </span><span style="color:#0a8;font-weight:bold">ElfReader</span> {
+<span style="color:#069;font-weight:bold">public</span><span style="color:#555">:</span>
+    ElfReader(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> name, <span style="color:#078;font-weight:bold">int</span> fd);
+    <span style="color:#555">~</span>ElfReader();
 
-    bool Load();
+    <span style="color:#078;font-weight:bold">bool</span> <span style="color:#c0f">Load</span>();
 
-    size_t phdr_count() { return phdr_num_; }
-    Elf32_Addr load_start() { return reinterpret_cast&lt;Elf32_Addr&gt;(load_start_); }
-    Elf32_Addr load_size() { return load_size_; }
-    Elf32_Addr load_bias() { return load_bias_; }
-    const Elf32_Phdr* loaded_phdr() { return loaded_phdr_; }
+    size_t <span style="color:#c0f">phdr_count</span>() { <span style="color:#069;font-weight:bold">return</span> phdr_num_; }
+    Elf32_Addr <span style="color:#c0f">load_start</span>() { <span style="color:#069;font-weight:bold">return</span> <span style="color:#069;font-weight:bold">reinterpret_cast</span><span style="color:#555">&lt;</span>Elf32_Addr<span style="color:#555">&gt;</span>(load_start_); }
+    Elf32_Addr <span style="color:#c0f">load_size</span>() { <span style="color:#069;font-weight:bold">return</span> load_size_; }
+    Elf32_Addr <span style="color:#c0f">load_bias</span>() { <span style="color:#069;font-weight:bold">return</span> load_bias_; }
+    <span style="color:#069;font-weight:bold">const</span> Elf32_Phdr<span style="color:#555">*</span> <span style="color:#c0f">loaded_phdr</span>() { <span style="color:#069;font-weight:bold">return</span> loaded_phdr_; }
 
-private:
-    bool ReadElfHeader();
-    bool VerifyElfHeader();
-    bool ReadProgramHeader();
-    bool ReserveAddressSpace();
-    bool LoadSegments();
-    bool FindPhdr();
-    bool CheckPhdr(Elf32_Addr); 
+<span style="color:#069;font-weight:bold">private</span><span style="color:#555">:</span>
+    <span style="color:#078;font-weight:bold">bool</span> ReadElfHeader();
+    <span style="color:#078;font-weight:bold">bool</span> <span style="color:#c0f">VerifyElfHeader</span>();
+    <span style="color:#078;font-weight:bold">bool</span> <span style="color:#c0f">ReadProgramHeader</span>();
+    <span style="color:#078;font-weight:bold">bool</span> <span style="color:#c0f">ReserveAddressSpace</span>();
+    <span style="color:#078;font-weight:bold">bool</span> <span style="color:#c0f">LoadSegments</span>();
+    <span style="color:#078;font-weight:bold">bool</span> <span style="color:#c0f">FindPhdr</span>();
+    <span style="color:#078;font-weight:bold">bool</span> <span style="color:#c0f">CheckPhdr</span>(Elf32_Addr); 
 
-    const char* name_;
-    int fd_;    
+    <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span><span style="color:#555">*</span> name_;
+    <span style="color:#078;font-weight:bold">int</span> fd_;    
 
     Elf32_Ehdr header_;
     size_t phdr_num_;   
 
-    void* phdr_mmap_;
-    Elf32_Phdr* phdr_table_;
+    <span style="color:#078;font-weight:bold">void</span><span style="color:#555">*</span> phdr_mmap_;
+    Elf32_Phdr<span style="color:#555">*</span> phdr_table_;
     Elf32_Addr phdr_size_;  
 
-    // First page of reserved address space.
-    void* load_start_;
-    // Size in bytes of reserved address space.
-    Elf32_Addr load_size_;
-    // Load bias.
-    Elf32_Addr load_bias_;
+    <span style="color:#09f;font-style:italic">// First page of reserved address space.
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#078;font-weight:bold">void</span><span style="color:#555">*</span> load_start_;
+    <span style="color:#09f;font-style:italic">// Size in bytes of reserved address space.
+</span><span style="color:#09f;font-style:italic"></span>    Elf32_Addr load_size_;
+    <span style="color:#09f;font-style:italic">// Load bias.
+</span><span style="color:#09f;font-style:italic"></span>    Elf32_Addr load_bias_;
 
-    // Loaded phdr.
-    const Elf32_Phdr* loaded_phdr_;
+    <span style="color:#09f;font-style:italic">// Loaded phdr.
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">const</span> Elf32_Phdr<span style="color:#555">*</span> loaded_phdr_;
 };
-</code></pre>
-
+</code></pre></div>
 <p>这里是<code>Load()</code>函数</p>
-
-<pre><code class="language-cpp">bool ElfReader::Load() {
-    return ReadElfHeader() &amp;&amp;                   // 读取
-        VerifyElfHeader() &amp;&amp;                // 验证
-        ReadProgramHeader() &amp;&amp;              // 读取Program header
-        ReserveAddressSpace() &amp;&amp;            // 根据Program header计算so需要的内存size并分配相应的空间
-        LoadSegments() &amp;&amp;                   // 将so按照segment为单位装载到内存
-        FindPhdr();                     // on 装载到内存的so中找到program header, 方便以后链接过程use
-}
-</code></pre>
-
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#078;font-weight:bold">bool</span> ElfReader<span style="color:#555">::</span>Load() {
+    <span style="color:#069;font-weight:bold">return</span> ReadElfHeader() <span style="color:#555">&amp;&amp;</span>                   <span style="color:#09f;font-style:italic">// 读取
+</span><span style="color:#09f;font-style:italic"></span>        VerifyElfHeader() <span style="color:#555">&amp;&amp;</span>                <span style="color:#09f;font-style:italic">// 验证
+</span><span style="color:#09f;font-style:italic"></span>        ReadProgramHeader() <span style="color:#555">&amp;&amp;</span>              <span style="color:#09f;font-style:italic">// 读取Program header
+</span><span style="color:#09f;font-style:italic"></span>        ReserveAddressSpace() <span style="color:#555">&amp;&amp;</span>            <span style="color:#09f;font-style:italic">// 根据Program header计算so需要的内存size并分配相应的空间
+</span><span style="color:#09f;font-style:italic"></span>        LoadSegments() <span style="color:#555">&amp;&amp;</span>                   <span style="color:#09f;font-style:italic">// 将so按照segment为单位装载到内存
+</span><span style="color:#09f;font-style:italic"></span>        FindPhdr();                     <span style="color:#09f;font-style:italic">// on 装载到内存的so中找到program header, 方便以后链接过程use
+</span><span style="color:#09f;font-style:italic"></span>}
+</code></pre></div>
 <ul>
-<li>首先是<code>ReadElfHeader</code>()函数, 发现其是直接调用<code>read</code>函数读取到header中的.
-<code>cpp
-bool ElfReader::ReadElfHeader() {
-ssize_t rc = TEMP_FAILURE_RETRY(read(fd_, &amp;header_, sizeof(header_)));  // use read() function 直接将elfheader读取到header中
-</code>//////////////////////////////
-return true;
-}
-```</li>
-<li>然后是<code>VerifyElfread</code>()函数, 对Elfheader进行验证识别: 是否为32位，大小端，类型和版本.</li>
-
-<li><p>之后<code>ReadProgramHeader</code>()函数(加载program header table从elf文件到一个只读的私有匿名的mmap-ed block中):</p>
-
-<pre><code class="language-cpp">bool ElfReader::ReadProgramHeader() {
-phdr_num_ = header_.e_phnum;                                        
-//  将program header on内存中中单独映射一份, use于解析时临时use, on so装载到内存后, 便会释放这块内存, 转而使use装载后的so中的program header
-
-// Like the kernel, we only accept program header tables that
-// are smaller than 64KiB.
-if (phdr_num_ &lt; 1 || phdr_num_ &gt; 65536/sizeof(Elf32_Phdr)) {
-    DL_ERR(&quot;\&quot;%s\&quot; has invalid e_phnum: %d&quot;, name_, phdr_num_);
-    return false;
-}
-
-Elf32_Addr page_min = PAGE_START(header_.e_phoff);
-Elf32_Addr page_max = PAGE_END(header_.e_phoff + (phdr_num_ * sizeof(Elf32_Phdr)));
-Elf32_Addr page_offset = PAGE_OFFSET(header_.e_phoff);  
-
-phdr_size_ = page_max - page_min;
-
-void* mmap_result = mmap(NULL, phdr_size_, PROT_READ, MAP_PRIVATE, fd_, page_min);
-    if (mmap_result == MAP_FAILED) {
-    DL_ERR(&quot;\&quot;%s\&quot; phdr mmap failed: %s&quot;, name_, strerror(errno));
-    return false;
-}
-
-phdr_mmap_ = mmap_result;
-phdr_table_ = reinterpret_cast&lt;Elf32_Phdr*&gt;(reinterpret_cast&lt;char*&gt;(mmap_result) + page_offset);
-return true;
-}
-</code></pre></li>
-
-<li><p><code>ReverveAddressSpace</code>()函数(准备虚拟内存足够的大来存放Program header中的<code>Load</code>段(两个Load段～～) 通过<code>mmap with PROT_NONE</code> 实现</p></li>
+<li>首先是<code>ReadElfHeader</code>()函数, 发现其是直接调用<code>read</code>函数读取到header中的.</li>
 </ul>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#078;font-weight:bold">bool</span> ElfReader<span style="color:#555">::</span>ReadElfHeader() {
+    ssize_t rc <span style="color:#555">=</span> TEMP_FAILURE_RETRY(read(fd_, <span style="color:#555">&amp;</span>header_, <span style="color:#069;font-weight:bold">sizeof</span>(header_)));  <span style="color:#09f;font-style:italic">// use read() function 直接将elfheader读取到header中
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#a00;background-color:#faa">```</span><span style="color:#09f;font-style:italic">//////////////////////////////
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">true</span>;
+}
+</code></pre></div>
+<ul>
+<li><p>然后是<code>VerifyElfread</code>()函数, 对Elfheader进行验证识别: 是否为32位，大小端，类型和版本.</p></li>
 
-<pre><code class="language-cpp">bool ElfReader::ReserveAddressSpace() {
+<li><p>之后<code>ReadProgramHeader</code>()函数(加载program header table从elf文件到一个只读的私有匿名的mmap-ed block中):</p></li>
+</ul>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#078;font-weight:bold">bool</span> ElfReader<span style="color:#555">::</span>ReadProgramHeader() {
+    phdr_num_ <span style="color:#555">=</span> header_.e_phnum;                                        
+    <span style="color:#09f;font-style:italic">//  将program header on内存中中单独映射一份, use于解析时临时use, on so装载到内存后, 便会释放这块内存, 转而使use装载后的so中的program header
+</span><span style="color:#09f;font-style:italic"></span>
+    <span style="color:#09f;font-style:italic">// Like the kernel, we only accept program header tables that
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#09f;font-style:italic">// are smaller than 64KiB.
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (phdr_num_ <span style="color:#555">&lt;</span> <span style="color:#f60">1</span> <span style="color:#555">||</span> phdr_num_ <span style="color:#555">&gt;</span> <span style="color:#f60">65536</span><span style="color:#555">/</span><span style="color:#069;font-weight:bold">sizeof</span>(Elf32_Phdr)) {
+        DL_ERR(<span style="color:#c30">&#34;</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">%s</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30"> has invalid e_phnum: %d&#34;</span>, name_, phdr_num_);
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">false</span>;
+    }
+
+    Elf32_Addr page_min <span style="color:#555">=</span> PAGE_START(header_.e_phoff);
+    Elf32_Addr page_max <span style="color:#555">=</span> PAGE_END(header_.e_phoff <span style="color:#555">+</span> (phdr_num_ <span style="color:#555">*</span> <span style="color:#069;font-weight:bold">sizeof</span>(Elf32_Phdr)));
+    Elf32_Addr page_offset <span style="color:#555">=</span> PAGE_OFFSET(header_.e_phoff);  
+
+    phdr_size_ <span style="color:#555">=</span> page_max <span style="color:#555">-</span> page_min;
+
+    <span style="color:#078;font-weight:bold">void</span><span style="color:#555">*</span> mmap_result <span style="color:#555">=</span> mmap(<span style="color:#366">NULL</span>, phdr_size_, PROT_READ, MAP_PRIVATE, fd_, page_min);
+        <span style="color:#069;font-weight:bold">if</span> (mmap_result <span style="color:#555">==</span> MAP_FAILED) {
+        DL_ERR(<span style="color:#c30">&#34;</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">%s</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30"> phdr mmap failed: %s&#34;</span>, name_, strerror(errno));
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">false</span>;
+    }
+
+    phdr_mmap_ <span style="color:#555">=</span> mmap_result;
+    phdr_table_ <span style="color:#555">=</span> <span style="color:#069;font-weight:bold">reinterpret_cast</span><span style="color:#555">&lt;</span>Elf32_Phdr<span style="color:#555">*&gt;</span>(<span style="color:#069;font-weight:bold">reinterpret_cast</span><span style="color:#555">&lt;</span><span style="color:#078;font-weight:bold">char</span><span style="color:#555">*&gt;</span>(mmap_result) <span style="color:#555">+</span> page_offset);
+    <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">true</span>;
+}
+</code></pre></div>
+<ul>
+<li><code>ReverveAddressSpace</code>()函数(准备虚拟内存足够的大来存放Program header中的<code>Load</code>段(两个Load段～～) 通过<code>mmap with PROT_NONE</code> 实现</li>
+</ul>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#078;font-weight:bold">bool</span> ElfReader<span style="color:#555">::</span>ReserveAddressSpace() {
     Elf32_Addr min_vaddr;
-    load_size_ = phdr_table_get_load_size(phdr_table_, phdr_num_, &amp;min_vaddr);  // 获取so on 内存中需要的空间load_size
-    if (load_size_ == 0) {
-          DL_ERR(&quot;\&quot;%s\&quot; has no loadable segments&quot;, name_);
-              return false;
+    load_size_ <span style="color:#555">=</span> phdr_table_get_load_size(phdr_table_, phdr_num_, <span style="color:#555">&amp;</span>min_vaddr);  <span style="color:#09f;font-style:italic">// 获取so on 内存中需要的空间load_size
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span> (load_size_ <span style="color:#555">==</span> <span style="color:#f60">0</span>) {
+          DL_ERR(<span style="color:#c30">&#34;</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">%s</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30"> has no loadable segments&#34;</span>, name_);
+              <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">false</span>;
     }
 
-    uint8_t* addr = reinterpret_cast&lt;uint8_t*&gt;(min_vaddr);
-    void* start = mmap(addr, load_size_, PROT_NONE, mmap_flags, -1, 0);         // use mmap匿名映射, 预留出相应的空间
-    int mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
-    if (start == MAP_FAILED) {
-        DL_ERR(&quot;couldn't reserve %d bytes of address space for \&quot;%s\&quot;&quot;, load_size_, name_);
-        return false;
+    uint8_t<span style="color:#555">*</span> addr <span style="color:#555">=</span> <span style="color:#069;font-weight:bold">reinterpret_cast</span><span style="color:#555">&lt;</span>uint8_t<span style="color:#555">*&gt;</span>(min_vaddr);
+    <span style="color:#078;font-weight:bold">void</span><span style="color:#555">*</span> start <span style="color:#555">=</span> mmap(addr, load_size_, PROT_NONE, mmap_flags, <span style="color:#555">-</span><span style="color:#f60">1</span>, <span style="color:#f60">0</span>);         <span style="color:#09f;font-style:italic">// use mmap匿名映射, 预留出相应的空间
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#078;font-weight:bold">int</span> mmap_flags <span style="color:#555">=</span> MAP_PRIVATE <span style="color:#555">|</span> MAP_ANONYMOUS;
+    <span style="color:#069;font-weight:bold">if</span> (start <span style="color:#555">==</span> MAP_FAILED) {
+        DL_ERR(<span style="color:#c30">&#34;couldn&#39;t reserve %d bytes of address space for </span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">%s</span><span style="color:#c30;font-weight:bold">\&#34;</span><span style="color:#c30">&#34;</span>, load_size_, name_);
+        <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">false</span>;
     }
 
-    load_start_ = start;
-    load_bias_ = reinterpret_cast&lt;uint8_t*&gt;(start) - addr;              // so可以指定加载的基址, 但是so指定的加载基址可能不是页对齐的, 这种情况
-    return true;                                                            // 会导致实际映射地址和指定的加载地址有一个偏差, 这个偏差便是load_bias
-}
-</code></pre>
-
+    load_start_ <span style="color:#555">=</span> start;
+    load_bias_ <span style="color:#555">=</span> <span style="color:#069;font-weight:bold">reinterpret_cast</span><span style="color:#555">&lt;</span>uint8_t<span style="color:#555">*&gt;</span>(start) <span style="color:#555">-</span> addr;              <span style="color:#09f;font-style:italic">// so可以指定加载的基址, 但是so指定的加载基址可能不是页对齐的, 这种情况
+</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">true</span>;                                                            <span style="color:#09f;font-style:italic">// 会导致实际映射地址和指定的加载地址有一个偏差, 这个偏差便是load_bias
+</span><span style="color:#09f;font-style:italic"></span>}
+</code></pre></div>
 <ul>
-<li><p><code>LoadSegments</code>()函数(在进程地址空间中加载所有可加载的段(假设你已经预留了空间为这个library)):
-```cpp
-bool ElfReader::LoadSegments() {<br />
-for (size_t i = 0; i &lt; phdr<em>num</em>; ++i) {
-const Elf32_Phdr* phdr = &amp;phdr<em>table</em>[i];   // 遍历program header table</p>
-
-<p>if (phdr-&gt;p_type != PT_LOAD) {          // 加载所有p_type == PT_LOAD的段
-    continue;
-}</p>
-
-<p>``` 之后就是一些设置段地址，段偏移, 之后mmap的一些操作</p>
-
-<p>return true;
-}</p></li>
+<li><code>LoadSegments</code>()函数(在进程地址空间中加载所有可加载的段(假设你已经预留了空间为这个library)):</li>
 </ul>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#078;font-weight:bold">bool</span> ElfReader<span style="color:#555">::</span>LoadSegments() {    
+    <span style="color:#069;font-weight:bold">for</span> (size_t i <span style="color:#555">=</span> <span style="color:#f60">0</span>; i <span style="color:#555">&lt;</span> phdr_num_; <span style="color:#555">++</span>i) {
+    <span style="color:#069;font-weight:bold">const</span> Elf32_Phdr<span style="color:#555">*</span> phdr <span style="color:#555">=</span> <span style="color:#555">&amp;</span>phdr_table_[i];   <span style="color:#09f;font-style:italic">// 遍历program header table
+</span><span style="color:#09f;font-style:italic"></span>
+    <span style="color:#069;font-weight:bold">if</span> (phdr<span style="color:#555">-&gt;</span>p_type <span style="color:#555">!=</span> PT_LOAD) {          <span style="color:#09f;font-style:italic">// 加载所有p_type == PT_LOAD的段
+</span><span style="color:#09f;font-style:italic"></span>        <span style="color:#069;font-weight:bold">continue</span>;
+    }
 
-<pre><code>
- * `FindPhdr`()(返回program header table加载到内存中的地址, 因为之后还要执行.so的重定位).
-现在回到我们`find_library_internal`()这里，在执行完load_library()之后, 还有一个重要的函数为 `soinfo_link_image`(soinfo* si):
+    <span style="color:#a00;background-color:#faa">```</span> <span style="color:#a00;background-color:#faa">之后就是一些设置段地址，段偏移</span>, <span style="color:#a00;background-color:#faa">之后</span>mmap的一些操作
 
-```cpp
-这个函数会完成.so的动态链接，其中包含我们加载的.so库的重定位过程:
- 1. 定位动态section,将动态section的虚拟地址和项数和读写权限存在dynamic, dynamic_count, dynamic_flags中.
+    <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">true</span>;
+}
+</code></pre></div>
+<ul>
+<li><code>FindPhdr</code>()(返回program header table加载到内存中的地址, 因为之后还要执行.so的重定位).
+现在回到我们<code>find_library_internal</code>()这里，在执行完load_library()之后, 还有一个重要的函数为 <code>soinfo_link_image</code>(soinfo* si):</li>
+</ul>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#a00;background-color:#faa">这个函数会完成</span>.so的动态链接<span style="color:#a00;background-color:#faa">，其中包含我们加载的</span>.<span style="color:#99f">so库的重定位过程</span>:
+ <span style="color:#f60">1.</span> <span style="color:#a00;background-color:#faa">定位动态</span>section,<span style="color:#a00;background-color:#faa">将动态</span>section的虚拟地址和项数和读写权限存在dynamic, dynamic_count, dynamic_flags中.
     size_t dynamic_count;
     Elf32_Word dynamic_flags;
-    phdr_table_get_dynamic_section(phdr, phnum, base, &amp;si-&gt;dynamic,     // 定位dynamic section
-                                       &amp;dynamic_count, &amp;dynamic_flags);     // 
-
- 2. 解析Dynamic section
- 3. 调用find_library, 返回所有依赖的.so的soinfo指针并存放在数组中.
- 4. 重定位(处理plt_rel(延迟绑定)和rel):
-    可以看到, 处理两个重定位表的函数都是soinfo_relocate函数.
-    if (si-&gt;plt_rel != NULL) {
-        DEBUG(&quot;[ relocating %s plt ]&quot;, si-&gt;name );
-        if (soinfo_relocate(si, si-&gt;plt_rel, si-&gt;plt_rel_count, needed)) {
-            return false;
+    phdr_table_get_dynamic_section(phdr, phnum, base, <span style="color:#555">&amp;</span>si<span style="color:#555">-&gt;</span>dynamic,     <span style="color:#09f;font-style:italic">// 定位dynamic section
+</span><span style="color:#09f;font-style:italic"></span>                                       <span style="color:#555">&amp;</span>dynamic_count, <span style="color:#555">&amp;</span>dynamic_flags);     <span style="color:#09f;font-style:italic">// 
+</span><span style="color:#09f;font-style:italic"></span>
+ <span style="color:#f60">2.</span> <span style="color:#a00;background-color:#faa">解析</span>Dynamic section
+ <span style="color:#f60">3.</span> <span style="color:#a00;background-color:#faa">调用</span>find_library, <span style="color:#a00;background-color:#faa">返回所有依赖的</span>.so的soinfo指针并存放在数组中.
+ <span style="color:#f60">4.</span> <span style="color:#a00;background-color:#faa">重定位</span>(<span style="color:#a00;background-color:#faa">处理</span>plt_rel(<span style="color:#a00;background-color:#faa">延迟绑定</span>)<span style="color:#a00;background-color:#faa">和</span>rel)<span style="color:#555">:</span>
+    <span style="color:#a00;background-color:#faa">可以看到</span>, <span style="color:#a00;background-color:#faa">处理两个重定位表的函数都是</span>soinfo_relocate函数.
+    <span style="color:#069;font-weight:bold">if</span> (si<span style="color:#555">-&gt;</span>plt_rel <span style="color:#555">!=</span> <span style="color:#366">NULL</span>) {
+        DEBUG(<span style="color:#c30">&#34;[ relocating %s plt ]&#34;</span>, si<span style="color:#555">-&gt;</span>name );
+        <span style="color:#069;font-weight:bold">if</span> (soinfo_relocate(si, si<span style="color:#555">-&gt;</span>plt_rel, si<span style="color:#555">-&gt;</span>plt_rel_count, needed)) {
+            <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">false</span>;
         }
     }
-    if (si-&gt;rel != NULL) {
-        DEBUG(&quot;[ relocating %s ]&quot;, si-&gt;name );
-        if (soinfo_relocate(si, si-&gt;rel, si-&gt;rel_count, needed)) {       
-            return false;
+    <span style="color:#069;font-weight:bold">if</span> (si<span style="color:#555">-&gt;</span>rel <span style="color:#555">!=</span> <span style="color:#366">NULL</span>) {
+        DEBUG(<span style="color:#c30">&#34;[ relocating %s ]&#34;</span>, si<span style="color:#555">-&gt;</span>name );
+        <span style="color:#069;font-weight:bold">if</span> (soinfo_relocate(si, si<span style="color:#555">-&gt;</span>rel, si<span style="color:#555">-&gt;</span>rel_count, needed)) {       
+            <span style="color:#069;font-weight:bold">return</span> <span style="color:#366">false</span>;
         }
     }       
-</code></pre>
-
+</code></pre></div>
 <p>现在分析soinfo_relocate函数</p>
-
-<pre><code class="language-cpp">
-
-
-
-
-
-
-
-
-
-
-
-
-</code></pre>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">
+</code></pre></div>
     </div>
 
     

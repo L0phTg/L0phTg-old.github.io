@@ -83,7 +83,7 @@
 
 <meta itemprop="datePublished" content="2017-12-28T11:47:58&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-28T11:47:58&#43;00:00" />
-<meta itemprop="wordCount" content="1111">
+<meta itemprop="wordCount" content="1106">
 
 
 
@@ -395,18 +395,17 @@
 <h2 id="装机过程">装机过程</h2>
 
 <p>装机过程很简单, 下载好官方的镜像源, 之后检验一下<strong>md5</strong>.</p>
-
-<pre><code class="language-bash">$checksum  
-
-</code></pre>
-
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#033">$checksum</span>  </code></pre></div>
 <p>然后用<strong>官方的启动盘制作工具</strong>把U盘装入deepin, 重启时插入U盘, 设置为U盘启动就可以了.</p>
 
 <p><strong>重点来了</strong>, 因为我不想用windows10了, 所以直接把系统装在c盘中, 因为原来的系统有<strong>3个分区, 所以装机时不用格式化 D 盘 和 E 盘</strong>(<code>我的E盘有7/8个虚拟机文件, 在装好deepin后, 依然可以正常使用</code>)</p>
 
-<p>装机总结:
-- deepin系统装入c盘.<br />
-- D盘, E盘可以不用格式化.(当然, 如果电脑里没啥重要文件的, skip it)</p>
+<p>装机总结:</p>
+
+<ul>
+<li>deepin系统装入c盘.<br /></li>
+<li>D盘, E盘可以不用格式化.(当然, 如果电脑里没啥重要文件的, skip it)</li>
+</ul>
 
 <h2 id="下来就是激动人心的时刻了">下来就是激动人心的时刻了</h2>
 
@@ -428,14 +427,14 @@
 
 <h3 id="配置nvim-spacevim">配置nvim/spacevim</h3>
 
-<p>依赖项:
-- python支持: 建议先<code>pip install neovim</code>和<code>pip3 install neovim</code>.
-- font支持: (读者可以自行查看readme进行安装) git地址: <code>https://github.com/powerline/fonts.git</code> , 用来更好的显示vim界面(字体, 状态栏&hellip;).
-- tagbar支持: 安装 <code>ctags</code>.</p>
+<p>依赖项:</p>
 
-<pre><code>sudo apt install ctags
-</code></pre>
-
+<ul>
+<li>python支持: 建议先<code>pip install neovim</code>和<code>pip3 install neovim</code>.</li>
+<li>font支持: (读者可以自行查看readme进行安装) git地址: <code>https://github.com/powerline/fonts.git</code> , 用来更好的显示vim界面(字体, 状态栏&hellip;).</li>
+<li>tagbar支持: 安装 <code>ctags</code>.</li>
+</ul>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo apt install ctags</code></pre></div>
 <p><strong>安装</strong>:</p>
 
 <ul>
@@ -453,39 +452,28 @@
 </ol>
 
 <ul>
-<li><p>默认预览浏览器为<code>google-chrome</code>:</p>
-
-<pre><code>let g:mkdp_path_to_chrome = 'google-chrome'
-</code></pre></li>
-
-<li><p>映射预览为<code>F4</code>:</p>
-
-<pre><code class="language-bash">nmap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        &quot; for normal mode
-imap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        &quot; for insert mode
-</code></pre></li>
+<li>默认预览浏览器为<code>google-chrome</code>:</li>
 </ul>
-
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#366">let</span> g:mkdp_path_to_chrome <span style="color:#555">=</span> <span style="color:#c30">&#39;google-chrome&#39;</span></code></pre></div>
+<ul>
+<li>映射预览为<code>F4</code>:</li>
+</ul>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">nmap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        <span style="color:#c30">&#34; for normal mode
+</span><span style="color:#c30">imap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        &#34;</span> <span style="color:#069;font-weight:bold">for</span> insert mode</code></pre></div>
 <ol>
-<li>设置状态栏分隔符为箭头:
-<code>
-let g:spacevim_statusline_separator = 'arrow'
-</code></li>
+<li>设置状态栏分隔符为箭头:</li>
 </ol>
-
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#366">let</span> g:spacevim_statusline_separator <span style="color:#555">=</span> <span style="color:#c30">&#39;arrow&#39;</span></code></pre></div>
 <h3 id="配置zsh-oh-my-zsh">配置zsh/oh-my-zsh</h3>
 
 <ol>
-<li><p>安装zsh</p>
-
-<pre><code>sudo apt install zsh
-</code></pre></li>
-
-<li><p>安装oh-my-zsh</p></li>
+<li>安装zsh</li>
 </ol>
-
-<pre><code>sh -c &quot;$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)&quot;
-</code></pre>
-
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt install zsh</code></pre></div>
+<ol>
+<li>安装oh-my-zsh</li>
+</ol>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sh -c <span style="color:#c30">&#34;</span><span style="color:#069;font-weight:bold">$(</span>curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh<span style="color:#069;font-weight:bold">)</span><span style="color:#c30">&#34;</span></code></pre></div>
 <p>具体的配置看个人喜好.</p>
 
 <h3 id="安装tools">安装tools</h3>
