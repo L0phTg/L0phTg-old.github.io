@@ -89,7 +89,7 @@ symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址
 
 <meta itemprop="datePublished" content="2018-09-19T02:19:05&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-19T02:19:05&#43;08:00" />
-<meta itemprop="wordCount" content="1195">
+<meta itemprop="wordCount" content="1466">
 
 
 
@@ -359,6 +359,36 @@ symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址
 
     
     
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#阅读readme">阅读Readme</a></li>
+<li><a href="#分析">分析</a>
+<ul>
+<li><a href="#xhook-register-hook函数注册">xhook_register Hook函数注册</a>
+<ul>
+<li><a href="#函数申明">函数申明</a></li>
+<li><a href="#函数实现分析">函数实现分析</a>
+<ul>
+<li><a href="#xh-core-register">xh_core_register</a></li>
+<li><a href="#xh-elf-init">xh_elf_init:</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#xh-refresh">xh_refresh</a>
+<ul>
+<li><a href="#xh-elf-hook">xh_elf_hook</a>
+<ul>
+<li><a href="#xh-elf-find-symidx-by-name">xh_elf_find_symidx_by_name</a></li>
+<li><a href="#xh-elf-find-and-replace-func">xh_elf_find_and_replace_func</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
 
     
     <div class="post-content">
@@ -419,7 +449,6 @@ xhook_ignore(&quot;.*/libwebviewchromium.so$&quot;, NULL);
 
 //现在执行 hook!
 xhook_refresh(1);
-
 </code></pre>
 
 <p>发现重点为下面几个函数:</p>
@@ -452,7 +481,7 @@ xhook_refresh(1);
 
 </code></pre>
 
-<p>xh_core_register</p>
+<h4 id="xh-core-register">xh_core_register</h4>
 
 <pre><code>int xh_core_register(const char *pathname_regex_str, const char *symbol,
                      void *new_func, void **old_func)
@@ -496,218 +525,295 @@ xhook_refresh(1);
 }
 </code></pre>
 
-<p>xh_elf_init:</p>
+<h4 id="xh-elf-init">xh_elf_init:</h4>
 
 <ol>
 <li>设置 load_bias, elf_header, Program header地址.</li>
 <li>找到第一个PT_LOAD段</li>
-<li>找到dynamic_header. 之后解析dynamic segment, 找到strtab, symtab, rel.plt, .rel,等
-```</li>
+<li>找到dynamic_header. 之后解析dynamic segment, 找到strtab, symtab, rel.plt, .rel,等</li>
 </ol>
 
-<p>int xh_elf_init(xh_elf_t *self, uintptr_t base_addr, const char *pathname)
+<pre><code>
+int xh_elf_init(xh_elf_t *self, uintptr_t base_addr, const char *pathname)
 {
-    if(0 == base_addr || NULL == pathname) return XH_ERRNO_INVAL;</p>
+    if(0 == base_addr || NULL == pathname) return XH_ERRNO_INVAL;
 
-<pre><code>//always reset
-memset(self, 0, sizeof(xh_elf_t));
+    //always reset
+    memset(self, 0, sizeof(xh_elf_t));
+    
+    self-&gt;pathname = pathname;
+    self-&gt;base_addr = (ElfW(Addr))base_addr;
+    self-&gt;ehdr = (ElfW(Ehdr) *)base_addr;
+    self-&gt;phdr = (ElfW(Phdr) *)(base_addr + self-&gt;ehdr-&gt;e_phoff); //segmentation fault sometimes
 
-self-&gt;pathname = pathname;
-self-&gt;base_addr = (ElfW(Addr))base_addr;
-self-&gt;ehdr = (ElfW(Ehdr) *)base_addr;
-self-&gt;phdr = (ElfW(Phdr) *)(base_addr + self-&gt;ehdr-&gt;e_phoff); //segmentation fault sometimes
-
-//find the first load-segment with offset 0
-ElfW(Phdr) *phdr0 = xh_elf_get_first_segment_by_type_offset(self, PT_LOAD, 0);
-if(NULL == phdr0)
-{
-    XH_LOG_ERROR(&quot;Can NOT found the first load segment. %s&quot;, pathname);
-    return XH_ERRNO_FORMAT;
-}
-</code></pre>
-
-<p>#if XH_ELF_DEBUG
-    if(0 != phdr0-&gt;p_vaddr)
-        XH_LOG_DEBUG(&ldquo;first load-segment vaddr NOT 0 (vaddr: %p). %s&rdquo;,
-                     (void *)(phdr0-&gt;p_vaddr), pathname);
-#endif</p>
-
-<pre><code>//save load bias addr
-if(self-&gt;base_addr &lt; phdr0-&gt;p_vaddr) return XH_ERRNO_FORMAT;
-self-&gt;bias_addr = self-&gt;base_addr - phdr0-&gt;p_vaddr;
-
-//find dynamic-segment
-ElfW(Phdr) *dhdr = xh_elf_get_first_segment_by_type(self, PT_DYNAMIC);
-if(NULL == dhdr)
-{
-    XH_LOG_ERROR(&quot;Can NOT found dynamic segment. %s&quot;, pathname);
-    return XH_ERRNO_FORMAT;
-}
-
-//parse dynamic-segment
-self-&gt;dyn          = (ElfW(Dyn) *)(self-&gt;bias_addr + dhdr-&gt;p_vaddr);
-self-&gt;dyn_sz       = dhdr-&gt;p_memsz;
-ElfW(Dyn) *dyn     = self-&gt;dyn;
-ElfW(Dyn) *dyn_end = self-&gt;dyn + (self-&gt;dyn_sz / sizeof(ElfW(Dyn)));
-uint32_t  *raw;
-for(; dyn &lt; dyn_end; dyn++)
-{
-    switch(dyn-&gt;d_tag) //segmentation fault sometimes
+    //find the first load-segment with offset 0
+    ElfW(Phdr) *phdr0 = xh_elf_get_first_segment_by_type_offset(self, PT_LOAD, 0);
+    if(NULL == phdr0)
     {
-    case DT_NULL:
-        //the end of the dynamic-section
-        dyn = dyn_end;
-        break;
-    case DT_STRTAB:
-        {
-            self-&gt;strtab = (const char *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
-            if((ElfW(Addr))(self-&gt;strtab) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
-            break;
-        }
-    case DT_SYMTAB:
-        {
-            self-&gt;symtab = (ElfW(Sym) *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
-            if((ElfW(Addr))(self-&gt;symtab) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
-            break;
-        }
-    case DT_PLTREL:
-        //use rel or rela?
-        self-&gt;is_use_rela = (dyn-&gt;d_un.d_val == DT_RELA ? 1 : 0);
-        break;
-    case DT_JMPREL:
-        {
-            self-&gt;relplt = (ElfW(Addr))(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
-            if((ElfW(Addr))(self-&gt;relplt) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
-            break;
-        }
-    case DT_PLTRELSZ:
-        self-&gt;relplt_sz = dyn-&gt;d_un.d_val;
-        break;
-    case DT_REL:
-    case DT_RELA:
-        {
-            self-&gt;reldyn = (ElfW(Addr))(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
-            if((ElfW(Addr))(self-&gt;reldyn) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
-            break;
-        }
-    case DT_RELSZ:
-    case DT_RELASZ:
-        self-&gt;reldyn_sz = dyn-&gt;d_un.d_val;
-        break;
-    case DT_ANDROID_REL:
-    case DT_ANDROID_RELA:
-        {
-            self-&gt;relandroid = (ElfW(Addr))(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
-            if((ElfW(Addr))(self-&gt;relandroid) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
-            break;
-        }
-    case DT_ANDROID_RELSZ:
-    case DT_ANDROID_RELASZ:
-        self-&gt;relandroid_sz = dyn-&gt;d_un.d_val;
-        break;
-    case DT_HASH:
-        {
-            raw = (uint32_t *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
-            if((ElfW(Addr))raw &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
-            self-&gt;bucket_cnt  = raw[0];
-            self-&gt;chain_cnt   = raw[1];
-            self-&gt;bucket      = &amp;raw[2];
-            self-&gt;chain       = &amp;(self-&gt;bucket[self-&gt;bucket_cnt]);
-            break;
-        }
-    case DT_GNU_HASH:
-        {
-            raw = (uint32_t *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
-            if((ElfW(Addr))raw &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
-            self-&gt;bucket_cnt  = raw[0];
-            self-&gt;symoffset   = raw[1];
-            self-&gt;bloom_sz    = raw[2];
-            self-&gt;bloom_shift = raw[3];
-            self-&gt;bloom       = (ElfW(Addr) *)(&amp;raw[4]);
-            self-&gt;bucket      = (uint32_t *)(&amp;(self-&gt;bloom[self-&gt;bloom_sz]));
-            self-&gt;chain       = (uint32_t *)(&amp;(self-&gt;bucket[self-&gt;bucket_cnt]));
-            self-&gt;is_use_gnu_hash = 1;
-            break;
-        }
-    default:
-        break;
-    }
-}
-
-//check android rel/rela
-if(0 != self-&gt;relandroid)
-{
-    const char *rel = (const char *)self-&gt;relandroid;
-    if(self-&gt;relandroid_sz &lt; 4 ||
-       rel[0] != 'A' ||
-       rel[1] != 'P' ||
-       rel[2] != 'S' ||
-       rel[3] != '2')
-    {
-        XH_LOG_ERROR(&quot;android rel/rela format error\n&quot;);
+        XH_LOG_ERROR(&quot;Can NOT found the first load segment. %s&quot;, pathname);
         return XH_ERRNO_FORMAT;
     }
 
-    self-&gt;relandroid += 4;
-    self-&gt;relandroid_sz -= 4;
-}
+#if XH_ELF_DEBUG
+    if(0 != phdr0-&gt;p_vaddr)
+        XH_LOG_DEBUG(&quot;first load-segment vaddr NOT 0 (vaddr: %p). %s&quot;,
+                     (void *)(phdr0-&gt;p_vaddr), pathname);
+#endif
 
-//check elf info
-if(0 != xh_elf_check(self))
-{
-    XH_LOG_ERROR(&quot;elf init check failed. %s&quot;, pathname);
-    return XH_ERRNO_FORMAT;
-}
-</code></pre>
+    //save load bias addr
+    if(self-&gt;base_addr &lt; phdr0-&gt;p_vaddr) return XH_ERRNO_FORMAT;
+    self-&gt;bias_addr = self-&gt;base_addr - phdr0-&gt;p_vaddr;
+    
+    //find dynamic-segment
+    ElfW(Phdr) *dhdr = xh_elf_get_first_segment_by_type(self, PT_DYNAMIC);
+    if(NULL == dhdr)
+    {
+        XH_LOG_ERROR(&quot;Can NOT found dynamic segment. %s&quot;, pathname);
+        return XH_ERRNO_FORMAT;
+    }
 
-<p>#if XH_ELF_DEBUG
+    //parse dynamic-segment
+    self-&gt;dyn          = (ElfW(Dyn) *)(self-&gt;bias_addr + dhdr-&gt;p_vaddr);
+    self-&gt;dyn_sz       = dhdr-&gt;p_memsz;
+    ElfW(Dyn) *dyn     = self-&gt;dyn;
+    ElfW(Dyn) *dyn_end = self-&gt;dyn + (self-&gt;dyn_sz / sizeof(ElfW(Dyn)));
+    uint32_t  *raw;
+    for(; dyn &lt; dyn_end; dyn++)
+    {
+        switch(dyn-&gt;d_tag) //segmentation fault sometimes
+        {
+        case DT_NULL:
+            //the end of the dynamic-section
+            dyn = dyn_end;
+            break;
+        case DT_STRTAB:
+            {
+                self-&gt;strtab = (const char *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
+                if((ElfW(Addr))(self-&gt;strtab) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+                break;
+            }
+        case DT_SYMTAB:
+            {
+                self-&gt;symtab = (ElfW(Sym) *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
+                if((ElfW(Addr))(self-&gt;symtab) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+                break;
+            }
+        case DT_PLTREL:
+            //use rel or rela?
+            self-&gt;is_use_rela = (dyn-&gt;d_un.d_val == DT_RELA ? 1 : 0);
+            break;
+        case DT_JMPREL:
+            {
+                self-&gt;relplt = (ElfW(Addr))(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
+                if((ElfW(Addr))(self-&gt;relplt) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+                break;
+            }
+        case DT_PLTRELSZ:
+            self-&gt;relplt_sz = dyn-&gt;d_un.d_val;
+            break;
+        case DT_REL:
+        case DT_RELA:
+            {
+                self-&gt;reldyn = (ElfW(Addr))(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
+                if((ElfW(Addr))(self-&gt;reldyn) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+                break;
+            }
+        case DT_RELSZ:
+        case DT_RELASZ:
+            self-&gt;reldyn_sz = dyn-&gt;d_un.d_val;
+            break;
+        case DT_ANDROID_REL:
+        case DT_ANDROID_RELA:
+            {
+                self-&gt;relandroid = (ElfW(Addr))(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
+                if((ElfW(Addr))(self-&gt;relandroid) &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+                break;
+            }
+        case DT_ANDROID_RELSZ:
+        case DT_ANDROID_RELASZ:
+            self-&gt;relandroid_sz = dyn-&gt;d_un.d_val;
+            break;
+        case DT_HASH:
+            {
+                raw = (uint32_t *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
+                if((ElfW(Addr))raw &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+                self-&gt;bucket_cnt  = raw[0];
+                self-&gt;chain_cnt   = raw[1];
+                self-&gt;bucket      = &amp;raw[2];
+                self-&gt;chain       = &amp;(self-&gt;bucket[self-&gt;bucket_cnt]);
+                break;
+            }
+        case DT_GNU_HASH:
+            {
+                raw = (uint32_t *)(self-&gt;bias_addr + dyn-&gt;d_un.d_ptr);
+                if((ElfW(Addr))raw &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+                self-&gt;bucket_cnt  = raw[0];
+                self-&gt;symoffset   = raw[1];
+                self-&gt;bloom_sz    = raw[2];
+                self-&gt;bloom_shift = raw[3];
+                self-&gt;bloom       = (ElfW(Addr) *)(&amp;raw[4]);
+                self-&gt;bucket      = (uint32_t *)(&amp;(self-&gt;bloom[self-&gt;bloom_sz]));
+                self-&gt;chain       = (uint32_t *)(&amp;(self-&gt;bucket[self-&gt;bucket_cnt]));
+                self-&gt;is_use_gnu_hash = 1;
+                break;
+            }
+        default:
+            break;
+        }
+    }
+
+    //check android rel/rela
+    if(0 != self-&gt;relandroid)
+    {
+        const char *rel = (const char *)self-&gt;relandroid;
+        if(self-&gt;relandroid_sz &lt; 4 ||
+           rel[0] != 'A' ||
+           rel[1] != 'P' ||
+           rel[2] != 'S' ||
+           rel[3] != '2')
+        {
+            XH_LOG_ERROR(&quot;android rel/rela format error\n&quot;);
+            return XH_ERRNO_FORMAT;
+        }
+        
+        self-&gt;relandroid += 4;
+        self-&gt;relandroid_sz -= 4;
+    }
+
+    //check elf info
+    if(0 != xh_elf_check(self))
+    {
+        XH_LOG_ERROR(&quot;elf init check failed. %s&quot;, pathname);
+        return XH_ERRNO_FORMAT;
+    }
+    
+#if XH_ELF_DEBUG
     xh_elf_dump(self);
-#endif</p>
+#endif
 
-<pre><code>XH_LOG_INFO(&quot;init OK: %s (%s %s PLT:%u DYN:%u ANDROID:%u)\n&quot;, self-&gt;pathname,
-            self-&gt;is_use_rela ? &quot;RELA&quot; : &quot;REL&quot;,
-            self-&gt;is_use_gnu_hash ? &quot;GNU_HASH&quot; : &quot;ELF_HASH&quot;,
-            self-&gt;relplt_sz, self-&gt;reldyn_sz, self-&gt;relandroid_sz);
+    XH_LOG_INFO(&quot;init OK: %s (%s %s PLT:%u DYN:%u ANDROID:%u)\n&quot;, self-&gt;pathname,
+                self-&gt;is_use_rela ? &quot;RELA&quot; : &quot;REL&quot;,
+                self-&gt;is_use_gnu_hash ? &quot;GNU_HASH&quot; : &quot;ELF_HASH&quot;,
+                self-&gt;relplt_sz, self-&gt;reldyn_sz, self-&gt;relandroid_sz);
 
-return 0;
+    return 0;
+}
 </code></pre>
 
-<p>}</p>
+<h2 id="xh-refresh">xh_refresh</h2>
 
-<pre><code>
+<pre><code>xh_refresh -&gt; xh_core_refresh -&gt; xh_core_init_once
 
-## xh_refresh
+                              -&gt; xh_core_refresh_impl 
+   
 
+xh_core_refresh_impl -&gt; xh_core_check_elf_header
+                     -&gt; xh_core_hook             -&gt; xh_core_hook_impl
+                     
+                     
+xh_core_hook_impl    -&gt; xh_elf_init
+                     -&gt; xh_elf_hook
 </code></pre>
 
-<p>xh_refresh -&gt; xh_core_refresh -&gt; xh_core_init_once</p>
+<h3 id="xh-elf-hook">xh_elf_hook</h3>
 
-<pre><code>                          -&gt; xh_core_refresh_impl 
+<ol>
+<li>xh_elf_find_symidx_by_name    //find symbol index by symbol name</li>
+<li>replace.</li>
+</ol>
+
+<pre><code>    //find symbol index by symbol name
+    if(0 != (r = xh_elf_find_symidx_by_name(self, symbol, &amp;symidx))) return 0;
+    
+    //replace for .rel(a).plt
+    if(0 != self-&gt;relplt)
+    {
+        xh_elf_plain_reloc_iterator_init(&amp;plain_iter, self-&gt;relplt, self-&gt;relplt_sz, self-&gt;is_use_rela);
+        while(NULL != (rel_common = xh_elf_plain_reloc_iterator_next(&amp;plain_iter)))
+        {
+            if(0 != (r = xh_elf_find_and_replace_func(self,
+                                                      (self-&gt;is_use_rela ? &quot;.rela.plt&quot; : &quot;.rel.plt&quot;), 1,
+                                                      symbol, new_func, old_func,
+                                                      symidx, rel_common, &amp;found))) return r;
+            if(found) break;
+        }
+    }
 </code></pre>
 
-<p>xh_core_refresh_impl -&gt; xh_core_check_elf_header
-                     -&gt; xh_core_hook             -&gt; xh_core_hook_impl</p>
+<h4 id="xh-elf-find-symidx-by-name">xh_elf_find_symidx_by_name</h4>
 
-<p>xh_core_hook_impl    -&gt; xh_elf_init
-                     -&gt; xh_elf_hook</p>
+<p>其中: 寻找symidx, 遍历symtab,</p>
 
-<pre><code>
-
-
-
-### xh_elf_hook
-
-1. xh_elf_find_symidx_by_name    //find symbol index by symbol name
-2. replace.
-
-寻找symidx, 遍历symtab, 
-
-rel, rela表中存放这r_offset, 和symidx. 
-
-
+<pre><code>static int xh_elf_find_symidx_by_name(xh_elf_t *self, const char *symbol, uint32_t *symidx)
+{
+    if(self-&gt;is_use_gnu_hash)
+        return xh_elf_gnu_hash_lookup(self, symbol, symidx);
+    else
+        return xh_elf_hash_lookup(self, symbol, symidx);
+}
 </code></pre>
 
-<p>```</p>
+<h4 id="xh-elf-find-and-replace-func">xh_elf_find_and_replace_func</h4>
+
+<p>rel, rela表中存放这r_offset, 和symidx.</p>
+
+<p>真正替换的流程在<strong>xh_elf_find_and_replace_func</strong>.</p>
+
+<pre><code>static int xh_elf_find_and_replace_func(xh_elf_t *self, const char *section,
+                                        int is_plt, const char *symbol,
+                                        void *new_func, void **old_func,
+                                        uint32_t symidx, void *rel_common,
+                                        int *found)
+{
+    ElfW(Rela)    *rela;
+    ElfW(Rel)     *rel;
+    ElfW(Addr)     r_offset;
+    size_t         r_info;
+    size_t         r_sym;
+    size_t         r_type;
+    ElfW(Addr)     addr;
+    int            r;
+
+    if(NULL != found) *found = 0;
+    
+    if(self-&gt;is_use_rela)
+    {
+        rela = (ElfW(Rela) *)rel_common;
+        r_info = rela-&gt;r_info;
+        r_offset = rela-&gt;r_offset;
+    }
+    else
+    {
+        rel = (ElfW(Rel) *)rel_common;
+        r_info = rel-&gt;r_info;
+        r_offset = rel-&gt;r_offset;
+    }
+
+    //check sym
+    r_sym = XH_ELF_R_SYM(r_info);
+    if(r_sym != symidx) return 0;
+
+    //check type
+    r_type = XH_ELF_R_TYPE(r_info);
+    if(is_plt &amp;&amp; r_type != XH_ELF_R_GENERIC_JUMP_SLOT) return 0;
+    if(!is_plt &amp;&amp; (r_type != XH_ELF_R_GENERIC_GLOB_DAT &amp;&amp; r_type != XH_ELF_R_GENERIC_ABS)) return 0;
+
+    //we found it
+    XH_LOG_INFO(&quot;found %s at %s offset: %p\n&quot;, symbol, section, (void *)r_offset);
+    if(NULL != found) *found = 1;
+
+    //do replace
+    addr = self-&gt;bias_addr + r_offset;
+    if(addr &lt; self-&gt;base_addr) return XH_ERRNO_FORMAT;
+    if(0 != (r = xh_elf_replace_function(self, symbol, addr, new_func, old_func)))
+    {
+        XH_LOG_ERROR(&quot;replace function failed: %s at %s\n&quot;, symbol, section);
+        return r;
+    }
+
+    return 0;
+}
+</code></pre>
     </div>
 
     

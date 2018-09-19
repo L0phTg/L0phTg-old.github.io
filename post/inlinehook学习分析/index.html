@@ -338,6 +338,40 @@
 
     
     
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#参考文章和项目代码">参考文章和项目代码</a></li>
+<li><a href="#使用方法">使用方法</a></li>
+<li><a href="#分析">分析</a>
+<ul>
+<li>
+<ul>
+<li><a href="#使用">使用</a></li>
+<li><a href="#registerhook函数">registerHook函数</a>
+<ul>
+<li><a href="#判断该地址是否是函数地址">判断该地址是否是函数地址</a></li>
+<li><a href="#得到hook地址的信息-是否已经hook">得到Hook地址的信息, 是否已经Hook.</a></li>
+<li><a href="#得到originlfunaddr的指令类型">得到originlFunAddr的指令类型,</a></li>
+<li><a href="#接下来-我们分析最重要的过程">接下来, 我们分析最重要的过程:</a></li>
+<li><a href="#下面分析-createcalloriginalstub-hookinfo-info">下面分析 <code>createCallOriginalStub(HookInfo *info)</code>:</a></li>
+<li><a href="#msgetinstructionwiththumb">MSGetInstructionWithThumb</a></li>
+</ul></li>
+<li><a href="#分析memhelper类">分析MemHelper类</a></li>
+<li><a href="#分析doinhook">分析doInHook</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
 
     
     <div class="post-content">
