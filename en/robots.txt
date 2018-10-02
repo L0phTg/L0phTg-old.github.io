@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://l0phtg.github.io/sitemap.xml

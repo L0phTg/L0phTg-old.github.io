@@ -5,9 +5,9 @@
     <link>https://l0phtg.github.io/tags/</link>
     <description>Recent content in Tags on L0phTg&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
+    <language>zh-cn</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Thu, 16 Mar 2017 03:07:59 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 02 Oct 2018 15:38:56 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
     <item>
       <title>Android</title>
       <link>https://l0phtg.github.io/tags/android/</link>
-      <pubDate>Thu, 16 Mar 2017 03:07:59 +0000</pubDate>
+      <pubDate>Tue, 02 Oct 2018 15:38:56 +0800</pubDate>
       
       <guid>https://l0phtg.github.io/tags/android/</guid>
       <description></description>
@@ -63,6 +63,24 @@
       <pubDate>Wed, 19 Sep 2018 20:04:10 +0800</pubDate>
       
       <guid>https://l0phtg.github.io/tags/life/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Nexus5</title>
+      <link>https://l0phtg.github.io/tags/nexus5/</link>
+      <pubDate>Tue, 02 Oct 2018 15:38:56 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/tags/nexus5/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Root</title>
+      <link>https://l0phtg.github.io/tags/root/</link>
+      <pubDate>Tue, 02 Oct 2018 15:38:56 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/tags/root/</guid>
       <description></description>
     </item>
     
