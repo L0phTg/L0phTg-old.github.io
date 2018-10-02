@@ -134,12 +134,12 @@ fastboot flash recovery twrp-3.1.1-0-hammerhead.img
 fastboot reboot-bootloader
 # on the screen, Navigate into Recovery mode (Reboot) -&amp;gt; Install -&amp;gt; zip, select SR3-SuperSU-v2.79-SR3-20170114223742.zip -&amp;gt; Swipe to confirm Flash
 # Reboot System&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;## 调试&lt;/p&gt;
+&lt;h2 id=&#34;调试&#34;&gt;调试&lt;/h2&gt;
 
 &lt;p&gt;更改system分区读写权限&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt; $adb disable verity
- $mount -o remount,rw /system&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;## emulator测试&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;$adb disable verity
+$mount -o remount,rw /system&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&#34;emulator测试&#34;&gt;emulator测试&lt;/h2&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;p&gt;列出创建avd&lt;/p&gt;
@@ -155,128 +155,128 @@ $adb remount&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;n. help&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt; ~$ emulator -help
-Android Emulator usage: emulator [options] [-qemu args]
-  options:
-    -list-avds                      list available AVDs
-    -sysdir &amp;lt;dir&amp;gt;                   search for system disk images in &amp;lt;dir&amp;gt;
-    -system &amp;lt;file&amp;gt;                  read initial system image from &amp;lt;file&amp;gt;
-    -vendor &amp;lt;file&amp;gt;                  read initial vendor image from &amp;lt;file&amp;gt;
-    -writable-system                make system &amp;amp; vendor image writable after &amp;#39;adb remount&amp;#39;
-    -datadir &amp;lt;dir&amp;gt;                  write user data into &amp;lt;dir&amp;gt;
-    -kernel &amp;lt;file&amp;gt;                  use specific emulated kernel
-    -ramdisk &amp;lt;file&amp;gt;                 ramdisk image (default &amp;lt;system&amp;gt;/ramdisk.img
-    -image &amp;lt;file&amp;gt;                   obsolete, use -system &amp;lt;file&amp;gt; instead
-    -initdata &amp;lt;file&amp;gt;                same as &amp;#39;-init-data &amp;lt;file&amp;gt;&amp;#39;
-    -data &amp;lt;file&amp;gt;                    data image (default &amp;lt;datadir&amp;gt;/userdata-qemu.img
-    -encryption-key &amp;lt;file&amp;gt;          read initial encryption key image from &amp;lt;file&amp;gt;
-    -logcat-output &amp;lt;file&amp;gt;           output file of logcat(default none)
-    -partition-size &amp;lt;size&amp;gt;          system/data partition size in MBs
-    -cache &amp;lt;file&amp;gt;                   cache partition image (default is temporary file)
-    -cache-size &amp;lt;size&amp;gt;              cache partition size in MBs
-    -no-cache                       disable the cache partition
-    -nocache                        same as -no-cache
-    -sdcard &amp;lt;file&amp;gt;                  SD card image (default &amp;lt;datadir&amp;gt;/sdcard.img
-    -quit-after-boot &amp;lt;timeout&amp;gt;      qeuit emulator after guest boots completely, or after timeout in seconds
-    -snapstorage &amp;lt;file&amp;gt;             file that contains all state snapshots (default &amp;lt;datadir&amp;gt;/snapshots.img)
-    -no-snapstorage                 do not mount a snapshot storage file (this disables all snapshot functionality)
-    -snapshot &amp;lt;name&amp;gt;                name of snapshot within storage file for auto-start and auto-save (default &amp;#39;default-boot&amp;#39;)
-    -no-snapshot                    perform a full boot and do not auto-save, but qemu vmload and vmsave operate on snapstorage
-    -no-snapshot-save               do not auto-save to snapshot on exit: abandon changed state
-    -no-snapshot-load               do not auto-start from snapshot: perform a full boot
-    -snapshot-list                  show a list of available snapshots
-    -no-snapshot-update-time        do not try to correct snapshot time on restore
-    -wipe-data                      reset the user data image (copy it from initdata)
-    -avd &amp;lt;name&amp;gt;                     use a specific android virtual device
-    -skindir &amp;lt;dir&amp;gt;                  search skins in &amp;lt;dir&amp;gt; (default &amp;lt;system&amp;gt;/skins)
-    -skin &amp;lt;name&amp;gt;                    select a given skin
-    -no-skin                        deprecated: create an AVD with no skin instead
-    -noskin                         same as -no-skin
-    -memory &amp;lt;size&amp;gt;                  physical RAM size in MBs
-    -cores &amp;lt;number&amp;gt;                 Set number of CPU cores to emulator
-    -accel &amp;lt;mode&amp;gt;                   Configure emulation acceleration
-    -no-accel                       Same as &amp;#39;-accel off&amp;#39;
-    -ranchu                         Use new emulator backend instead of the classic one
-    -engine &amp;lt;engine&amp;gt;                Select engine. auto|classic|qemu2
-    -netspeed &amp;lt;speed&amp;gt;               maximum network download/upload speeds
-    -netdelay &amp;lt;delay&amp;gt;               network latency emulation
-    -netfast                        disable network shaping
-    -code-profile &amp;lt;name&amp;gt;            enable code profiling
-    -show-kernel                    display kernel messages
-    -shell                          enable root shell on current terminal
-    -no-jni                         disable JNI checks in the Dalvik runtime
-    -nojni                          same as -no-jni
-    -logcat &amp;lt;tags&amp;gt;                  enable logcat output with given tags
-    -use-system-libs                Use system libstdc++ instead of bundled one
-    -bluetooth &amp;lt;vendorid:productid&amp;gt; forward bluetooth to vendorid:productid
-    -no-audio                       disable audio support
-    -noaudio                        same as -no-audio
-    -audio &amp;lt;backend&amp;gt;                use specific audio backend
-    -radio &amp;lt;device&amp;gt;                 redirect radio modem interface to character device
-    -port &amp;lt;port&amp;gt;                    TCP port that will be used for the console
-    -ports &amp;lt;consoleport&amp;gt;,&amp;lt;adbport&amp;gt;  TCP ports used for the console and adb bridge
-    -onion &amp;lt;image&amp;gt;                  use overlay PNG image over screen
-    -onion-alpha &amp;lt;%age&amp;gt;             specify onion-skin translucency
-    -onion-rotation 0|1|2|3         specify onion-skin rotation
-    -dpi-device &amp;lt;dpi&amp;gt;               specify device&amp;#39;s resolution in dpi (default 165)
-    -scale &amp;lt;scale&amp;gt;                  scale emulator window (deprecated)
-    -http-proxy &amp;lt;proxy&amp;gt;             make TCP connections through a HTTP/HTTPS proxy
-    -timezone &amp;lt;timezone&amp;gt;            use this timezone instead of the host&amp;#39;s default
-    -dns-server &amp;lt;servers&amp;gt;           use this DNS server(s) in the emulated system
-    -net-tap &amp;lt;interface&amp;gt;            use this TAP interface for networking
-    -net-tap-script-up &amp;lt;script&amp;gt;     script to run when the TAP interface goes up
-    -net-tap-script-down &amp;lt;script&amp;gt;   script to run when the TAP interface goes down
-    -cpu-delay &amp;lt;cpudelay&amp;gt;           throttle CPU emulation
-    -no-boot-anim                   disable animation for faster boot
-    -no-window                      disable graphical window display
-    -no-sim                         device has no SIM card
-    -lowram                         device is a low ram device
-    -version                        display emulator version number
-    -report-console &amp;lt;socket&amp;gt;        report console port to remote socket
-    -gps &amp;lt;device&amp;gt;                   redirect NMEA GPS to character device
-    -shell-serial &amp;lt;device&amp;gt;          specific character device for root shell
-    -tcpdump &amp;lt;file&amp;gt;                 capture network packets to file
-    -bootchart &amp;lt;timeout&amp;gt;            enable bootcharting
-    -charmap &amp;lt;file&amp;gt;                 use specific key character map
-    -studio-params &amp;lt;file&amp;gt;           used by Android Studio to provide parameters
-    -prop &amp;lt;name&amp;gt;=&amp;lt;value&amp;gt;            set system property on boot
-    -shared-net-id &amp;lt;number&amp;gt;         join the shared network, using IP address 10.1.2.&amp;lt;number&amp;gt;
-    -nand-limits &amp;lt;nlimits&amp;gt;          enforce NAND/Flash read/write thresholds
-    -gpu &amp;lt;mode&amp;gt;                     set hardware OpenGLES emulation mode
-    -camera-back &amp;lt;mode&amp;gt;             set emulation mode for a camera facing back
-    -camera-front &amp;lt;mode&amp;gt;            set emulation mode for a camera facing front
-    -webcam-list                    lists web cameras available for emulation
-    -screen &amp;lt;mode&amp;gt;                  set emulated screen mode
-    -selinux &amp;lt;disabled|permissive&amp;gt;  Set SELinux to either disabled or permissive mode
-    -unix-pipe &amp;lt;path&amp;gt;               Add &amp;lt;path&amp;gt; to the list of allowed Unix pipes
-    -fixed-scale                    Use fixed 1:1 scale for the initial emulator window.
-    -wait-for-debugger              Pause on launch and wait for a debugger process to attach before resuming
-    -skip-adb-auth                  Skip adb authentication dialogue
-    -metrics-to-console             Enable usage metrics and print the messages to stdout
-    -metrics-to-file &amp;lt;file&amp;gt;         Enable usage metrics and write the messages into specified file
-    -feature &amp;lt;name|-name&amp;gt;           Force-enable or disable (-name) the features
-    -sim-access-rules-file &amp;lt;file&amp;gt;   Use SIM access rules from specified file
-    -phone-number-prefix &amp;lt;string&amp;gt;   Number to use as the emulator&amp;#39;s phone number prefix
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;~$ emulator -help
+ndroid Emulator usage: emulator [options] [-qemu args]
+ options:
+   -list-avds                      list available AVDs
+   -sysdir &amp;lt;dir&amp;gt;                   search for system disk images in &amp;lt;dir&amp;gt;
+   -system &amp;lt;file&amp;gt;                  read initial system image from &amp;lt;file&amp;gt;
+   -vendor &amp;lt;file&amp;gt;                  read initial vendor image from &amp;lt;file&amp;gt;
+   -writable-system                make system &amp;amp; vendor image writable after &amp;#39;adb remount&amp;#39;
+   -datadir &amp;lt;dir&amp;gt;                  write user data into &amp;lt;dir&amp;gt;
+   -kernel &amp;lt;file&amp;gt;                  use specific emulated kernel
+   -ramdisk &amp;lt;file&amp;gt;                 ramdisk image (default &amp;lt;system&amp;gt;/ramdisk.img
+   -image &amp;lt;file&amp;gt;                   obsolete, use -system &amp;lt;file&amp;gt; instead
+   -initdata &amp;lt;file&amp;gt;                same as &amp;#39;-init-data &amp;lt;file&amp;gt;&amp;#39;
+   -data &amp;lt;file&amp;gt;                    data image (default &amp;lt;datadir&amp;gt;/userdata-qemu.img
+   -encryption-key &amp;lt;file&amp;gt;          read initial encryption key image from &amp;lt;file&amp;gt;
+   -logcat-output &amp;lt;file&amp;gt;           output file of logcat(default none)
+   -partition-size &amp;lt;size&amp;gt;          system/data partition size in MBs
+   -cache &amp;lt;file&amp;gt;                   cache partition image (default is temporary file)
+   -cache-size &amp;lt;size&amp;gt;              cache partition size in MBs
+   -no-cache                       disable the cache partition
+   -nocache                        same as -no-cache
+   -sdcard &amp;lt;file&amp;gt;                  SD card image (default &amp;lt;datadir&amp;gt;/sdcard.img
+   -quit-after-boot &amp;lt;timeout&amp;gt;      qeuit emulator after guest boots completely, or after timeout in seconds
+   -snapstorage &amp;lt;file&amp;gt;             file that contains all state snapshots (default &amp;lt;datadir&amp;gt;/snapshots.img)
+   -no-snapstorage                 do not mount a snapshot storage file (this disables all snapshot functionality)
+   -snapshot &amp;lt;name&amp;gt;                name of snapshot within storage file for auto-start and auto-save (default &amp;#39;default-boot&amp;#39;)
+   -no-snapshot                    perform a full boot and do not auto-save, but qemu vmload and vmsave operate on snapstorage
+   -no-snapshot-save               do not auto-save to snapshot on exit: abandon changed state
+   -no-snapshot-load               do not auto-start from snapshot: perform a full boot
+   -snapshot-list                  show a list of available snapshots
+   -no-snapshot-update-time        do not try to correct snapshot time on restore
+   -wipe-data                      reset the user data image (copy it from initdata)
+   -avd &amp;lt;name&amp;gt;                     use a specific android virtual device
+   -skindir &amp;lt;dir&amp;gt;                  search skins in &amp;lt;dir&amp;gt; (default &amp;lt;system&amp;gt;/skins)
+   -skin &amp;lt;name&amp;gt;                    select a given skin
+   -no-skin                        deprecated: create an AVD with no skin instead
+   -noskin                         same as -no-skin
+   -memory &amp;lt;size&amp;gt;                  physical RAM size in MBs
+   -cores &amp;lt;number&amp;gt;                 Set number of CPU cores to emulator
+   -accel &amp;lt;mode&amp;gt;                   Configure emulation acceleration
+   -no-accel                       Same as &amp;#39;-accel off&amp;#39;
+   -ranchu                         Use new emulator backend instead of the classic one
+   -engine &amp;lt;engine&amp;gt;                Select engine. auto|classic|qemu2
+   -netspeed &amp;lt;speed&amp;gt;               maximum network download/upload speeds
+   -netdelay &amp;lt;delay&amp;gt;               network latency emulation
+   -netfast                        disable network shaping
+   -code-profile &amp;lt;name&amp;gt;            enable code profiling
+   -show-kernel                    display kernel messages
+   -shell                          enable root shell on current terminal
+   -no-jni                         disable JNI checks in the Dalvik runtime
+   -nojni                          same as -no-jni
+   -logcat &amp;lt;tags&amp;gt;                  enable logcat output with given tags
+   -use-system-libs                Use system libstdc++ instead of bundled one
+   -bluetooth &amp;lt;vendorid:productid&amp;gt; forward bluetooth to vendorid:productid
+   -no-audio                       disable audio support
+   -noaudio                        same as -no-audio
+   -audio &amp;lt;backend&amp;gt;                use specific audio backend
+   -radio &amp;lt;device&amp;gt;                 redirect radio modem interface to character device
+   -port &amp;lt;port&amp;gt;                    TCP port that will be used for the console
+   -ports &amp;lt;consoleport&amp;gt;,&amp;lt;adbport&amp;gt;  TCP ports used for the console and adb bridge
+   -onion &amp;lt;image&amp;gt;                  use overlay PNG image over screen
+   -onion-alpha &amp;lt;%age&amp;gt;             specify onion-skin translucency
+   -onion-rotation 0|1|2|3         specify onion-skin rotation
+   -dpi-device &amp;lt;dpi&amp;gt;               specify device&amp;#39;s resolution in dpi (default 165)
+   -scale &amp;lt;scale&amp;gt;                  scale emulator window (deprecated)
+   -http-proxy &amp;lt;proxy&amp;gt;             make TCP connections through a HTTP/HTTPS proxy
+   -timezone &amp;lt;timezone&amp;gt;            use this timezone instead of the host&amp;#39;s default
+   -dns-server &amp;lt;servers&amp;gt;           use this DNS server(s) in the emulated system
+   -net-tap &amp;lt;interface&amp;gt;            use this TAP interface for networking
+   -net-tap-script-up &amp;lt;script&amp;gt;     script to run when the TAP interface goes up
+   -net-tap-script-down &amp;lt;script&amp;gt;   script to run when the TAP interface goes down
+   -cpu-delay &amp;lt;cpudelay&amp;gt;           throttle CPU emulation
+   -no-boot-anim                   disable animation for faster boot
+   -no-window                      disable graphical window display
+   -no-sim                         device has no SIM card
+   -lowram                         device is a low ram device
+   -version                        display emulator version number
+   -report-console &amp;lt;socket&amp;gt;        report console port to remote socket
+   -gps &amp;lt;device&amp;gt;                   redirect NMEA GPS to character device
+   -shell-serial &amp;lt;device&amp;gt;          specific character device for root shell
+   -tcpdump &amp;lt;file&amp;gt;                 capture network packets to file
+   -bootchart &amp;lt;timeout&amp;gt;            enable bootcharting
+   -charmap &amp;lt;file&amp;gt;                 use specific key character map
+   -studio-params &amp;lt;file&amp;gt;           used by Android Studio to provide parameters
+   -prop &amp;lt;name&amp;gt;=&amp;lt;value&amp;gt;            set system property on boot
+   -shared-net-id &amp;lt;number&amp;gt;         join the shared network, using IP address 10.1.2.&amp;lt;number&amp;gt;
+   -nand-limits &amp;lt;nlimits&amp;gt;          enforce NAND/Flash read/write thresholds
+   -gpu &amp;lt;mode&amp;gt;                     set hardware OpenGLES emulation mode
+   -camera-back &amp;lt;mode&amp;gt;             set emulation mode for a camera facing back
+   -camera-front &amp;lt;mode&amp;gt;            set emulation mode for a camera facing front
+   -webcam-list                    lists web cameras available for emulation
+   -screen &amp;lt;mode&amp;gt;                  set emulated screen mode
+   -selinux &amp;lt;disabled|permissive&amp;gt;  Set SELinux to either disabled or permissive mode
+   -unix-pipe &amp;lt;path&amp;gt;               Add &amp;lt;path&amp;gt; to the list of allowed Unix pipes
+   -fixed-scale                    Use fixed 1:1 scale for the initial emulator window.
+   -wait-for-debugger              Pause on launch and wait for a debugger process to attach before resuming
+   -skip-adb-auth                  Skip adb authentication dialogue
+   -metrics-to-console             Enable usage metrics and print the messages to stdout
+   -metrics-to-file &amp;lt;file&amp;gt;         Enable usage metrics and write the messages into specified file
+   -feature &amp;lt;name|-name&amp;gt;           Force-enable or disable (-name) the features
+   -sim-access-rules-file &amp;lt;file&amp;gt;   Use SIM access rules from specified file
+   -phone-number-prefix &amp;lt;string&amp;gt;   Number to use as the emulator&amp;#39;s phone number prefix
 
-     -qemu args...                  pass arguments to qemu
-     -qemu -h                       display qemu help
+    -qemu args...                  pass arguments to qemu
+    -qemu -h                       display qemu help
 
-     -verbose                       same as &amp;#39;-debug-init&amp;#39;
-     -debug &amp;lt;tags&amp;gt;                  enable/disable debug messages
-     -debug-&amp;lt;tag&amp;gt;                   enable specific debug messages
-     -debug-no-&amp;lt;tag&amp;gt;                disable specific debug messages
+    -verbose                       same as &amp;#39;-debug-init&amp;#39;
+    -debug &amp;lt;tags&amp;gt;                  enable/disable debug messages
+    -debug-&amp;lt;tag&amp;gt;                   enable specific debug messages
+    -debug-no-&amp;lt;tag&amp;gt;                disable specific debug messages
 
-     -help                          print this help
-     -help-&amp;lt;option&amp;gt;                 print option-specific help
+    -help                          print this help
+    -help-&amp;lt;option&amp;gt;                 print option-specific help
 
-     -help-disk-images              about disk images
-     -help-debug-tags               debug tags for -debug &amp;lt;tags&amp;gt;
-     -help-char-devices             character &amp;lt;device&amp;gt; specification
-     -help-environment              environment variables
-     -help-virtual-device           virtual device management
-     -help-sdk-images               about disk images when using the SDK
-     -help-build-images             about disk images when building Android
-     -help-all                      prints all help content&lt;/pre&gt;&lt;/div&gt;</description>
+    -help-disk-images              about disk images
+    -help-debug-tags               debug tags for -debug &amp;lt;tags&amp;gt;
+    -help-char-devices             character &amp;lt;device&amp;gt; specification
+    -help-environment              environment variables
+    -help-virtual-device           virtual device management
+    -help-sdk-images               about disk images when using the SDK
+    -help-build-images             about disk images when building Android
+    -help-all                      prints all help content&lt;/pre&gt;&lt;/div&gt;</description>
       
     </item>
     
