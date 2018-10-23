@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-cn" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>我的zsh和vim配置 - L0phTg&#39;s Blog</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="总结了一下自己的vim配置和zsh配置
+
+" />
+
+  <meta name="keywords" content="Hugo, theme, jane" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/%E6%88%91%E7%9A%84zsh%E5%92%8Cvim%E9%85%8D%E7%BD%AE/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="我的zsh和vim配置" />
+<meta property="og:description" content="总结了一下自己的vim配置和zsh配置
+
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/%E6%88%91%E7%9A%84zsh%E5%92%8Cvim%E9%85%8D%E7%BD%AE/" /><meta property="article:published_time" content="2018-10-24T00:14:31&#43;08:00"/>
+<meta property="article:modified_time" content="2018-10-24T00:14:31&#43;08:00"/>
+<meta itemprop="name" content="我的zsh和vim配置">
+<meta itemprop="description" content="总结了一下自己的vim配置和zsh配置
+
+
+
+">
+
+
+<meta itemprop="datePublished" content="2018-10-24T00:14:31&#43;08:00" />
+<meta itemprop="dateModified" content="2018-10-24T00:14:31&#43;08:00" />
+<meta itemprop="wordCount" content="1677">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="我的zsh和vim配置"/>
+<meta name="twitter:description" content="总结了一下自己的vim配置和zsh配置
+
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/">Home</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/post/">Archives</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/tags/">Tags</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/categories/">Categories</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/about/">About</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+              <i class="iconfont icon-new-window"></i>
+            </a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg's Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://l0phtg.github.io/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">我的zsh和vim配置</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2018-10-24 </span>
+        
+        <span class="more-meta"> 约 1677 字 </span>
+          <span class="more-meta"> 预计阅读 4 分钟 </span>
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+
+    
+    <div class="post-content">
+      <p>总结了一下自己的vim配置和zsh配置</p>
+
+<p><img src="https://l0phtg.github.io/customConfig/myVimPreview.png" alt="" /></p>
+
+<p></p>
+
+<h2 id="zsh配置">zsh配置</h2>
+
+<p><a href="https://github.com/robbyrussell/oh-my-zsh">https://github.com/robbyrussell/oh-my-zsh</a></p>
+
+<h2 id="vim配置">vim配置</h2>
+
+<ol>
+<li><p>当你使用<code>vim</code>时, 可以在<code>~/.vimrc</code>中编写你的vim配置文件.</p></li>
+
+<li><p>当你使用<code>neovim</code>时, 可以在<code>~/.config/nvim/init.vim</code>中编写你的vim配置文件.</p></li>
+</ol>
+
+<h3 id="插件">插件</h3>
+
+<ol>
+<li>插件管理<code>vim-plug</code></li>
+<li>tagbar</li>
+<li>airline</li>
+<li>vimfilter</li>
+<li>vim-bufabline buffer窗口</li>
+<li>fzf和ag 搜索</li>
+<li>括号补全&rsquo;Raimondi/delimitMate&rsquo;</li>
+<li>include补全 neoinclude</li>
+<li>语法补全jedi-vim(python)</li>
+</ol>
+
+<h4 id="vim-plug-vim插件管理工具"><code>vim-plug</code> vim插件管理工具</h4>
+
+<p>README: <a href="https://github.com/junegunn/vim-plug">https://github.com/junegunn/vim-plug</a>.</p>
+
+<ol>
+<li>安装</li>
+</ol>
+
+<p>a. 当你使用<code>vim</code>时.</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim</pre></div>
+<p>b. 当你使用`neovim时.</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim</pre></div>
+<ol>
+<li>使用</li>
+</ol>
+
+<p>a. 可以使用git链接</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;https://github.com/junegunn/vim-github-dashboard.git&#39;</pre></div>
+<p>b. 使用git<code>UserName/Project</code>.</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;junegunn/vim-easy-align&#39;</pre></div>
+<p>更多可以参考文档.</p>
+
+<ol>
+<li>安装插件</li>
+</ol>
+
+<p>只是把要安装的插件写在配置文件中是不够的, 还需要安装.</p>
+
+<p>写好配置文件后, 重新打开vim, 运行<code>PlugInstall</code>.</p>
+
+<ol>
+<li>例子:(我的部分配置)
+```
+call plug#begin()</li>
+</ol>
+
+<p>Plug &lsquo;NLKNguyen/papercolor-theme&rsquo;
+Plug &lsquo;vim-airline/vim-airline&rsquo;
+Plug &lsquo;vim-airline/vim-airline-themes&rsquo;
+Plug &lsquo;Shougo/denite.nvim&rsquo;
+Plug &lsquo;Shougo/unite.vim&rsquo;
+Plug &lsquo;Shougo/vimfiler&rsquo;
+Plug &lsquo;majutsushi/tagbar&rsquo;
+Plug &lsquo;ap/vim-buftabline&rsquo;
+Plug &lsquo;Shougo/deoplete.nvim&rsquo;, { &lsquo;do&rsquo;: &lsquo;:UpdateRemotePlugins&rsquo; }
+Plug &lsquo;rip-rip/clang_complete&rsquo;
+Plug &lsquo;SirVer/ultisnips&rsquo;           &ldquo; 代码片段补全  模板补全
+Plug &lsquo;honza/vim-snippets&rsquo;
+Plug &lsquo;zchee/deoplete-jedi&rsquo;</p>
+
+<p>Plug &lsquo;scrooloose/nerdcommenter&rsquo;   &ldquo; 自动注释   <leader>cc  注释当先选中文本<br />
+Plug &lsquo;ctrlpvim/ctrlp.vim&rsquo;</p>
+
+<p>Plug &lsquo;lvht/tagbar-markdown&rsquo;       &ldquo; markdown  tagbar显示</p>
+
+<p>Plug &lsquo;~/.fzf&rsquo;
+Plug &lsquo;junegunn/fzf.vim&rsquo;</p>
+
+<p>call plug#end()</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">#### tagbar
+
+README: https://github.com/majutsushi/tagbar.
+
+1. 安装`ctags`</pre></div>
+<p>$sudo apt install ctags</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">2. vim中配置`tagbar`</pre></div>
+<p>call plug#begin()
+Plug &lsquo;majutsushi/tagbar&rsquo;
+call plug#end()</p>
+
+<p>let g:tagbar_width=30
+let g:tagbar_left=1</p>
+
+<p>&ldquo;映射F2快捷键为打开tagbar
+nnoremap <F2> :TagbarToggle <CR></p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">#### airline 主题
+
+https://github.com/vim-airline/vim-airline</pre></div>
+<p>call plug#begin()</p>
+
+<p>Plug &lsquo;NLKNguyen/papercolor-theme&rsquo;           // 这是我自己的主题
+Plug &lsquo;vim-airline/vim-airline&rsquo;
+Plug &lsquo;vim-airline/vim-airline-themes&rsquo;</p>
+
+<p>call plug#end()</p>
+
+<p>let g:airline_theme=&lsquo;papercolor&rsquo;</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">#### vimfilter 文件树</pre></div>
+<p>call plug#begin()
+Plug &lsquo;Shougo/vimfiler&rsquo;
+call plug#end()</p>
+
+<p>&ldquo;我设置的打开vimfilter的对应快捷键为F3
+nnoremap <F3> :VimFilerExplorer -split -direction=rightbelow <CR></p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">#### vim-bufabline buffer窗口</pre></div>
+<p>call plug#begin()
+Plug &lsquo;ap/vim-buftabline&rsquo;
+call plug#end()</p>
+
+<p>&ldquo;映射对应的快捷键为打开对应的buffer
+nmap <leader>1 <Plug>BufTabLine.Go(1)
+nmap <leader>2 <Plug>BufTabLine.Go(2)
+nmap <leader>3 <Plug>BufTabLine.Go(3)
+nmap <leader>4 <Plug>BufTabLine.Go(4)
+nmap <leader>5 <Plug>BufTabLine.Go(5)
+nmap <leader>6 <Plug>BufTabLine.Go(6)
+nmap <leader>7 <Plug>BufTabLine.Go(7)
+nmap <leader>8 <Plug>BufTabLine.Go(8)
+nmap <leader>9 <Plug>BufTabLine.Go(9)
+nmap <leader>0 <Plug>BufTabLine.Go(10)</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">#### fzf 和 ag
+
+1. 下载安装fzf</pre></div>
+<p>git clone &ndash;depth 1 <a href="https://github.com/junegunn/fzf.git">https://github.com/junegunn/fzf.git</a> ~/.fzf
+~/.fzf/install</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">2. vim 中配置fzf
+
+插件使用`vim-plug`</pre></div>
+<p>Plug &lsquo;~/.fzf&rsquo;</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">3. ag安装
+
+ubuntu</pre></div>
+<p>$sudo apt-get install silversearcher-ag</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">4. 快捷键映射
+
+在我的vim中, &lt;leader&gt;映射为了`space`</pre></div>
+<p>noremap <leader>sff :Files<CR>
+noremap <leader>ssf :Lines<CR>
+noremap <leader>sbf :BLines<CR>
+noremap <leader>ss  :Ag<CR></p>
+
+<p>noremap <leader>gls :GFiles<CR>
+noremap <leader>gss :GFiles?<CR></p>
+
+<p>noremap <leader>btag :Tags<CR>
+noremap <leader>stag :BTags<CR></p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">5. 使用
+
+`:BTags` 可以在当前目录下build tags, `前提系统已经ctags`(apt install ctags)
+
+`:Tags` 可以搜索tag. 在搜索前, 要先build tags. (可以自行阅读fzf doc, 应该可以在vim启动时自动build tags).
+
+
+####  括号补全&#39;Raimondi/delimitMate&#39;</pre></div>
+<p>call plug#begin()
+Plug &lsquo;Raimondi/delimitMate&rsquo;       &ldquo; 补全, \&rdquo; ( 等.
+call plug#end()</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">#### c语言头文件补全 neoinclude </pre></div>
+<p>call plug#begin()
+Plug &lsquo;Shougo/neoinclude.vim&rsquo;
+call plug#end()</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">### 我的配置</pre></div>
+<p>set nu</p>
+
+<p>let mapleader= &lsquo; &lsquo;
+let g:mapleader = &lsquo; &lsquo;</p>
+
+<p>syntax on</p>
+
+<p>filetype on</p>
+
+<p>filetype indent on</p>
+
+<p>filetype plugin on</p>
+
+<p>filetype plugin indent on</p>
+
+<p>&rdquo; 标签页
+set tabpagemax=20
+set showtabline=2</p>
+
+<p>&rdquo; 设置文件浏览器目录为当前目录
+set bsdir=buffer</p>
+
+<p>&rdquo; 突出显示当前行
+set cursorline</p>
+
+<p>&rdquo; 突出显示当前列
+&ldquo; set cursorcolumn</p>
+
+<p>&rdquo; 括号配对情况, 跳转并高亮匹配的括号
+set showmatch
+&ldquo;
+set matchtime=2</p>
+
+<p>&rdquo; 相对行号: 行号变成相对
+set relativenumber number</p>
+
+<p>set encoding=utf-8</p>
+
+<p>set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
+set helplang=cn</p>
+
+<p>set rtp+=~/.fzf                  &ldquo; fzf</p>
+
+<p>&ldquo;plug插件</p>
+
+<p>call plug#begin()</p>
+
+<p>Plug &lsquo;NLKNguyen/papercolor-theme&rsquo;
+Plug &lsquo;vim-airline/vim-airline&rsquo;
+Plug &lsquo;vim-airline/vim-airline-themes&rsquo;</p>
+
+<p>Plug &lsquo;Shougo/denite.nvim&rsquo;
+Plug &lsquo;Shougo/unite.vim&rsquo;
+Plug &lsquo;Shougo/vimfiler&rsquo;</p>
+
+<p>Plug &lsquo;Shougo/deoplete.nvim&rsquo;, { &lsquo;do&rsquo;: &lsquo;:UpdateRemotePlugins&rsquo; }</p>
+
+<p>Plug &lsquo;Shougo/neoinclude.vim&rsquo;</p>
+
+<p>Plug &lsquo;majutsushi/tagbar&rsquo;
+&ldquo;&ldquo;Plug &lsquo;<a href="https://github.com/fholgado/minibufexpl.vim.git'">https://github.com/fholgado/minibufexpl.vim.git'</a>
+Plug &lsquo;ap/vim-buftabline&rsquo;</p>
+
+<p>Plug &lsquo;justmao945/vim-clang&rsquo;
+&ldquo;Plug &lsquo;Valloric/YouCompleteMe&rsquo;     &rdquo; YCM补全</p>
+
+<p>&ldquo;Plug &lsquo;SirVer/ultisnips&rsquo;           &rdquo; 代码片段补全  模板补全</p>
+
+<p>&ldquo;Plug &lsquo;zchee/deoplete-jedi&rsquo;       &rdquo; Python补全</p>
+
+<p>Plug &lsquo;Raimondi/delimitMate&rsquo;       &ldquo; 不全, \&rdquo; ( 等.</p>
+
+<p>Plug &lsquo;scrooloose/nerdcommenter&rsquo;   &ldquo; 自动注释   <leader>cc  注释当先选中文本  <leader>cu 取消选中文本块的注释</p>
+
+<p>Plug &lsquo;lvht/tagbar-markdown&rsquo;       &ldquo; markdown  tagbar显示</p>
+
+<p>Plug &lsquo;~/.fzf&rsquo;
+Plug &lsquo;junegunn/fzf.vim&rsquo;</p>
+
+<p>call plug#end()</p>
+
+<p>set background=dark
+colorscheme PaperColor</p>
+
+<p>let g:airline_theme=&lsquo;papercolor&rsquo;</p>
+
+<p>&rdquo; 设置tagbar
+let g:tagbar_width=30
+let g:tagbar_left=1</p>
+
+<p>&rdquo; 配置fzf  和 ag
+noremap <leader>sff :Files<CR>
+noremap <leader>ssf :Lines<CR>
+noremap <leader>sbf :BLines<CR>
+noremap <leader>ss  :Ag<CR></p>
+
+<p>noremap <leader>gls :GFiles<CR>
+noremap <leader>gss :GFiles?<CR></p>
+
+<p>noremap <leader>btag :Tags<CR>
+noremap <leader>stag :BTags<CR></p>
+
+<p>&rdquo; 配置vimbuftabline
+let g:buftabline_numbers=2</p>
+
+<p>noremap <leader><Tab> :bnext<CR></p>
+
+<p>nmap <leader>1 <Plug>BufTabLine.Go(1)
+nmap <leader>2 <Plug>BufTabLine.Go(2)
+nmap <leader>3 <Plug>BufTabLine.Go(3)
+nmap <leader>4 <Plug>BufTabLine.Go(4)
+nmap <leader>5 <Plug>BufTabLine.Go(5)
+nmap <leader>6 <Plug>BufTabLine.Go(6)
+nmap <leader>7 <Plug>BufTabLine.Go(7)
+nmap <leader>8 <Plug>BufTabLine.Go(8)
+nmap <leader>9 <Plug>BufTabLine.Go(9)
+nmap <leader>0 <Plug>BufTabLine.Go(10)</p>
+
+<p>&rdquo; 设置 deoplete.nvim
+let g:deoplete#enable_at_startup = 1</p>
+
+<p>&ldquo;设置Tab为补全
+inoremap <expr> <Tab> pumvisible() ? &ldquo;&lt;C-n&gt;&rdquo; : &ldquo;&lt;Tab&gt;&rdquo;<br />
+&ldquo;inoremap <expr> <S-Tab> pumvisible() ? &ldquo;&lt;C-p&gt;&rdquo; : &ldquo;&lt;S-Tab&gt;&rdquo;
+&ldquo;inoremap <expr> <cr> pumvisible() ? &ldquo;&lt;C-y&gt;&rdquo; : &ldquo;&lt;cr&gt;&rdquo;</p>
+
+<p>&rdquo; 设置vim-clang
+let g:clang_cpp_options = &lsquo;-std=c++11&rsquo;
+let g:clang_check_syntax_auto = 1
+let g:clang_cpp_completeopt = &lsquo;menuone,longest&rsquo;</p>
+
+<p>&ldquo;快捷键只在常规模式下有用 nnoremap
+&ldquo;设置 F3 为打开vimfiler
+&ldquo;设置 &rdquo; &ldquo;fs 为保存文件
+&ldquo;function vimfilertoRight()
+&ldquo;endfunction</p>
+
+<p>nnoremap <F2> :TagbarToggle <CR>
+nnoremap <F3> :VimFilerExplorer -split -direction=rightbelow <CR><br />
+nnoremap <leader>fs :w <CR>
+nnoremap <leader>fS :wall <CR></p>
+
+<p>nnoremap <leader>qq :wq <CR>
+&ldquo;vim windows窗口左右
+nnoremap <C-h> <C-w>h <CR>
+nnoremap <C-l> <C-w>l <CR>
+nnoremap <C-j> <C-w>j <CR>
+nnoremap <C-k> <C-w>k <CR></p>
+
+<p>&ldquo;分割窗口
+nnoremap <leader>wj :split<CR>
+nnoremap <leader>wl :vsplit<CR></p>
+
+<p>&ldquo;set hidden &rdquo; 避免必须保存才可以跳转buffer</p>
+
+<p>&rdquo; my settings 对vimfiler的配置
+let g:vimfiler_as_default_explorer = 1
+let g:vimfiler_safe_mode_by_default = 0
+let g:vimfiler_tree_leaf_icon = &lsquo; &lsquo;
+let g:vimfiler_tree_opened_icon = &lsquo;▾&rsquo;
+let g:vimfiler_tree_closed_icon = &lsquo;▸&rsquo;
+let g:vimfiler_enable_auto_cd = 1
+let g:vimfiler_file_icon = &lsquo;-&rsquo;
+let g:vimfiler_marked_file_icon = &lsquo;✓&rsquo;
+let g:vimfiler_readonly_file_icon = &lsquo;✗&rsquo;
+let g:vimfiler_time_format = &lsquo;%m-%d-%y %H:%M:%S&rsquo;
+let g:vimfiler_expand_jump_to_first_child = 0
+let g:vimfiler_ignore_pattern = &lsquo;.git|.DS_Store|.pyc&rsquo;</p>
+
+<p>&rdquo; 文件类型设置 FileType Settings
+set sw=4
+set ts=4
+autocmd FileType markdown set tabstop=4 shiftwidth=4 expandtab ai
+autocmd FileType c++ set tabstop=4 shiftwidth=4 expandtab ai
+autocmd FileType c set tabstop=4 shiftwidth=4 expandtab ai</p>
+
+<p>autocmd FileType python set tabstop=4 shiftwidth=4 expandtab ai
+autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai</p>
+
+<p>```</p>
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/nexus5-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/">
+            <span class="next-text nav-default">Nexus5 源码编译</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener alternate" type="application/rss&#43;xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+  </div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">
+        l0phtg
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
