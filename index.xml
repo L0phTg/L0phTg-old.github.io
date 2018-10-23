@@ -98,307 +98,337 @@
 &lt;p&gt;写好配置文件后, 重新打开vim, 运行&lt;code&gt;PlugInstall&lt;/code&gt;.&lt;/p&gt;
 
 &lt;ol&gt;
-&lt;li&gt;例子:(我的部分配置)
-```
-call plug#begin()&lt;/li&gt;
+&lt;li&gt;例子:(我的部分配置)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+
+Plug &amp;#39;NLKNguyen/papercolor-theme&amp;#39;
+Plug &amp;#39;vim-airline/vim-airline&amp;#39;
+Plug &amp;#39;vim-airline/vim-airline-themes&amp;#39;
+Plug &amp;#39;Shougo/denite.nvim&amp;#39;
+Plug &amp;#39;Shougo/unite.vim&amp;#39;
+Plug &amp;#39;Shougo/vimfiler&amp;#39;
+Plug &amp;#39;majutsushi/tagbar&amp;#39;
+Plug &amp;#39;ap/vim-buftabline&amp;#39;
+Plug &amp;#39;Shougo/deoplete.nvim&amp;#39;, { &amp;#39;do&amp;#39;: &amp;#39;:UpdateRemotePlugins&amp;#39; }
+Plug &amp;#39;rip-rip/clang_complete&amp;#39;
+Plug &amp;#39;SirVer/ultisnips&amp;#39;           &amp;#34; 代码片段补全  模板补全
+Plug &amp;#39;honza/vim-snippets&amp;#39;
+Plug &amp;#39;zchee/deoplete-jedi&amp;#39;
+
+Plug &amp;#39;scrooloose/nerdcommenter&amp;#39;   &amp;#34; 自动注释   &amp;lt;leader&amp;gt;cc  注释当先选中文本  
+Plug &amp;#39;ctrlpvim/ctrlp.vim&amp;#39;
+
+Plug &amp;#39;lvht/tagbar-markdown&amp;#39;       &amp;#34; markdown  tagbar显示
+
+Plug &amp;#39;~/.fzf&amp;#39;
+Plug &amp;#39;junegunn/fzf.vim&amp;#39;
+
+call plug#end()&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;tagbar&#34;&gt;&lt;code&gt;tagbar&lt;/code&gt;&lt;/h4&gt;
+
+&lt;p&gt;README: &lt;a href=&#34;https://github.com/majutsushi/tagbar&#34;&gt;https://github.com/majutsushi/tagbar&lt;/a&gt;.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;安装&lt;code&gt;ctags&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;$sudo apt install ctags&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;vim中配置&lt;code&gt;tagbar&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+Plug &amp;#39;majutsushi/tagbar&amp;#39;
+call plug#end()
+
+let g:tagbar_width=30
+let g:tagbar_left=1
+
+&amp;#34;映射F2快捷键为打开tagbar
+nnoremap &amp;lt;F2&amp;gt; :TagbarToggle &amp;lt;CR&amp;gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;airline-主题&#34;&gt;&lt;code&gt;airline&lt;/code&gt; 主题&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/vim-airline/vim-airline&#34;&gt;https://github.com/vim-airline/vim-airline&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+
+Plug &amp;#39;NLKNguyen/papercolor-theme&amp;#39;           // 这是我自己的主题
+Plug &amp;#39;vim-airline/vim-airline&amp;#39;
+Plug &amp;#39;vim-airline/vim-airline-themes&amp;#39;
+
+call plug#end()
+
+let g:airline_theme=&amp;#39;papercolor&amp;#39;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;vimfilter-文件树&#34;&gt;&lt;code&gt;vimfilter&lt;/code&gt; 文件树&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+Plug &amp;#39;Shougo/vimfiler&amp;#39;
+call plug#end()
+
+&amp;#34;我设置的打开vimfilter的对应快捷键为F3
+nnoremap &amp;lt;F3&amp;gt; :VimFilerExplorer -split -direction=rightbelow &amp;lt;CR&amp;gt;          &lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;vim-bufabline-buffer窗口&#34;&gt;&lt;code&gt;vim-bufabline&lt;/code&gt; buffer窗口&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+Plug &amp;#39;ap/vim-buftabline&amp;#39;
+call plug#end()
+
+&amp;#34;映射对应的快捷键为打开对应的buffer
+nmap &amp;lt;leader&amp;gt;1 &amp;lt;Plug&amp;gt;BufTabLine.Go(1)
+nmap &amp;lt;leader&amp;gt;2 &amp;lt;Plug&amp;gt;BufTabLine.Go(2)
+nmap &amp;lt;leader&amp;gt;3 &amp;lt;Plug&amp;gt;BufTabLine.Go(3)
+nmap &amp;lt;leader&amp;gt;4 &amp;lt;Plug&amp;gt;BufTabLine.Go(4)
+nmap &amp;lt;leader&amp;gt;5 &amp;lt;Plug&amp;gt;BufTabLine.Go(5)
+nmap &amp;lt;leader&amp;gt;6 &amp;lt;Plug&amp;gt;BufTabLine.Go(6)
+nmap &amp;lt;leader&amp;gt;7 &amp;lt;Plug&amp;gt;BufTabLine.Go(7)
+nmap &amp;lt;leader&amp;gt;8 &amp;lt;Plug&amp;gt;BufTabLine.Go(8)
+nmap &amp;lt;leader&amp;gt;9 &amp;lt;Plug&amp;gt;BufTabLine.Go(9)
+nmap &amp;lt;leader&amp;gt;0 &amp;lt;Plug&amp;gt;BufTabLine.Go(10)&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;fzf-和-ag&#34;&gt;fzf 和 ag&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/customConfig/fileContentSearch.png&#34; alt=&#34;目录下的全部文件内容搜索&#34; /&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;下载安装fzf&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;vim 中配置fzf&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;Plug &amp;lsquo;NLKNguyen/papercolor-theme&amp;rsquo;
-Plug &amp;lsquo;vim-airline/vim-airline&amp;rsquo;
-Plug &amp;lsquo;vim-airline/vim-airline-themes&amp;rsquo;
-Plug &amp;lsquo;Shougo/denite.nvim&amp;rsquo;
-Plug &amp;lsquo;Shougo/unite.vim&amp;rsquo;
-Plug &amp;lsquo;Shougo/vimfiler&amp;rsquo;
-Plug &amp;lsquo;majutsushi/tagbar&amp;rsquo;
-Plug &amp;lsquo;ap/vim-buftabline&amp;rsquo;
-Plug &amp;lsquo;Shougo/deoplete.nvim&amp;rsquo;, { &amp;lsquo;do&amp;rsquo;: &amp;lsquo;:UpdateRemotePlugins&amp;rsquo; }
-Plug &amp;lsquo;rip-rip/clang_complete&amp;rsquo;
-Plug &amp;lsquo;SirVer/ultisnips&amp;rsquo;           &amp;ldquo; 代码片段补全  模板补全
-Plug &amp;lsquo;honza/vim-snippets&amp;rsquo;
-Plug &amp;lsquo;zchee/deoplete-jedi&amp;rsquo;&lt;/p&gt;
+&lt;p&gt;插件使用&lt;code&gt;vim-plug&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;Plug &amp;#39;~/.fzf&amp;#39;&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;ag安装&lt;/li&gt;
+&lt;/ol&gt;
 
-&lt;p&gt;Plug &amp;lsquo;scrooloose/nerdcommenter&amp;rsquo;   &amp;ldquo; 自动注释   &lt;leader&gt;cc  注释当先选中文本&lt;br /&gt;
-Plug &amp;lsquo;ctrlpvim/ctrlp.vim&amp;rsquo;&lt;/p&gt;
+&lt;p&gt;ubuntu&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;$sudo apt-get install silversearcher-ag&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;快捷键映射&lt;/li&gt;
+&lt;/ol&gt;
 
-&lt;p&gt;Plug &amp;lsquo;lvht/tagbar-markdown&amp;rsquo;       &amp;ldquo; markdown  tagbar显示&lt;/p&gt;
+&lt;p&gt;在我的vim中, &lt;leader&gt;映射为了&lt;code&gt;space&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;noremap &amp;lt;leader&amp;gt;sff :Files&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;ssf :Lines&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;sbf :BLines&amp;lt;CR&amp;gt; 
+noremap &amp;lt;leader&amp;gt;ss  :Ag&amp;lt;CR&amp;gt;
 
-&lt;p&gt;Plug &amp;lsquo;~/.fzf&amp;rsquo;
-Plug &amp;lsquo;junegunn/fzf.vim&amp;rsquo;&lt;/p&gt;
+noremap &amp;lt;leader&amp;gt;gls :GFiles&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;gss :GFiles?&amp;lt;CR&amp;gt;   
 
-&lt;p&gt;call plug#end()&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;#### tagbar
+noremap &amp;lt;leader&amp;gt;btag :Tags&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;stag :BTags&amp;lt;CR&amp;gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;使用&lt;/li&gt;
+&lt;/ol&gt;
 
-README: https://github.com/majutsushi/tagbar.
+&lt;p&gt;&lt;code&gt;:BTags&lt;/code&gt; 可以在当前目录下build tags, &lt;code&gt;前提系统已经ctags&lt;/code&gt;(apt install ctags)&lt;/p&gt;
 
-1. 安装`ctags`&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;$sudo apt install ctags&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;2. vim中配置`tagbar`&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;call plug#begin()
-Plug &amp;lsquo;majutsushi/tagbar&amp;rsquo;
-call plug#end()&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;:Tags&lt;/code&gt; 可以搜索tag. 在搜索前, 要先build tags. (可以自行阅读fzf doc, 应该可以在vim启动时自动build tags).&lt;/p&gt;
 
-&lt;p&gt;let g:tagbar_width=30
-let g:tagbar_left=1&lt;/p&gt;
+&lt;p&gt;当前文件内容搜索:
+&lt;img src=&#34;https://l0phtg.github.io/customConfig/singleFileContentSearch.png&#34; alt=&#34;当前文件内容搜索&#34; /&gt;
+当前目录的文件搜索:
+&lt;img src=&#34;https://l0phtg.github.io/customConfig/searchFile.png&#34; alt=&#34;当前目录的文件搜索&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;&amp;ldquo;映射F2快捷键为打开tagbar
-nnoremap &lt;F2&gt; :TagbarToggle &lt;CR&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;#### airline 主题
+&lt;h4 id=&#34;括号补全-raimondi-delimitmate&#34;&gt;括号补全&amp;rsquo;Raimondi/delimitMate&amp;rsquo;&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+Plug &amp;#39;Raimondi/delimitMate&amp;#39;       &amp;#34; 补全, \&amp;#34; \( 等.
+call plug#end()&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;c语言头文件补全-neoinclude&#34;&gt;c语言头文件补全 neoinclude&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+Plug &amp;#39;Shougo/neoinclude.vim&amp;#39;
+call plug#end()&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&#34;我的配置&#34;&gt;我的配置&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;set nu
 
-https://github.com/vim-airline/vim-airline&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;call plug#begin()&lt;/p&gt;
-
-&lt;p&gt;Plug &amp;lsquo;NLKNguyen/papercolor-theme&amp;rsquo;           // 这是我自己的主题
-Plug &amp;lsquo;vim-airline/vim-airline&amp;rsquo;
-Plug &amp;lsquo;vim-airline/vim-airline-themes&amp;rsquo;&lt;/p&gt;
-
-&lt;p&gt;call plug#end()&lt;/p&gt;
-
-&lt;p&gt;let g:airline_theme=&amp;lsquo;papercolor&amp;rsquo;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;#### vimfilter 文件树&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;call plug#begin()
-Plug &amp;lsquo;Shougo/vimfiler&amp;rsquo;
-call plug#end()&lt;/p&gt;
-
-&lt;p&gt;&amp;ldquo;我设置的打开vimfilter的对应快捷键为F3
-nnoremap &lt;F3&gt; :VimFilerExplorer -split -direction=rightbelow &lt;CR&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;#### vim-bufabline buffer窗口&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;call plug#begin()
-Plug &amp;lsquo;ap/vim-buftabline&amp;rsquo;
-call plug#end()&lt;/p&gt;
-
-&lt;p&gt;&amp;ldquo;映射对应的快捷键为打开对应的buffer
-nmap &lt;leader&gt;1 &lt;Plug&gt;BufTabLine.Go(1)
-nmap &lt;leader&gt;2 &lt;Plug&gt;BufTabLine.Go(2)
-nmap &lt;leader&gt;3 &lt;Plug&gt;BufTabLine.Go(3)
-nmap &lt;leader&gt;4 &lt;Plug&gt;BufTabLine.Go(4)
-nmap &lt;leader&gt;5 &lt;Plug&gt;BufTabLine.Go(5)
-nmap &lt;leader&gt;6 &lt;Plug&gt;BufTabLine.Go(6)
-nmap &lt;leader&gt;7 &lt;Plug&gt;BufTabLine.Go(7)
-nmap &lt;leader&gt;8 &lt;Plug&gt;BufTabLine.Go(8)
-nmap &lt;leader&gt;9 &lt;Plug&gt;BufTabLine.Go(9)
-nmap &lt;leader&gt;0 &lt;Plug&gt;BufTabLine.Go(10)&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;#### fzf 和 ag
-
-1. 下载安装fzf&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;git clone &amp;ndash;depth 1 &lt;a href=&#34;https://github.com/junegunn/fzf.git&#34;&gt;https://github.com/junegunn/fzf.git&lt;/a&gt; ~/.fzf
-~/.fzf/install&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;2. vim 中配置fzf
-
-插件使用`vim-plug`&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Plug &amp;lsquo;~/.fzf&amp;rsquo;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;3. ag安装
-
-ubuntu&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;$sudo apt-get install silversearcher-ag&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;4. 快捷键映射
-
-在我的vim中, &amp;lt;leader&amp;gt;映射为了`space`&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;noremap &lt;leader&gt;sff :Files&lt;CR&gt;
-noremap &lt;leader&gt;ssf :Lines&lt;CR&gt;
-noremap &lt;leader&gt;sbf :BLines&lt;CR&gt;
-noremap &lt;leader&gt;ss  :Ag&lt;CR&gt;&lt;/p&gt;
-
-&lt;p&gt;noremap &lt;leader&gt;gls :GFiles&lt;CR&gt;
-noremap &lt;leader&gt;gss :GFiles?&lt;CR&gt;&lt;/p&gt;
-
-&lt;p&gt;noremap &lt;leader&gt;btag :Tags&lt;CR&gt;
-noremap &lt;leader&gt;stag :BTags&lt;CR&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;5. 使用
-
-`:BTags` 可以在当前目录下build tags, `前提系统已经ctags`(apt install ctags)
-
-`:Tags` 可以搜索tag. 在搜索前, 要先build tags. (可以自行阅读fzf doc, 应该可以在vim启动时自动build tags).
+let mapleader= &amp;#39; &amp;#39;
+let g:mapleader = &amp;#39; &amp;#39;
 
 
-####  括号补全&amp;#39;Raimondi/delimitMate&amp;#39;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;call plug#begin()
-Plug &amp;lsquo;Raimondi/delimitMate&amp;rsquo;       &amp;ldquo; 补全, \&amp;rdquo; ( 等.
-call plug#end()&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;#### c语言头文件补全 neoinclude &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;call plug#begin()
-Plug &amp;lsquo;Shougo/neoinclude.vim&amp;rsquo;
-call plug#end()&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;### 我的配置&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;set nu&lt;/p&gt;
+syntax on
 
-&lt;p&gt;let mapleader= &amp;lsquo; &amp;lsquo;
-let g:mapleader = &amp;lsquo; &amp;lsquo;&lt;/p&gt;
+filetype on
 
-&lt;p&gt;syntax on&lt;/p&gt;
+filetype indent on
 
-&lt;p&gt;filetype on&lt;/p&gt;
+filetype plugin on
 
-&lt;p&gt;filetype indent on&lt;/p&gt;
+filetype plugin indent on
 
-&lt;p&gt;filetype plugin on&lt;/p&gt;
-
-&lt;p&gt;filetype plugin indent on&lt;/p&gt;
-
-&lt;p&gt;&amp;rdquo; 标签页
+&amp;#34; 标签页
 set tabpagemax=20
-set showtabline=2&lt;/p&gt;
+set showtabline=2
 
-&lt;p&gt;&amp;rdquo; 设置文件浏览器目录为当前目录
-set bsdir=buffer&lt;/p&gt;
+&amp;#34; 设置文件浏览器目录为当前目录
+set bsdir=buffer
 
-&lt;p&gt;&amp;rdquo; 突出显示当前行
-set cursorline&lt;/p&gt;
 
-&lt;p&gt;&amp;rdquo; 突出显示当前列
-&amp;ldquo; set cursorcolumn&lt;/p&gt;
+&amp;#34; 突出显示当前行
+set cursorline
 
-&lt;p&gt;&amp;rdquo; 括号配对情况, 跳转并高亮匹配的括号
+&amp;#34; 突出显示当前列
+&amp;#34; set cursorcolumn
+
+&amp;#34; 括号配对情况, 跳转并高亮匹配的括号
 set showmatch
-&amp;ldquo;
-set matchtime=2&lt;/p&gt;
+&amp;#34;
+set matchtime=2
 
-&lt;p&gt;&amp;rdquo; 相对行号: 行号变成相对
-set relativenumber number&lt;/p&gt;
+&amp;#34; 相对行号: 行号变成相对
+set relativenumber number
 
-&lt;p&gt;set encoding=utf-8&lt;/p&gt;
+set encoding=utf-8
 
-&lt;p&gt;set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
-set helplang=cn&lt;/p&gt;
+set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
+set helplang=cn
 
-&lt;p&gt;set rtp+=~/.fzf                  &amp;ldquo; fzf&lt;/p&gt;
+set rtp+=~/.fzf                  &amp;#34; fzf 
 
-&lt;p&gt;&amp;ldquo;plug插件&lt;/p&gt;
 
-&lt;p&gt;call plug#begin()&lt;/p&gt;
+&amp;#34;plug插件
 
-&lt;p&gt;Plug &amp;lsquo;NLKNguyen/papercolor-theme&amp;rsquo;
-Plug &amp;lsquo;vim-airline/vim-airline&amp;rsquo;
-Plug &amp;lsquo;vim-airline/vim-airline-themes&amp;rsquo;&lt;/p&gt;
+call plug#begin()
 
-&lt;p&gt;Plug &amp;lsquo;Shougo/denite.nvim&amp;rsquo;
-Plug &amp;lsquo;Shougo/unite.vim&amp;rsquo;
-Plug &amp;lsquo;Shougo/vimfiler&amp;rsquo;&lt;/p&gt;
+Plug &amp;#39;NLKNguyen/papercolor-theme&amp;#39;
+Plug &amp;#39;vim-airline/vim-airline&amp;#39;
+Plug &amp;#39;vim-airline/vim-airline-themes&amp;#39;
 
-&lt;p&gt;Plug &amp;lsquo;Shougo/deoplete.nvim&amp;rsquo;, { &amp;lsquo;do&amp;rsquo;: &amp;lsquo;:UpdateRemotePlugins&amp;rsquo; }&lt;/p&gt;
+Plug &amp;#39;Shougo/denite.nvim&amp;#39;
+Plug &amp;#39;Shougo/unite.vim&amp;#39;
+Plug &amp;#39;Shougo/vimfiler&amp;#39;
 
-&lt;p&gt;Plug &amp;lsquo;Shougo/neoinclude.vim&amp;rsquo;&lt;/p&gt;
 
-&lt;p&gt;Plug &amp;lsquo;majutsushi/tagbar&amp;rsquo;
-&amp;ldquo;&amp;ldquo;Plug &amp;lsquo;&lt;a href=&#34;https://github.com/fholgado/minibufexpl.vim.git&#39;&#34;&gt;https://github.com/fholgado/minibufexpl.vim.git&#39;&lt;/a&gt;
-Plug &amp;lsquo;ap/vim-buftabline&amp;rsquo;&lt;/p&gt;
+Plug &amp;#39;Shougo/deoplete.nvim&amp;#39;, { &amp;#39;do&amp;#39;: &amp;#39;:UpdateRemotePlugins&amp;#39; }
 
-&lt;p&gt;Plug &amp;lsquo;justmao945/vim-clang&amp;rsquo;
-&amp;ldquo;Plug &amp;lsquo;Valloric/YouCompleteMe&amp;rsquo;     &amp;rdquo; YCM补全&lt;/p&gt;
+Plug &amp;#39;Shougo/neoinclude.vim&amp;#39;
 
-&lt;p&gt;&amp;ldquo;Plug &amp;lsquo;SirVer/ultisnips&amp;rsquo;           &amp;rdquo; 代码片段补全  模板补全&lt;/p&gt;
+Plug &amp;#39;majutsushi/tagbar&amp;#39;
+&amp;#34;&amp;#34;Plug &amp;#39;https://github.com/fholgado/minibufexpl.vim.git&amp;#39;
+Plug &amp;#39;ap/vim-buftabline&amp;#39;
 
-&lt;p&gt;&amp;ldquo;Plug &amp;lsquo;zchee/deoplete-jedi&amp;rsquo;       &amp;rdquo; Python补全&lt;/p&gt;
 
-&lt;p&gt;Plug &amp;lsquo;Raimondi/delimitMate&amp;rsquo;       &amp;ldquo; 不全, \&amp;rdquo; ( 等.&lt;/p&gt;
+Plug &amp;#39;justmao945/vim-clang&amp;#39;
+&amp;#34;Plug &amp;#39;Valloric/YouCompleteMe&amp;#39;     &amp;#34; YCM补全
 
-&lt;p&gt;Plug &amp;lsquo;scrooloose/nerdcommenter&amp;rsquo;   &amp;ldquo; 自动注释   &lt;leader&gt;cc  注释当先选中文本  &lt;leader&gt;cu 取消选中文本块的注释&lt;/p&gt;
+&amp;#34;Plug &amp;#39;SirVer/ultisnips&amp;#39;           &amp;#34; 代码片段补全  模板补全
 
-&lt;p&gt;Plug &amp;lsquo;lvht/tagbar-markdown&amp;rsquo;       &amp;ldquo; markdown  tagbar显示&lt;/p&gt;
+&amp;#34;Plug &amp;#39;zchee/deoplete-jedi&amp;#39;       &amp;#34; Python补全
 
-&lt;p&gt;Plug &amp;lsquo;~/.fzf&amp;rsquo;
-Plug &amp;lsquo;junegunn/fzf.vim&amp;rsquo;&lt;/p&gt;
+Plug &amp;#39;Raimondi/delimitMate&amp;#39;       &amp;#34; 不全, \&amp;#34; \( 等.
 
-&lt;p&gt;call plug#end()&lt;/p&gt;
+Plug &amp;#39;scrooloose/nerdcommenter&amp;#39;   &amp;#34; 自动注释   &amp;lt;leader&amp;gt;cc  注释当先选中文本  &amp;lt;leader&amp;gt;cu 取消选中文本块的注释
 
-&lt;p&gt;set background=dark
-colorscheme PaperColor&lt;/p&gt;
+Plug &amp;#39;lvht/tagbar-markdown&amp;#39;       &amp;#34; markdown  tagbar显示
 
-&lt;p&gt;let g:airline_theme=&amp;lsquo;papercolor&amp;rsquo;&lt;/p&gt;
+Plug &amp;#39;~/.fzf&amp;#39;
+Plug &amp;#39;junegunn/fzf.vim&amp;#39;
 
-&lt;p&gt;&amp;rdquo; 设置tagbar
+call plug#end()
+
+set background=dark
+colorscheme PaperColor
+
+let g:airline_theme=&amp;#39;papercolor&amp;#39;
+
+
+&amp;#34; 设置tagbar
 let g:tagbar_width=30
-let g:tagbar_left=1&lt;/p&gt;
+let g:tagbar_left=1
 
-&lt;p&gt;&amp;rdquo; 配置fzf  和 ag
-noremap &lt;leader&gt;sff :Files&lt;CR&gt;
-noremap &lt;leader&gt;ssf :Lines&lt;CR&gt;
-noremap &lt;leader&gt;sbf :BLines&lt;CR&gt;
-noremap &lt;leader&gt;ss  :Ag&lt;CR&gt;&lt;/p&gt;
 
-&lt;p&gt;noremap &lt;leader&gt;gls :GFiles&lt;CR&gt;
-noremap &lt;leader&gt;gss :GFiles?&lt;CR&gt;&lt;/p&gt;
+&amp;#34; 配置fzf  和 ag
+noremap &amp;lt;leader&amp;gt;sff :Files&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;ssf :Lines&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;sbf :BLines&amp;lt;CR&amp;gt; 
+noremap &amp;lt;leader&amp;gt;ss  :Ag&amp;lt;CR&amp;gt;
 
-&lt;p&gt;noremap &lt;leader&gt;btag :Tags&lt;CR&gt;
-noremap &lt;leader&gt;stag :BTags&lt;CR&gt;&lt;/p&gt;
+noremap &amp;lt;leader&amp;gt;gls :GFiles&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;gss :GFiles?&amp;lt;CR&amp;gt;   
 
-&lt;p&gt;&amp;rdquo; 配置vimbuftabline
-let g:buftabline_numbers=2&lt;/p&gt;
+noremap &amp;lt;leader&amp;gt;btag :Tags&amp;lt;CR&amp;gt;
+noremap &amp;lt;leader&amp;gt;stag :BTags&amp;lt;CR&amp;gt;
 
-&lt;p&gt;noremap &lt;leader&gt;&lt;Tab&gt; :bnext&lt;CR&gt;&lt;/p&gt;
 
-&lt;p&gt;nmap &lt;leader&gt;1 &lt;Plug&gt;BufTabLine.Go(1)
-nmap &lt;leader&gt;2 &lt;Plug&gt;BufTabLine.Go(2)
-nmap &lt;leader&gt;3 &lt;Plug&gt;BufTabLine.Go(3)
-nmap &lt;leader&gt;4 &lt;Plug&gt;BufTabLine.Go(4)
-nmap &lt;leader&gt;5 &lt;Plug&gt;BufTabLine.Go(5)
-nmap &lt;leader&gt;6 &lt;Plug&gt;BufTabLine.Go(6)
-nmap &lt;leader&gt;7 &lt;Plug&gt;BufTabLine.Go(7)
-nmap &lt;leader&gt;8 &lt;Plug&gt;BufTabLine.Go(8)
-nmap &lt;leader&gt;9 &lt;Plug&gt;BufTabLine.Go(9)
-nmap &lt;leader&gt;0 &lt;Plug&gt;BufTabLine.Go(10)&lt;/p&gt;
+&amp;#34; 配置vimbuftabline
+let g:buftabline_numbers=2
 
-&lt;p&gt;&amp;rdquo; 设置 deoplete.nvim
-let g:deoplete#enable_at_startup = 1&lt;/p&gt;
+noremap &amp;lt;leader&amp;gt;&amp;lt;Tab&amp;gt; :bnext&amp;lt;CR&amp;gt;
 
-&lt;p&gt;&amp;ldquo;设置Tab为补全
-inoremap &lt;expr&gt; &lt;Tab&gt; pumvisible() ? &amp;ldquo;&amp;lt;C-n&amp;gt;&amp;rdquo; : &amp;ldquo;&amp;lt;Tab&amp;gt;&amp;rdquo;&lt;br /&gt;
-&amp;ldquo;inoremap &lt;expr&gt; &lt;S-Tab&gt; pumvisible() ? &amp;ldquo;&amp;lt;C-p&amp;gt;&amp;rdquo; : &amp;ldquo;&amp;lt;S-Tab&amp;gt;&amp;rdquo;
-&amp;ldquo;inoremap &lt;expr&gt; &lt;cr&gt; pumvisible() ? &amp;ldquo;&amp;lt;C-y&amp;gt;&amp;rdquo; : &amp;ldquo;&amp;lt;cr&amp;gt;&amp;rdquo;&lt;/p&gt;
+nmap &amp;lt;leader&amp;gt;1 &amp;lt;Plug&amp;gt;BufTabLine.Go(1)
+nmap &amp;lt;leader&amp;gt;2 &amp;lt;Plug&amp;gt;BufTabLine.Go(2)
+nmap &amp;lt;leader&amp;gt;3 &amp;lt;Plug&amp;gt;BufTabLine.Go(3)
+nmap &amp;lt;leader&amp;gt;4 &amp;lt;Plug&amp;gt;BufTabLine.Go(4)
+nmap &amp;lt;leader&amp;gt;5 &amp;lt;Plug&amp;gt;BufTabLine.Go(5)
+nmap &amp;lt;leader&amp;gt;6 &amp;lt;Plug&amp;gt;BufTabLine.Go(6)
+nmap &amp;lt;leader&amp;gt;7 &amp;lt;Plug&amp;gt;BufTabLine.Go(7)
+nmap &amp;lt;leader&amp;gt;8 &amp;lt;Plug&amp;gt;BufTabLine.Go(8)
+nmap &amp;lt;leader&amp;gt;9 &amp;lt;Plug&amp;gt;BufTabLine.Go(9)
+nmap &amp;lt;leader&amp;gt;0 &amp;lt;Plug&amp;gt;BufTabLine.Go(10)
 
-&lt;p&gt;&amp;rdquo; 设置vim-clang
-let g:clang_cpp_options = &amp;lsquo;-std=c++11&amp;rsquo;
+&amp;#34; 设置 deoplete.nvim
+let g:deoplete#enable_at_startup = 1
+
+&amp;#34;设置Tab为补全
+inoremap &amp;lt;expr&amp;gt; &amp;lt;Tab&amp;gt; pumvisible() ? &amp;#34;\&amp;lt;C-n&amp;gt;&amp;#34; : &amp;#34;\&amp;lt;Tab&amp;gt;&amp;#34;                
+&amp;#34;inoremap &amp;lt;expr&amp;gt; &amp;lt;S-Tab&amp;gt; pumvisible() ? &amp;#34;\&amp;lt;C-p&amp;gt;&amp;#34; : &amp;#34;\&amp;lt;S-Tab&amp;gt;&amp;#34;
+&amp;#34;inoremap &amp;lt;expr&amp;gt; &amp;lt;cr&amp;gt; pumvisible() ? &amp;#34;\&amp;lt;C-y&amp;gt;&amp;#34; : &amp;#34;\&amp;lt;cr&amp;gt;&amp;#34;
+
+
+&amp;#34; 设置vim-clang
+let g:clang_cpp_options = &amp;#39;-std=c++11&amp;#39;
 let g:clang_check_syntax_auto = 1
-let g:clang_cpp_completeopt = &amp;lsquo;menuone,longest&amp;rsquo;&lt;/p&gt;
+let g:clang_cpp_completeopt = &amp;#39;menuone,longest&amp;#39;
 
-&lt;p&gt;&amp;ldquo;快捷键只在常规模式下有用 nnoremap
-&amp;ldquo;设置 F3 为打开vimfiler
-&amp;ldquo;设置 &amp;rdquo; &amp;ldquo;fs 为保存文件
-&amp;ldquo;function vimfilertoRight()
-&amp;ldquo;endfunction&lt;/p&gt;
 
-&lt;p&gt;nnoremap &lt;F2&gt; :TagbarToggle &lt;CR&gt;
-nnoremap &lt;F3&gt; :VimFilerExplorer -split -direction=rightbelow &lt;CR&gt;&lt;br /&gt;
-nnoremap &lt;leader&gt;fs :w &lt;CR&gt;
-nnoremap &lt;leader&gt;fS :wall &lt;CR&gt;&lt;/p&gt;
 
-&lt;p&gt;nnoremap &lt;leader&gt;qq :wq &lt;CR&gt;
-&amp;ldquo;vim windows窗口左右
-nnoremap &lt;C-h&gt; &lt;C-w&gt;h &lt;CR&gt;
-nnoremap &lt;C-l&gt; &lt;C-w&gt;l &lt;CR&gt;
-nnoremap &lt;C-j&gt; &lt;C-w&gt;j &lt;CR&gt;
-nnoremap &lt;C-k&gt; &lt;C-w&gt;k &lt;CR&gt;&lt;/p&gt;
+&amp;#34;快捷键只在常规模式下有用 nnoremap
+&amp;#34;设置 F3 为打开vimfiler
+&amp;#34;设置 &amp;#34; &amp;#34;fs 为保存文件
+&amp;#34;function vimfilertoRight()
+&amp;#34;endfunction
 
-&lt;p&gt;&amp;ldquo;分割窗口
-nnoremap &lt;leader&gt;wj :split&lt;CR&gt;
-nnoremap &lt;leader&gt;wl :vsplit&lt;CR&gt;&lt;/p&gt;
+nnoremap &amp;lt;F2&amp;gt; :TagbarToggle &amp;lt;CR&amp;gt;
+nnoremap &amp;lt;F3&amp;gt; :VimFilerExplorer -split -direction=rightbelow &amp;lt;CR&amp;gt;          
+nnoremap &amp;lt;leader&amp;gt;fs :w &amp;lt;CR&amp;gt;
+nnoremap &amp;lt;leader&amp;gt;fS :wall &amp;lt;CR&amp;gt;
 
-&lt;p&gt;&amp;ldquo;set hidden &amp;rdquo; 避免必须保存才可以跳转buffer&lt;/p&gt;
+nnoremap &amp;lt;leader&amp;gt;qq :wq &amp;lt;CR&amp;gt;
+&amp;#34;vim windows窗口左右
+nnoremap &amp;lt;C-h&amp;gt; &amp;lt;C-w&amp;gt;h &amp;lt;CR&amp;gt;
+nnoremap &amp;lt;C-l&amp;gt; &amp;lt;C-w&amp;gt;l &amp;lt;CR&amp;gt;
+nnoremap &amp;lt;C-j&amp;gt; &amp;lt;C-w&amp;gt;j &amp;lt;CR&amp;gt;
+nnoremap &amp;lt;C-k&amp;gt; &amp;lt;C-w&amp;gt;k &amp;lt;CR&amp;gt;
 
-&lt;p&gt;&amp;rdquo; my settings 对vimfiler的配置
+&amp;#34;分割窗口
+nnoremap &amp;lt;leader&amp;gt;wj :split&amp;lt;CR&amp;gt;
+nnoremap &amp;lt;leader&amp;gt;wl :vsplit&amp;lt;CR&amp;gt;
+
+
+&amp;#34;set hidden &amp;#34; 避免必须保存才可以跳转buffer
+
+&amp;#34; my settings 对vimfiler的配置
 let g:vimfiler_as_default_explorer = 1
 let g:vimfiler_safe_mode_by_default = 0
-let g:vimfiler_tree_leaf_icon = &amp;lsquo; &amp;lsquo;
-let g:vimfiler_tree_opened_icon = &amp;lsquo;▾&amp;rsquo;
-let g:vimfiler_tree_closed_icon = &amp;lsquo;▸&amp;rsquo;
+let g:vimfiler_tree_leaf_icon = &amp;#39; &amp;#39;
+let g:vimfiler_tree_opened_icon = &amp;#39;▾&amp;#39;
+let g:vimfiler_tree_closed_icon = &amp;#39;▸&amp;#39;
 let g:vimfiler_enable_auto_cd = 1
-let g:vimfiler_file_icon = &amp;lsquo;-&amp;rsquo;
-let g:vimfiler_marked_file_icon = &amp;lsquo;✓&amp;rsquo;
-let g:vimfiler_readonly_file_icon = &amp;lsquo;✗&amp;rsquo;
-let g:vimfiler_time_format = &amp;lsquo;%m-%d-%y %H:%M:%S&amp;rsquo;
+let g:vimfiler_file_icon = &amp;#39;-&amp;#39;
+let g:vimfiler_marked_file_icon = &amp;#39;✓&amp;#39;
+let g:vimfiler_readonly_file_icon = &amp;#39;✗&amp;#39;
+let g:vimfiler_time_format = &amp;#39;%m-%d-%y %H:%M:%S&amp;#39;
 let g:vimfiler_expand_jump_to_first_child = 0
-let g:vimfiler_ignore_pattern = &amp;lsquo;.git|.DS_Store|.pyc&amp;rsquo;&lt;/p&gt;
+let g:vimfiler_ignore_pattern = &amp;#39;\.git\|\.DS_Store\|\.pyc&amp;#39;
 
-&lt;p&gt;&amp;rdquo; 文件类型设置 FileType Settings
+
+&amp;#34; 文件类型设置 FileType Settings
 set sw=4
 set ts=4
 autocmd FileType markdown set tabstop=4 shiftwidth=4 expandtab ai
 autocmd FileType c++ set tabstop=4 shiftwidth=4 expandtab ai
-autocmd FileType c set tabstop=4 shiftwidth=4 expandtab ai&lt;/p&gt;
+autocmd FileType c set tabstop=4 shiftwidth=4 expandtab ai
 
-&lt;p&gt;autocmd FileType python set tabstop=4 shiftwidth=4 expandtab ai
-autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai&lt;/p&gt;
-
-&lt;p&gt;```&lt;/p&gt;</description>
+autocmd FileType python set tabstop=4 shiftwidth=4 expandtab ai
+autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai&lt;/pre&gt;&lt;/div&gt;</description>
       
     </item>
     
