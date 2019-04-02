@@ -22,15 +22,6 @@
     </item>
     
     <item>
-      <title>Blog</title>
-      <link>https://l0phtg.github.io/categories/blog/</link>
-      <pubDate>Wed, 19 Sep 2018 20:04:10 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/categories/blog/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>Hook</title>
       <link>https://l0phtg.github.io/categories/hook/</link>
       <pubDate>Sun, 19 Aug 2018 02:19:05 +0800</pubDate>
@@ -42,7 +33,7 @@
     <item>
       <title>Life</title>
       <link>https://l0phtg.github.io/categories/life/</link>
-      <pubDate>Wed, 19 Sep 2018 20:04:10 +0800</pubDate>
+      <pubDate>Tue, 02 Apr 2019 11:24:31 +0800</pubDate>
       
       <guid>https://l0phtg.github.io/categories/life/</guid>
       <description></description>
@@ -54,24 +45,6 @@
       <pubDate>Wed, 01 Mar 2017 20:20:20 +0000</pubDate>
       
       <guid>https://l0phtg.github.io/categories/vuls/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>环境配置</title>
-      <link>https://l0phtg.github.io/categories/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</link>
-      <pubDate>Wed, 24 Oct 2018 00:14:31 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/categories/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>面试</title>
-      <link>https://l0phtg.github.io/categories/%E9%9D%A2%E8%AF%95/</link>
-      <pubDate>Tue, 02 Apr 2019 11:24:31 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/categories/%E9%9D%A2%E8%AF%95/</guid>
       <description></description>
     </item>
     
