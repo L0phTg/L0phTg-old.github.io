@@ -988,7 +988,15 @@ mathjax: false
 &lt;p&gt;hugo &lt;strong&gt;使用chroma默认进行语法高亮&lt;/strong&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;pygmentsCodefences&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#366&#34;&gt;true&lt;/span&gt; &lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;#高亮markdown的代码块
 &lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;pygmentsCodefencesGuessSyntax&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#366&#34;&gt;true&lt;/span&gt; &lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;#高亮markdown中没有标注语言的代码块
-&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;pygmentsStyle&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;manni&amp;#39;&lt;/span&gt; #高亮主题&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;pygmentsStyle&lt;/span&gt; &lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;manni&amp;#39;&lt;/span&gt; #高亮主题&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&#34;显示最后更新日期&#34;&gt;显示最后更新日期&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;enableGitInfo = true    # 开启gitinfo
+
+[frontmatter]
+date = [&amp;#34;date&amp;#34;, &amp;#34;publishDate&amp;#34;, &amp;#34;lastmod&amp;#34;]
+lastmod = [&amp;#34;:git&amp;#34;, &amp;#34;lastmod&amp;#34;, &amp;#34;date&amp;#34;, &amp;#34;publishDate&amp;#34;]
+publishDate = [&amp;#34;publishDate&amp;#34;, &amp;#34;date&amp;#34;]
+expiryDate = [&amp;#34;expiryDate&amp;#34;]&lt;/pre&gt;&lt;/div&gt;</description>
       
     </item>
     

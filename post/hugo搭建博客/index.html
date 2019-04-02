@@ -79,7 +79,7 @@
 
 <meta itemprop="datePublished" content="2018-09-19T20:04:10&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-19T20:04:10&#43;08:00" />
-<meta itemprop="wordCount" content="700">
+<meta itemprop="wordCount" content="740">
 
 
 
@@ -333,7 +333,7 @@
             <a href="https://l0phtg.github.io/categories/life/"> life </a>
             
           </div>
-        <span class="more-meta"> 约 700 字 </span>
+        <span class="more-meta"> 约 740 字 </span>
           <span class="more-meta"> 预计阅读 2 分钟 </span>
 
         
@@ -371,6 +371,7 @@
 <li><a href="#文章摘要">文章摘要</a></li>
 <li><a href="#显示toc">显示toc</a></li>
 <li><a href="#语法高亮">语法高亮</a></li>
+<li><a href="#显示最后更新日期">显示最后更新日期</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -534,6 +535,14 @@ mathjax: false
 <div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#033">pygmentsCodefences</span> <span style="color:#555">=</span> <span style="color:#366">true</span> <span style="color:#09f;font-style:italic">#高亮markdown的代码块
 </span><span style="color:#09f;font-style:italic"></span><span style="color:#033">pygmentsCodefencesGuessSyntax</span> <span style="color:#555">=</span> <span style="color:#366">true</span> <span style="color:#09f;font-style:italic">#高亮markdown中没有标注语言的代码块
 </span><span style="color:#09f;font-style:italic"></span><span style="color:#033">pygmentsStyle</span> <span style="color:#555">=</span> <span style="color:#c30">&#39;manni&#39;</span> #高亮主题</code></pre></div>
+<h3 id="显示最后更新日期">显示最后更新日期</h3>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">enableGitInfo = true    # 开启gitinfo
+
+[frontmatter]
+date = [&#34;date&#34;, &#34;publishDate&#34;, &#34;lastmod&#34;]
+lastmod = [&#34;:git&#34;, &#34;lastmod&#34;, &#34;date&#34;, &#34;publishDate&#34;]
+publishDate = [&#34;publishDate&#34;, &#34;date&#34;]
+expiryDate = [&#34;expiryDate&#34;]</pre></div>
     </div>
 
     
