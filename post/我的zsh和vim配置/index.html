@@ -28,8 +28,8 @@
   <meta name="description" content="总结了一下自己的vim配置和zsh配置
 
 " />
+<meta name="keywords" content="zsh, vim" />
 
-  <meta name="keywords" content="Hugo, theme, jane" />
 
 
 
@@ -78,7 +78,7 @@
 
 <meta itemprop="datePublished" content="2018-10-24T00:14:31&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-24T00:14:31&#43;08:00" />
-<meta itemprop="wordCount" content="1651">
+<meta itemprop="wordCount" content="1789">
 
 
 
@@ -328,8 +328,11 @@
       
       <div class="post-meta">
         <span class="post-time"> 2018-10-24 </span>
-        
-        <span class="more-meta"> 约 1651 字 </span>
+        <div class="post-category">
+            <a href="https://l0phtg.github.io/categories/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/"> 环境配置 </a>
+            
+          </div>
+        <span class="more-meta"> 约 1789 字 </span>
           <span class="more-meta"> 预计阅读 4 分钟 </span>
 
         
@@ -349,7 +352,11 @@
 <ul>
 <li>
 <ul>
-<li><a href="#zsh配置">zsh配置</a></li>
+<li><a href="#zsh配置">zsh配置</a>
+<ul>
+<li><a href="#powerline字体设置">powerline字体设置</a></li>
+<li><a href="#我的插件">我的插件</a></li>
+</ul></li>
 <li><a href="#vim配置">vim配置</a>
 <ul>
 <li><a href="#插件">插件</a>
@@ -361,7 +368,7 @@
 <li><a href="#vim-bufabline-buffer窗口"><code>vim-bufabline</code> buffer窗口</a></li>
 <li><a href="#fzf-和-ag">fzf 和 ag</a></li>
 <li><a href="#括号补全-raimondi-delimitmate">括号补全&rsquo;Raimondi/delimitMate&rsquo;</a></li>
-<li><a href="#c语言头文件补全-neoinclude">c语言头文件补全 neoinclude</a></li>
+<li><a href="#c-c-llvm头文件补全-neoinclude">c/c++/llvm头文件补全 neoinclude</a></li>
 </ul></li>
 <li><a href="#我的配置">我的配置</a></li>
 </ul></li>
@@ -383,6 +390,13 @@
 
 <p><a href="https://github.com/robbyrussell/oh-my-zsh">https://github.com/robbyrussell/oh-my-zsh</a></p>
 
+<h3 id="powerline字体设置">powerline字体设置</h3>
+
+<p><a href="https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/">https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/</a></p>
+
+<h3 id="我的插件">我的插件</h3>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">plugins=(git autojump web-search last-working-dir zsh-syntax-highlighting colored-man-pages extract zsh-proxychains-ng adb pip npm python)
+#plugins=(git autojump last-working-dir adb pip npm python)</pre></div>
 <h2 id="vim配置">vim配置</h2>
 
 <ol>
@@ -573,8 +587,16 @@ noremap &lt;leader&gt;stag :BTags&lt;CR&gt;</pre></div>
 <div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 Plug &#39;Raimondi/delimitMate&#39;       &#34; 补全, \&#34; \( 等.
 call plug#end()</pre></div>
-<h4 id="c语言头文件补全-neoinclude">c语言头文件补全 neoinclude</h4>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
+<h4 id="c-c-llvm头文件补全-neoinclude">c/c++/llvm头文件补全 neoinclude</h4>
+
+<p>头文件补全需要设置头文件path, (<strong>注意, 是vim配置文件中的path, 而不是系统环境变量的path</strong>)</p>
+
+<p>我使用的是nvim, 配置文件是~/config/nvim/init.vim</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&#34; ~/.config/nvim/init.vim
+
+set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
+
+call plug#begin()
 Plug &#39;Shougo/neoinclude.vim&#39;
 call plug#end()</pre></div>
 <h3 id="我的配置">我的配置</h3>
@@ -622,6 +644,9 @@ set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
 set helplang=cn
 
 set rtp+=~/.fzf                  &#34; fzf 
+
+set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
+
 
 
 &#34;plug插件
@@ -784,8 +809,8 @@ autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtab
       <nav class="post-nav">
         
         
-          <a class="next" href="/post/nexus5-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/">
-            <span class="next-text nav-default">Nexus5 源码编译</span>
+          <a class="next" href="/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/">
+            <span class="next-text nav-default">Pixel1 源码编译</span>
             <span class="prev-text nav-mobile">下一篇</span>
             <i class="iconfont icon-right"></i>
           </a>
@@ -827,7 +852,9 @@ autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtab
 
   <span class="copyright-year">
     &copy;
-    2018
+    
+      2018 -
+    2019
     <span class="heart">
       <i class="iconfont icon-heart"></i>
     </span><span class="author">

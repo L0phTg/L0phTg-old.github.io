@@ -43,6 +43,13 @@
 
 &lt;p&gt;&lt;a href=&#34;https://github.com/robbyrussell/oh-my-zsh&#34;&gt;https://github.com/robbyrussell/oh-my-zsh&lt;/a&gt;&lt;/p&gt;
 
+&lt;h3 id=&#34;powerline字体设置&#34;&gt;powerline字体设置&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/&#34;&gt;https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;我的插件&#34;&gt;我的插件&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;plugins=(git autojump web-search last-working-dir zsh-syntax-highlighting colored-man-pages extract zsh-proxychains-ng adb pip npm python)
+#plugins=(git autojump last-working-dir adb pip npm python)&lt;/pre&gt;&lt;/div&gt;
 &lt;h2 id=&#34;vim配置&#34;&gt;vim配置&lt;/h2&gt;
 
 &lt;ol&gt;
@@ -233,8 +240,16 @@ noremap &amp;lt;leader&amp;gt;stag :BTags&amp;lt;CR&amp;gt;&lt;/pre&gt;&lt;/div&
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
 Plug &amp;#39;Raimondi/delimitMate&amp;#39;       &amp;#34; 补全, \&amp;#34; \( 等.
 call plug#end()&lt;/pre&gt;&lt;/div&gt;
-&lt;h4 id=&#34;c语言头文件补全-neoinclude&#34;&gt;c语言头文件补全 neoinclude&lt;/h4&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;call plug#begin()
+&lt;h4 id=&#34;c-c-llvm头文件补全-neoinclude&#34;&gt;c/c++/llvm头文件补全 neoinclude&lt;/h4&gt;
+
+&lt;p&gt;头文件补全需要设置头文件path, (&lt;strong&gt;注意, 是vim配置文件中的path, 而不是系统环境变量的path&lt;/strong&gt;)&lt;/p&gt;
+
+&lt;p&gt;我使用的是nvim, 配置文件是~/config/nvim/init.vim&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&amp;#34; ~/.config/nvim/init.vim
+
+set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
+
+call plug#begin()
 Plug &amp;#39;Shougo/neoinclude.vim&amp;#39;
 call plug#end()&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;我的配置&#34;&gt;我的配置&lt;/h3&gt;
@@ -282,6 +297,9 @@ set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
 set helplang=cn
 
 set rtp+=~/.fzf                  &amp;#34; fzf 
+
+set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
+
 
 
 &amp;#34;plug插件
@@ -433,11 +451,11 @@ autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtab
     </item>
     
     <item>
-      <title>Nexus5 源码编译</title>
-      <link>https://l0phtg.github.io/post/nexus5-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</link>
+      <title>Pixel1 源码编译</title>
+      <link>https://l0phtg.github.io/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</link>
       <pubDate>Tue, 02 Oct 2018 15:38:56 +0800</pubDate>
       
-      <guid>https://l0phtg.github.io/post/nexus5-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</guid>
+      <guid>https://l0phtg.github.io/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</guid>
       
         <description>&lt;p&gt;记录自己Nexus5刷机流程.&lt;/p&gt;
 
