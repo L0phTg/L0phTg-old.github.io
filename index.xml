@@ -49,7 +49,7 @@
 
 &lt;p&gt;专业: 信息安全.&lt;/p&gt;
 
-&lt;p&gt;签约: 滴滴出行.&lt;/p&gt;
+&lt;p&gt;签约: xiaojukeji.&lt;/p&gt;
 
 &lt;h2 id=&#34;学习经历&#34;&gt;学习经历&lt;/h2&gt;
 
@@ -59,11 +59,11 @@
 &lt;li&gt;在未加入实验室之前, 我处于&amp;rdquo;野生, 放养&amp;rdquo;的状态
 (就是没有目的的学习, 乱七八糟买了很多计算机类的书, 应该大多数人都经历过这个阶段, 其实在这个阶段就是要多了解熟悉各个计算机专业方向, 所以也没有必要一直苦恼, 分清主次, 打好基础就对了.)&lt;br /&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;p&gt;大一主要学习了一段时间c/c++,( 此处推荐&amp;lt;&lt;c语言程序设计现代方法&gt;&amp;gt;、&amp;lt;&lt;c++Primer&gt;). 由于当时看到很多人推荐&amp;lt;&amp;lt;深入理解计算机系统&amp;gt;&amp;gt;, 所以耐不住诱惑, 就买了一本来看, 我的汇编知识最初就是在这本书上看到的.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;大一主要学习了一段时间c/c++,( 此处推荐  &lt;code&gt;&amp;lt;&amp;lt; c语言程序设计现代方法&amp;gt;&amp;gt;&lt;/code&gt;、&lt;code&gt;&amp;lt;&amp;lt; c++Primer&amp;gt;&amp;gt;&lt;/code&gt; ). 由于当时看到很多人推荐 &lt;code&gt;&amp;lt;&amp;lt;深入理解计算机系统&amp;gt;&amp;gt;&lt;/code&gt;, 所以耐不住诱惑, 就买了一本来看, 我的汇编知识最初就是在这本书上看到的.&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;当然其实大一虽然没有过多接触信息安全领域的专业知识, 但是由于一直在微博, 知乎关注着很多安全届大佬, 对安全领域也有了基本的概念与印象, 知道安全基本分为web和二进制等之类, 也了解到安全届有heige和tk两位妇科圣手, 这些多少都给无聊的大学生活增添了许多乐趣.&lt;/p&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;p&gt;关于安全学习的方向其实确定起来不是那么容易的, 最初了解到的是余弦、heige，所以多少想从事web安全领域. 但是在最终确定学习方向的时候, 还是考虑了自己的实际情况, 自身学习路线与兴趣爱好.  在大一暑假, 总结了一下自己大一看过的书有关于c/c++的, 汇编的, 和w32的, 以及阅读了&amp;lt;&amp;lt;加密与解密&amp;gt;&amp;gt;, 而且熟悉了linux下的基本操作. 至于web方向的试探, 只是停留在w3c上看过一点h5. 所以, 理所当然的就决定了之后走二进制这条路线.(方向领域的确定还是要根据自己实际情况考虑, 如果不考研, 且决定大三要找工作的话)&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;关于安全学习的方向其实确定起来不是那么容易的, 最初了解到的是余弦、heige，所以多少想从事web安全领域. 但是在最终确定学习方向的时候, 还是考虑了自己的实际情况, 自身学习路线与兴趣爱好.  在大一暑假, 总结了一下自己大一看过的书有关于c/c++的, 汇编的, 和w32的, 以及阅读了 &lt;code&gt;&amp;lt;&amp;lt;加密与解密&amp;gt;&amp;gt;&lt;/code&gt;, 而且熟悉了linux下的基本操作. 至于web方向的试探, 只是停留在w3c上看过一点h5. 所以, 理所当然的就决定了之后走二进制这条路线.(方向领域的确定还是要根据自己实际情况考虑, 如果不考研, 且决定大三要找工作的话)&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;移动安全领域入门, 是在大二, 至于是发生了什么导致自己想要向android安全靠拢的, 保密.&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
@@ -71,7 +71,7 @@
 &lt;h3 id=&#34;大二&#34;&gt;大二&lt;/h3&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;p&gt;大二在历经艰辛进入实验室后, 生活就比较顺风顺水了, 就抱着一本 &amp;lt;&amp;lt; android软件安全与逆向分析&amp;gt;&amp;gt; 看了一个学期, 大二上就是这么过的.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;大二在历经艰辛进入实验室后, 生活就比较顺风顺水了, 就抱着一本 &lt;code&gt;&amp;lt;&amp;lt; android软件安全与逆向分析&amp;gt;&amp;gt;&lt;/code&gt;看了一个学期, 大二上就是这么过的.&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;大二下主要是接触了一些android逆向与脱壳, 跟着f8left的视频, 自己尝试着去调试.&lt;/p&gt;&lt;/li&gt;
 
