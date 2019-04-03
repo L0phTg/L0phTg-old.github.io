@@ -21,7 +21,8 @@
       <description>&lt;p&gt;在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!&lt;/p&gt;
 
 &lt;p&gt;所以你输入了下面的几行命令&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove python
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;#hahaha
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove python
 &lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove python3
 &lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove pip
 &lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove pip3
