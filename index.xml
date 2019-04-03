@@ -1090,7 +1090,7 @@ git commit -m &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;&lt;/span&gt;&lt;s
       - splitScreen.png
       - vimMarkdownPreview.png&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;使用的时候:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;![](/deepin/desktop.png)&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;![desktop](/deepin/desktop.png)&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;文章摘要&#34;&gt;文章摘要&lt;/h3&gt;
 
 &lt;p&gt;&lt;code&gt;&amp;lt;!--more--&amp;gt;&lt;/code&gt;前面的会成为文章的摘要, 在首页显示.&lt;/p&gt;
@@ -1139,7 +1139,22 @@ mathjax: false
 date = [&amp;#34;date&amp;#34;, &amp;#34;publishDate&amp;#34;, &amp;#34;lastmod&amp;#34;]
 lastmod = [&amp;#34;:git&amp;#34;, &amp;#34;lastmod&amp;#34;, &amp;#34;date&amp;#34;, &amp;#34;publishDate&amp;#34;]
 publishDate = [&amp;#34;publishDate&amp;#34;, &amp;#34;date&amp;#34;]
-expiryDate = [&amp;#34;expiryDate&amp;#34;]&lt;/pre&gt;&lt;/div&gt;</description>
+expiryDate = [&amp;#34;expiryDate&amp;#34;]&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;要实现该功能需要有&lt;strong&gt;commit记录&lt;/strong&gt; , 所以需要&lt;strong&gt;添加我们的.md到git版本控制工具&lt;/strong&gt; 中. 请阅读下面的&lt;strong&gt;博客搭建心得&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;博客搭建心得&#34;&gt;博客搭建心得&lt;/h1&gt;
+
+&lt;p&gt;注意到, 在上文我们&lt;strong&gt;post网站到github pages&lt;/strong&gt; 上时,  是将&lt;strong&gt;public目录作为submodule&lt;/strong&gt;  push的. (push 的就是public目录的内容 ).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/life/blog-public.png&#34; alt=&#34;blog-public&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;我们可以将当前的hugo 目录, 按上图来说就是&lt;strong&gt;quickstart目录&lt;/strong&gt; 作为我们的博客代码编写目录添加到&lt;strong&gt;quickstart的git版本控制中&lt;/strong&gt; .&lt;/p&gt;
+
+&lt;p&gt;我添加到git仓库中的文件有: &lt;strong&gt;config.toml, content/ , deploy.sh&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/life/blog-ls-files.png&#34; alt=&#34;blog-ls-files&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;添加到版本控制的目的: 可以将它提交到我们的&lt;strong&gt;github&lt;/strong&gt;或者 &lt;strong&gt;gitee&lt;/strong&gt;上, &lt;strong&gt;方便跨平台编辑, 也可以当作一个备份&lt;/strong&gt; .&lt;/p&gt;</description>
       
     </item>
     

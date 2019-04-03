@@ -68,7 +68,7 @@
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://l0phtg.github.io/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/" /><meta property="article:published_time" content="2018-09-19T20:04:10&#43;08:00"/>
-<meta property="article:modified_time" content="2019-04-03T19:59:08&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-04T00:15:18&#43;08:00"/>
 <meta itemprop="name" content="Hugo搭建博客">
 <meta itemprop="description" content="博客半年多没更新了. 正好最近时间比较多, 想着把博客更新下, 再把几篇平时总结的文章上传在Blog里面.
 
@@ -79,7 +79,7 @@
 
 <meta itemprop="datePublished" content="2018-09-19T20:04:10&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-19T20:04:10&#43;08:00" />
-<meta itemprop="wordCount" content="740">
+<meta itemprop="wordCount" content="1013">
 
 
 
@@ -333,8 +333,8 @@
             <a href="https://l0phtg.github.io/categories/life/"> life </a>
             
           </div>
-        <span class="more-meta"> 约 740 字 </span>
-          <span class="more-meta"> 预计阅读 2 分钟 </span>
+        <span class="more-meta"> 约 1013 字 </span>
+          <span class="more-meta"> 预计阅读 3 分钟 </span>
 
         
         
@@ -374,6 +374,7 @@
 <li><a href="#显示最后更新日期">显示最后更新日期</a></li>
 </ul></li>
 </ul></li>
+<li><a href="#博客搭建心得">博客搭建心得</a></li>
 </ul>
 </nav>
   </div>
@@ -493,7 +494,7 @@ git commit -m <span style="color:#c30">&#34;</span><span style="color:#033">$msg
       - splitScreen.png
       - vimMarkdownPreview.png</pre></div>
 <p>使用的时候:</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">![](/deepin/desktop.png)</pre></div>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">![desktop](/deepin/desktop.png)</pre></div>
 <h3 id="文章摘要">文章摘要</h3>
 
 <p><code>&lt;!--more--&gt;</code>前面的会成为文章的摘要, 在首页显示.</p>
@@ -543,6 +544,21 @@ date = [&#34;date&#34;, &#34;publishDate&#34;, &#34;lastmod&#34;]
 lastmod = [&#34;:git&#34;, &#34;lastmod&#34;, &#34;date&#34;, &#34;publishDate&#34;]
 publishDate = [&#34;publishDate&#34;, &#34;date&#34;]
 expiryDate = [&#34;expiryDate&#34;]</pre></div>
+<p>要实现该功能需要有<strong>commit记录</strong> , 所以需要<strong>添加我们的.md到git版本控制工具</strong> 中. 请阅读下面的<strong>博客搭建心得</strong>.</p>
+
+<h1 id="博客搭建心得">博客搭建心得</h1>
+
+<p>注意到, 在上文我们<strong>post网站到github pages</strong> 上时,  是将<strong>public目录作为submodule</strong>  push的. (push 的就是public目录的内容 ).</p>
+
+<p><img src="/life/blog-public.png" alt="blog-public" /></p>
+
+<p>我们可以将当前的hugo 目录, 按上图来说就是<strong>quickstart目录</strong> 作为我们的博客代码编写目录添加到<strong>quickstart的git版本控制中</strong> .</p>
+
+<p>我添加到git仓库中的文件有: <strong>config.toml, content/ , deploy.sh</strong>.</p>
+
+<p><img src="/life/blog-ls-files.png" alt="blog-ls-files" /></p>
+
+<p>添加到版本控制的目的: 可以将它提交到我们的<strong>github</strong>或者 <strong>gitee</strong>上, <strong>方便跨平台编辑, 也可以当作一个备份</strong> .</p>
     </div>
 
     
@@ -554,7 +570,7 @@ expiryDate = [&#34;expiryDate&#34;]</pre></div>
   </p>
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
-    <span class="item-content">2019-04-03</span>
+    <span class="item-content">2019-04-04</span>
   </p>
   
   <p class="copyright-item">
