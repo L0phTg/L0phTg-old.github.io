@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>归档 - L0phTg&#39;s Blog</title>
+  <title>Dominator(graph Theory) - L0phTg&#39;s Blog</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -25,8 +25,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="L0phTg" />
-  <meta name="description" content="L0phTg&#39;s Blog" />
-  <meta name="keywords" content="Hugo, theme, jane" />
+  <meta name="description" content="translate from : https://en.wikipedia.org/wiki/Dominator_(graph_theory).
+最近在学习SSA(Static Single Assignment)时, 遇到了${dominance frontier}$的概念, 所以google之, 简单翻译了一下wikipedia上对Dominator内容的介绍.
+
+" />
+<meta name="keywords" content="dominator, graph theory" />
+
 
 
 
@@ -36,8 +40,7 @@
 <meta name="generator" content="Hugo 0.49-DEV" />
 
 
-<link rel="canonical" href="https://l0phtg.github.io/post/" />
-<link href="https://l0phtg.github.io/post/index.xml" rel="alternate" type="application/rss+xml" title="L0phTg&#39;s Blog" />
+<link rel="canonical" href="https://l0phtg.github.io/post/dominatorgraph-theory/" />
 
 
 
@@ -57,17 +60,37 @@
 
 
 
-<meta property="og:title" content="Posts" />
-<meta property="og:description" content="L0phTg&#39;s Blog" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://l0phtg.github.io/post/" />
-<meta property="og:updated_time" content="2017-03-19T00:00:00&#43;00:00"/>
-<meta itemprop="name" content="Posts">
-<meta itemprop="description" content="L0phTg&#39;s Blog">
+<meta property="og:title" content="Dominator(graph Theory)" />
+<meta property="og:description" content="translate from : https://en.wikipedia.org/wiki/Dominator_(graph_theory).
 
+最近在学习SSA(Static Single Assignment)时, 遇到了${dominance frontier}$的概念, 所以google之, 简单翻译了一下wikipedia上对Dominator内容的介绍.
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/dominatorgraph-theory/" /><meta property="article:published_time" content="2019-04-06T18:00:53&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-06T18:00:53&#43;08:00"/>
+<meta itemprop="name" content="Dominator(graph Theory)">
+<meta itemprop="description" content="translate from : https://en.wikipedia.org/wiki/Dominator_(graph_theory).
+
+最近在学习SSA(Static Single Assignment)时, 遇到了${dominance frontier}$的概念, 所以google之, 简单翻译了一下wikipedia上对Dominator内容的介绍.
+
+">
+
+
+<meta itemprop="datePublished" content="2019-04-06T18:00:53&#43;08:00" />
+<meta itemprop="dateModified" content="2019-04-06T18:00:53&#43;08:00" />
+<meta itemprop="wordCount" content="525">
+
+
+
+<meta itemprop="keywords" content="graph theory," />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Posts"/>
-<meta name="twitter:description" content="L0phTg&#39;s Blog"/>
+<meta name="twitter:title" content="Dominator(graph Theory)"/>
+<meta name="twitter:description" content="translate from : https://en.wikipedia.org/wiki/Dominator_(graph_theory).
+
+最近在学习SSA(Static Single Assignment)时, 遇到了${dominance frontier}$的概念, 所以google之, 简单翻译了一下wikipedia上对Dominator内容的介绍.
+
+"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -315,88 +338,208 @@
     <main id="main" class="main bg-llight">
       <div class="content-wrapper">
         <div id="content" class="content container">
-          
-<section id="archive" class="archive">
+          <article class="post bg-white">
     
-      <div class="collection-title">
-        <h2 class="archive-year">2017</h2>
+    <header class="post-header">
+      <h1 class="post-title">Dominator(graph Theory)</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-04-06 </span>
+        <div class="post-category">
+            <a href="https://l0phtg.github.io/categories/graph/"> graph </a>
+            
+          </div>
+        <span class="more-meta"> 约 525 字 </span>
+          <span class="more-meta"> 预计阅读 2 分钟 </span>
+
+        
+        
+
+        
+        
       </div>
+    </header>
 
-    <div class="archive-post">
-      <span class="archive-post-time">
-        2017-03-19
-      </span>
-      <span class="archive-post-title">
-        <a href="/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="archive-post-link">
-          elf文件格式和AndroidLinker加载.so的源码分析
-        </a>
-      </span>
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#dominator-graph-theory">Dominator (graph theory)</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>translate from : <a href="https://en.wikipedia.org/wiki/Dominator_(graph_theory)">https://en.wikipedia.org/wiki/Dominator_(graph_theory)</a>.</p>
+
+<p>最近在学习SSA(Static Single Assignment)时, 遇到了${dominance frontier}$的概念, 所以google之, 简单翻译了一下wikipedia上对Dominator内容的介绍.</p>
+
+<p></p>
+
+<h1 id="dominator-graph-theory">Dominator (graph theory)</h1>
+
+<p>在计算机科学中, 在控制流图中, 如果从入口点到节点 $\bold{n}$ 的每条路径都经过节点 $\bold{d}$, 则称节点 $\bold{d}$ dominates 节点 $\bold{n}$</p>
+
+<p>被写作 $\bold{d}$ dom $\bold{n}$ (or $\bold{d} \gg \bold {n}$).</p>
+
+<p>另外我们定义, 每个节点都 dominates 它自身.</p>
+
+<p><img src="/llvm/300px-Dominator_control_flow_graph.svg.png" alt="" /></p>
+
+<p>这里有一些相关的概念:</p>
+
+<ul>
+<li><p>节点 $\bold{d}$ <em>strictly dominates</em> (严格支配) 节点 $\bold {n} $ : $\bold{d}$ dominates $\bold{n}$ 并且 $\bold{d} $ 与 $\bold{n}$ 不相等.</p></li>
+
+<li><p>节点 $\bold{n}$ 的 <em>immediate dominator</em> (直接支配者) or <strong>idom</strong> : 一个节点严格支配 $\bold{n}$ 但是不严格支配其他严格支配$\bold{n}$ 的节点. 除了入口点之外, 每一个节点都有一个直接支配者.</p></li>
+
+<li><p>节点 $\bold{d}$ 的 <em>dominance frontier</em> :  所有节点$\bold{n}$ 的集合, 使得 $\bold{d}$ 支配 $\bold{n}$ 的 immediate predecessor. 但是 $\bold{d} $ 不严格支配节点 $\bold{n}$ . 这是一组 $\bold{d&rsquo;s}$ dominance 停止的节点集合.</p></li>
+
+<li><p>一个 <em>dominator tree</em> : 一颗树, 这棵树每个节点的子节点是它直接支配的节点. 因为直接支配者是独一无二的, 所以它是一棵树. 开始节点是树的根节点.</p></li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th><strong>1</strong></th>
+<th>$\color{black}{dom}$</th>
+<th>$\color{Gray}{1}$</th>
+<th>$\color{Red}{2}$</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><strong>2</strong></td>
+<td>$\color{black}{dom}$</td>
+<td></td>
+<td>$\color{Gray}{2}$</td>
+<td>$\color{Red}{3}$</td>
+<td>$\color{Red}{4}$</td>
+<td><strong>5</strong></td>
+<td>$\color{Red}{6}$</td>
+</tr>
+
+<tr>
+<td><strong>3</strong></td>
+<td>$\color{black}{dom}$</td>
+<td></td>
+<td></td>
+<td>$\color{Gray}{3}$</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td><strong>4</strong></td>
+<td>$\color{black}{dom}$</td>
+<td></td>
+<td></td>
+<td></td>
+<td>$\color{Gray}{4}$</td>
+<td></td>
+<td></td>
+</tr>
+
+<tr>
+<td><strong>5</strong></td>
+<td>$\color{black}{dom}$</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>$\color{Gray}{5}$</td>
+<td></td>
+</tr>
+
+<tr>
+<td><strong>6</strong></td>
+<td>$\color{black}{dom}$</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>$\color{Gray}{6}$</td>
+</tr>
+</tbody>
+</table>
+
+<table>
+<thead>
+<tr>
+<th>与 domination关系相对应</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>$灰色的节点\color{Gray}{灰色的节点}$ 是 非严格 dominated</td>
+</tr>
+
+<tr>
+<td>$红色的节点\color{Red}{红色的节点}$ 是 直接 dominated</td>
+</tr>
+</tbody>
+</table>
+
+<p>dominator tree:</p>
+
+<p><img src="/llvm/300px-Dominator_tree.svg.png" alt="dominator tree" /></p>
     </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-04-06</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">原创文章，如需转载请注明文章作者和出处。谢谢！</span>
+  </p>
+</div>
+
+    
     
 
-    <div class="archive-post">
-      <span class="archive-post-time">
-        2017-03-16
-      </span>
-      <span class="archive-post-title">
-        <a href="/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/" class="archive-post-link">
-          分析Android的JNI编程时所使用的一些函数功能
-        </a>
-      </span>
-    </div>
-    
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="https://l0phtg.github.io/tags/graph-theory/">graph theory</a>
+          
+        </div>
 
-    <div class="archive-post">
-      <span class="archive-post-time">
-        2017-03-01
-      </span>
-      <span class="archive-post-title">
-        <a href="/post/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/" class="archive-post-link">
-          第一篇博文-谈谈CVE-2014-7911
-        </a>
-      </span>
-    </div></section>
-
-
-
-
-
-
-  
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-  <nav class="pagination">
-    <ul>
       
-      <li >
-        <a href="/post/">1</a>
-      </li>
-      
-      <li  class="active" >
-        <a href="/post/page/2/">2</a>
-      </li>
-      
-    </ul>
-  </nav>
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/%E5%A6%82%E6%9E%9C%E4%BD%A0%E5%86%B2%E5%8A%A8%E5%88%A0%E9%99%A4%E4%BA%86python/">
+            <span class="next-text nav-default">如果你冲动删除了python</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
 
   
   
-
-
-
-
 
         </div>
       </div>
@@ -453,6 +596,13 @@
 <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
 <script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
 
 

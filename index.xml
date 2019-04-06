@@ -29,6 +29,137 @@
     </item>
     
     <item>
+      <title>Dominator(graph Theory)</title>
+      <link>https://l0phtg.github.io/post/dominatorgraph-theory/</link>
+      <pubDate>Sat, 06 Apr 2019 18:00:53 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/dominatorgraph-theory/</guid>
+      
+        <description>&lt;p&gt;translate from : &lt;a href=&#34;https://en.wikipedia.org/wiki/Dominator_(graph_theory)&#34;&gt;https://en.wikipedia.org/wiki/Dominator_(graph_theory)&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;最近在学习SSA(Static Single Assignment)时, 遇到了${dominance frontier}$的概念, 所以google之, 简单翻译了一下wikipedia上对Dominator内容的介绍.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;dominator-graph-theory&#34;&gt;Dominator (graph theory)&lt;/h1&gt;
+
+&lt;p&gt;在计算机科学中, 在控制流图中, 如果从入口点到节点 $\bold{n}$ 的每条路径都经过节点 $\bold{d}$, 则称节点 $\bold{d}$ dominates 节点 $\bold{n}$&lt;/p&gt;
+
+&lt;p&gt;被写作 $\bold{d}$ dom $\bold{n}$ (or $\bold{d} \gg \bold {n}$).&lt;/p&gt;
+
+&lt;p&gt;另外我们定义, 每个节点都 dominates 它自身.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/llvm/300px-Dominator_control_flow_graph.svg.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这里有一些相关的概念:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;节点 $\bold{d}$ &lt;em&gt;strictly dominates&lt;/em&gt; (严格支配) 节点 $\bold {n} $ : $\bold{d}$ dominates $\bold{n}$ 并且 $\bold{d} $ 与 $\bold{n}$ 不相等.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;节点 $\bold{n}$ 的 &lt;em&gt;immediate dominator&lt;/em&gt; (直接支配者) or &lt;strong&gt;idom&lt;/strong&gt; : 一个节点严格支配 $\bold{n}$ 但是不严格支配其他严格支配$\bold{n}$ 的节点. 除了入口点之外, 每一个节点都有一个直接支配者.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;节点 $\bold{d}$ 的 &lt;em&gt;dominance frontier&lt;/em&gt; :  所有节点$\bold{n}$ 的集合, 使得 $\bold{d}$ 支配 $\bold{n}$ 的 immediate predecessor. 但是 $\bold{d} $ 不严格支配节点 $\bold{n}$ . 这是一组 $\bold{d&amp;rsquo;s}$ dominance 停止的节点集合.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;一个 &lt;em&gt;dominator tree&lt;/em&gt; : 一颗树, 这棵树每个节点的子节点是它直接支配的节点. 因为直接支配者是独一无二的, 所以它是一棵树. 开始节点是树的根节点.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;strong&gt;1&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;$\color{black}{dom}$&lt;/th&gt;
+&lt;th&gt;$\color{Gray}{1}$&lt;/th&gt;
+&lt;th&gt;$\color{Red}{2}$&lt;/th&gt;
+&lt;th&gt;3&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;th&gt;5&lt;/th&gt;
+&lt;th&gt;6&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;2&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{2}$&lt;/td&gt;
+&lt;td&gt;$\color{Red}{3}$&lt;/td&gt;
+&lt;td&gt;$\color{Red}{4}$&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;5&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Red}{6}$&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;3&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{3}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;4&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{4}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;5&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{5}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;6&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{6}$&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;与 domination关系相对应&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$灰色的节点\color{Gray}{灰色的节点}$ 是 非严格 dominated&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$红色的节点\color{Red}{红色的节点}$ 是 直接 dominated&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;dominator tree:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/llvm/300px-Dominator_tree.svg.png&#34; alt=&#34;dominator tree&#34; /&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>如果你冲动删除了python</title>
       <link>https://l0phtg.github.io/post/%E5%A6%82%E6%9E%9C%E4%BD%A0%E5%86%B2%E5%8A%A8%E5%88%A0%E9%99%A4%E4%BA%86python/</link>
       <pubDate>Tue, 02 Apr 2019 21:12:17 +0800</pubDate>

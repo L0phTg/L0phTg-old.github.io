@@ -63,7 +63,7 @@
 <meta property="og:description" content="L0phTg&#39;s Blog" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://l0phtg.github.io/" />
-<meta property="og:updated_time" content="2018-09-19T20:04:10&#43;08:00"/>
+<meta property="og:updated_time" content="2018-10-02T15:38:56&#43;08:00"/>
 <meta itemprop="name" content="L0phTg&#39;s Blog">
 <meta itemprop="description" content="L0phTg&#39;s Blog">
 
@@ -79,6 +79,22 @@
   <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
 <![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
 
 
 
@@ -308,6 +324,51 @@
     
       <article class="post bg-white">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/">Pixel1 源码编译</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2018-10-02 </span>
+      <div class="post-category">
+          <a href="https://l0phtg.github.io/categories/android/"> Android </a>
+          
+        </div>
+      <span class="more-meta"> 约 1420 字 </span>
+      <span class="more-meta"> 预计阅读 3 分钟 </span>
+      
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p>记录自己Pixel1刷机流程.</p>
+
+<p>相关网站</p>
+<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Requirements
+https://source.android.google.cn/setup/build/requirements.html#binaries
+
+https://source.android.com/setup/build/running
+
+buile numbers
+https://source.android.com/setup/start/build-numbers
+
+https://source.android.com/setup/build/downloading
+
+驱动
+https://developers.google.com/android/drivers</pre></div>
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/">Hugo搭建博客</a></h1>
     
     <div class="post-meta">
@@ -410,42 +471,6 @@
 </article>
 
     
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/">装机日志-deepin</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2017-12-28 </span>
-      <div class="post-category">
-          <a href="https://l0phtg.github.io/categories/life/"> life </a>
-          
-        </div>
-      <span class="more-meta"> 约 1106 字 </span>
-      <span class="more-meta"> 预计阅读 3 分钟 </span>
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>17年使用了一段时间deepin系统, 这里简单记录一些使用心得(现在已转ubuntu.</p>
-
-<p>主要就是<strong>装机的过程</strong>, 以及<strong>装机后的效果展示</strong>.</p>
-
-<p><img src="/deepin/desktop.png" alt="" /></p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-    
   </section>
 
   
@@ -481,6 +506,10 @@
       
       <li >
         <a href="/page/3/">3</a>
+      </li>
+      
+      <li >
+        <a href="/page/4/">4</a>
       </li>
       
     </ul>
@@ -548,6 +577,13 @@
 <script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
 <script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
 
 
