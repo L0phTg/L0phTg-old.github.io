@@ -1209,6 +1209,34 @@ git commit -m &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;&lt;/span&gt;&lt;s
 &lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#366&#34;&gt;cd&lt;/span&gt; ..&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h2 id=&#34;内容编写&#34;&gt;内容编写&lt;/h2&gt;
 
+&lt;h3 id=&#34;文档模板&#34;&gt;文档模板&lt;/h3&gt;
+
+&lt;p&gt;默认是&lt;code&gt;archetypes /default.md&lt;/code&gt;. new 文档时, 根据这个文档创建.&lt;/p&gt;
+
+&lt;p&gt;我的&lt;code&gt;default.md&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-markdown&#34; data-lang=&#34;markdown&#34;&gt;---&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;title: &amp;#34;{{ replace .TranslationBaseName &amp;#34;-&amp;#34; &amp;#34; &amp;#34; | title }}&amp;#34;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;date: {{ .Date }}&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;lastmod: {{ .Date }}&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;draft: true&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;keywords: []&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;description: &amp;#34;&amp;#34;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;tags: []&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;categories: []&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;author: &amp;#34;&amp;#34;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#030;font-weight:bold&#34;&gt;#&lt;/span&gt; You can also close(false) or open(true) something for this content.
+&lt;span style=&#34;color:#030;font-weight:bold&#34;&gt;#&lt;/span&gt; P.S. comment can only be closed
+comment: false&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;toc: true&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;autoCollapseToc: false&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#030;font-weight:bold&#34;&gt;#&lt;/span&gt; You can also define another contentCopyright. e.g. contentCopyright: &amp;#34;This is another copyright.&amp;#34;
+&lt;span style=&#34;color:#030;font-weight:bold&#34;&gt;#&lt;/span&gt;contentCopyright: false
+reward: false&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;mathjax: false&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;---&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;&lt;/span&gt;&amp;lt;!--more--&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;插入图片&#34;&gt;插入图片&lt;/h3&gt;
 
 &lt;p&gt;图片放在static目录下&lt;/p&gt;
@@ -1273,6 +1301,39 @@ publishDate = [&amp;#34;publishDate&amp;#34;, &amp;#34;date&amp;#34;]
 expiryDate = [&amp;#34;expiryDate&amp;#34;]&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;要实现该功能需要有&lt;strong&gt;commit记录&lt;/strong&gt; , 所以需要&lt;strong&gt;添加我们的.md到git版本控制工具&lt;/strong&gt; 中. 请阅读下面的&lt;strong&gt;博客搭建心得&lt;/strong&gt;.&lt;/p&gt;
 
+&lt;h3 id=&#34;数学公式&#34;&gt;数学公式&lt;/h3&gt;
+
+&lt;h4 id=&#34;如何开启mathjax&#34;&gt;如何开启mathjax&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;/layout/partical&lt;/code&gt;目录下创建&lt;code&gt;mathjax_support.html&lt;/code&gt;, 写入:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#555&#34;&gt;&amp;lt;&lt;/span&gt;script type&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;text/javascript&amp;#34;&lt;/span&gt;
+  src&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;color:#555&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;/script&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;支持内联&#34;&gt;支持内联&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;/layouts/partials/custom_head.html&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#555&#34;&gt;&amp;lt;&lt;/span&gt;script type&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;text/x-mathjax-config&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;&amp;gt;&lt;/span&gt;
+  MathJax.Hub.Config({tex2jax&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; {inlineMath&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; [[&lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;$&amp;#39;&lt;/span&gt;,&lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;$&amp;#39;&lt;/span&gt;], [&lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;\\(&amp;#39;&lt;/span&gt;,&lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;\\)&amp;#39;&lt;/span&gt;]]}});  &lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;// 内联公式
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;/script&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id=&#34;支持color&#34;&gt;支持color&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;/layouts/partials/custom_head.html&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#555&#34;&gt;&amp;lt;&lt;/span&gt;script type&lt;span style=&#34;color:#555&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;text/x-mathjax-config&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#555&#34;&gt;&amp;gt;&lt;/span&gt;
+  MathJax.Hub.Config({                                                      &lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;// support color
+&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;  showProcessingMessages&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#069;font-weight:bold&#34;&gt;false&lt;/span&gt;,
+  jax&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; [&lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;input/TeX&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;output/HTML-CSS&amp;#34;&lt;/span&gt;],
+  TeX&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; {
+    TagSide&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#34;left&amp;#34;&lt;/span&gt;,
+    Macros&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; {
+      RR&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;{\\bf R}&amp;#39;&lt;/span&gt;,
+      bold&lt;span style=&#34;color:#555&#34;&gt;:&lt;/span&gt; [&lt;span style=&#34;color:#c30&#34;&gt;&amp;#39;{\\bf #1}&amp;#39;&lt;/span&gt;,&lt;span style=&#34;color:#f60&#34;&gt;1&lt;/span&gt;]
+    }
+  }
+});
+&lt;span style=&#34;color:#555&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a00;background-color:#faa&#34;&gt;/script&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h1 id=&#34;博客搭建心得&#34;&gt;博客搭建心得&lt;/h1&gt;
 
 &lt;p&gt;注意到, 在上文我们&lt;strong&gt;post网站到github pages&lt;/strong&gt; 上时,  是将&lt;strong&gt;public目录作为submodule&lt;/strong&gt;  push的. (push 的就是public目录的内容 ).&lt;/p&gt;
