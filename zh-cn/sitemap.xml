@@ -17,6 +17,13 @@
   </url>
   
   <url>
+    <loc>https://l0phtg.github.io/post/llvm/static-single-assignment/</loc>
+    <lastmod>2019-04-10T21:54:49+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://l0phtg.github.io/post/dominatorgraph-theory/</loc>
     <lastmod>2019-04-06T19:07:44+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -150,6 +157,13 @@
   </url>
   
   <url>
+    <loc>https://l0phtg.github.io/tags/compiler/</loc>
+    <lastmod>2019-04-10T21:54:49+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://l0phtg.github.io/categories/graph/</loc>
     <lastmod>2019-04-06T19:07:44+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -243,6 +257,13 @@
   <url>
     <loc>https://l0phtg.github.io/tags/root/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://l0phtg.github.io/tags/ssa/</loc>
+    <lastmod>2019-04-10T21:54:49+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

@@ -25,6 +25,20 @@
     </item>
     
     <item>
+      <title>Static Single Assignment</title>
+      <link>https://l0phtg.github.io/post/llvm/static-single-assignment/</link>
+      <pubDate>Tue, 09 Apr 2019 21:54:49 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/static-single-assignment/</guid>
+      <description>&lt;p&gt;translate from: &lt;a href=&#34;https://en.wikipedia.org/wiki/Static_single_assignment_form&#34;&gt;https://en.wikipedia.org/wiki/Static_single_assignment_form&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;单一变量赋值
+&lt;img src=&#34;https://l0phtg.github.io/llvm/ssa-example1.3.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Dominator(graph Theory)</title>
       <link>https://l0phtg.github.io/post/dominatorgraph-theory/</link>
       <pubDate>Sat, 06 Apr 2019 18:00:53 +0800</pubDate>
