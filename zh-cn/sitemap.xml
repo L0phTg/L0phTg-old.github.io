@@ -108,14 +108,14 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/android/</loc>
+    <loc>https://l0phtg.github.io/tags/android/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/tags/android/</loc>
+    <loc>https://l0phtg.github.io/categories/android/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
@@ -164,14 +164,14 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/hook/</loc>
+    <loc>https://l0phtg.github.io/tags/hook/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/tags/hook/</loc>
+    <loc>https://l0phtg.github.io/categories/hook/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
@@ -192,13 +192,6 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/life/</loc>
-    <lastmod>2019-04-03T20:17:39+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://l0phtg.github.io/tags/life/</loc>
     <lastmod>2019-04-06T20:53:32+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -206,14 +199,21 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/llvm/</loc>
-    <lastmod>2019-04-10T10:17:08+08:00</lastmod>
+    <loc>https://l0phtg.github.io/categories/life/</loc>
+    <lastmod>2019-04-03T20:17:39+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/tags/llvm/</loc>
+    <lastmod>2019-04-10T10:17:08+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://l0phtg.github.io/categories/llvm/</loc>
     <lastmod>2019-04-10T10:17:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
