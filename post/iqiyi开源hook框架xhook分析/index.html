@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-cn" itemscope itemtype="http://schema.org/WebPage">
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -130,6 +130,7 @@ symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址
   }
 });
 </script>
+
 
 
 
@@ -363,8 +364,8 @@ symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址
             <a href="https://l0phtg.github.io/categories/hook/"> hook </a>
             
           </div>
-        <span class="more-meta"> 约 1466 字 </span>
-          <span class="more-meta"> 预计阅读 3 分钟 </span>
+        <span class="more-meta"> 1466 words </span>
+          <span class="more-meta"> 3 min read </span>
 
         
         
@@ -377,7 +378,7 @@ symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址
     
     
 <div class="post-toc" id="post-toc">
-  <h2 class="post-toc-title">文章目录</h2>
+  <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
@@ -423,48 +424,48 @@ symbol -&gt; symid -&gt; 在got表中的offset  -&gt; 目标函数实际地址
 
 <p><a href="https://github.com/iqiyi/xHook/blob/master/README.zh-CN.md">https://github.com/iqiyi/xHook/blob/master/README.zh-CN.md</a>
 <a href="https://github.com/iqiyi/xHook/blob/master/docs/overview/android_plt_hook_overview.zh-CN.md">https://github.com/iqiyi/xHook/blob/master/docs/overview/android_plt_hook_overview.zh-CN.md</a></p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#09f;font-style:italic">//监测内存泄露
-</span><span style="color:#09f;font-style:italic"></span>xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;malloc&#34;</span>,  my_malloc,  <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;calloc&#34;</span>,  my_calloc,  <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;realloc&#34;</span>, my_realloc, <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;free&#34;</span>,    my_free,    <span style="color:#366">NULL</span>);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">//监测内存泄露
+</span><span style="color:#75715e"></span>xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;malloc&#34;</span>,  my_malloc,  NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;calloc&#34;</span>,  my_calloc,  NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;realloc&#34;</span>, my_realloc, NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;free&#34;</span>,    my_free,    NULL);
 
-<span style="color:#09f;font-style:italic">//监控 sockets 生命周期
-</span><span style="color:#09f;font-style:italic"></span>xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;getaddrinfo&#34;</span>, my_getaddrinfo, <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;socket&#34;</span>,      my_socket,      <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;setsockopt&#34;</span>   my_setsockopt,  <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;bind&#34;</span>,        my_bind,        <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;listen&#34;</span>,      my_listen,      <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;connect&#34;</span>,     my_connect,     <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;shutdown&#34;</span>,    my_shutdown,    <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;close&#34;</span>,       my_close,       <span style="color:#366">NULL</span>);
+<span style="color:#75715e">//监控 sockets 生命周期
+</span><span style="color:#75715e"></span>xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;getaddrinfo&#34;</span>, my_getaddrinfo, NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;socket&#34;</span>,      my_socket,      NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;setsockopt&#34;</span>   my_setsockopt,  NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;bind&#34;</span>,        my_bind,        NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;listen&#34;</span>,      my_listen,      NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;connect&#34;</span>,     my_connect,     NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;shutdown&#34;</span>,    my_shutdown,    NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;close&#34;</span>,       my_close,       NULL);
 
-<span style="color:#09f;font-style:italic">//过滤出和保存部分安卓 log 到本地文件
-</span><span style="color:#09f;font-style:italic"></span>xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;__android_log_write&#34;</span>,  my_log_write,  <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;__android_log_print&#34;</span>,  my_log_print,  <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;__android_log_vprint&#34;</span>, my_log_vprint, <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;__android_log_assert&#34;</span>, my_log_assert, <span style="color:#366">NULL</span>);
+<span style="color:#75715e">//过滤出和保存部分安卓 log 到本地文件
+</span><span style="color:#75715e"></span>xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;__android_log_write&#34;</span>,  my_log_write,  NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;__android_log_print&#34;</span>,  my_log_print,  NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;__android_log_vprint&#34;</span>, my_log_vprint, NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;__android_log_assert&#34;</span>, my_log_assert, NULL);
 
-<span style="color:#09f;font-style:italic">//追踪某些调用 (忽略 linker 和 linker64)
-</span><span style="color:#09f;font-style:italic"></span>xhook_register(<span style="color:#c30">&#34;^/system/.*$&#34;</span>, <span style="color:#c30">&#34;mmap&#34;</span>,   my_mmap,   <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;^/vendor/.*$&#34;</span>, <span style="color:#c30">&#34;munmap&#34;</span>, my_munmap, <span style="color:#366">NULL</span>);
-xhook_ignore  (<span style="color:#c30">&#34;.*/linker$&#34;</span>,   <span style="color:#c30">&#34;mmap&#34;</span>);
-xhook_ignore  (<span style="color:#c30">&#34;.*/linker$&#34;</span>,   <span style="color:#c30">&#34;munmap&#34;</span>);
-xhook_ignore  (<span style="color:#c30">&#34;.*/linker64$&#34;</span>, <span style="color:#c30">&#34;mmap&#34;</span>);
-xhook_ignore  (<span style="color:#c30">&#34;.*/linker64$&#34;</span>, <span style="color:#c30">&#34;munmap&#34;</span>);
+<span style="color:#75715e">//追踪某些调用 (忽略 linker 和 linker64)
+</span><span style="color:#75715e"></span>xhook_register(<span style="color:#e6db74">&#34;^/system/.*$&#34;</span>, <span style="color:#e6db74">&#34;mmap&#34;</span>,   my_mmap,   NULL);
+xhook_register(<span style="color:#e6db74">&#34;^/vendor/.*$&#34;</span>, <span style="color:#e6db74">&#34;munmap&#34;</span>, my_munmap, NULL);
+xhook_ignore  (<span style="color:#e6db74">&#34;.*/linker$&#34;</span>,   <span style="color:#e6db74">&#34;mmap&#34;</span>);
+xhook_ignore  (<span style="color:#e6db74">&#34;.*/linker$&#34;</span>,   <span style="color:#e6db74">&#34;munmap&#34;</span>);
+xhook_ignore  (<span style="color:#e6db74">&#34;.*/linker64$&#34;</span>, <span style="color:#e6db74">&#34;mmap&#34;</span>);
+xhook_ignore  (<span style="color:#e6db74">&#34;.*/linker64$&#34;</span>, <span style="color:#e6db74">&#34;munmap&#34;</span>);
 
-<span style="color:#09f;font-style:italic">//防御某些注入攻击
-</span><span style="color:#09f;font-style:italic"></span>xhook_register(<span style="color:#c30">&#34;.*com</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.hacker.*</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;malloc&#34;</span>,  my_malloc_always_return_NULL, <span style="color:#366">NULL</span>);
-xhook_register(<span style="color:#c30">&#34;.*/libhacker</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>,     <span style="color:#c30">&#34;connect&#34;</span>, my_connect_with_recorder,     <span style="color:#366">NULL</span>);
+<span style="color:#75715e">//防御某些注入攻击
+</span><span style="color:#75715e"></span>xhook_register(<span style="color:#e6db74">&#34;.*com</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.hacker.*</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;malloc&#34;</span>,  my_malloc_always_return_NULL, NULL);
+xhook_register(<span style="color:#e6db74">&#34;.*/libhacker</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>,     <span style="color:#e6db74">&#34;connect&#34;</span>, my_connect_with_recorder,     NULL);
 
-<span style="color:#09f;font-style:italic">//修复某些系统 bug
-</span><span style="color:#09f;font-style:italic"></span>xhook_register(<span style="color:#c30">&#34;.*some_vendor.*/libvictim</span><span style="color:#c30;font-weight:bold">\\</span><span style="color:#c30">.so$&#34;</span>, <span style="color:#c30">&#34;bad_func&#34;</span>, my_nice_func, <span style="color:#366">NULL</span>);
+<span style="color:#75715e">//修复某些系统 bug
+</span><span style="color:#75715e"></span>xhook_register(<span style="color:#e6db74">&#34;.*some_vendor.*/libvictim</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">.so$&#34;</span>, <span style="color:#e6db74">&#34;bad_func&#34;</span>, my_nice_func, NULL);
 
-<span style="color:#09f;font-style:italic">//忽略 libwebviewchromium.so 的所有 hook 信息
-</span><span style="color:#09f;font-style:italic"></span>xhook_ignore(<span style="color:#c30">&#34;.*/libwebviewchromium.so$&#34;</span>, <span style="color:#366">NULL</span>);
+<span style="color:#75715e">//忽略 libwebviewchromium.so 的所有 hook 信息
+</span><span style="color:#75715e"></span>xhook_ignore(<span style="color:#e6db74">&#34;.*/libwebviewchromium.so$&#34;</span>, NULL);
 
-<span style="color:#09f;font-style:italic">//现在执行 hook!
-</span><span style="color:#09f;font-style:italic"></span>xhook_refresh(<span style="color:#f60">1</span>);</code></pre></div>
+<span style="color:#75715e">//现在执行 hook!
+</span><span style="color:#75715e"></span>xhook_refresh(<span style="color:#ae81ff">1</span>);</code></pre></div>
 <p>发现重点为下面几个函数:</p>
 
 <ol>
@@ -480,54 +481,54 @@ xhook_register(<span style="color:#c30">&#34;.*/libhacker</span><span style="col
 <h2 id="xhook-register-hook函数注册">xhook_register Hook函数注册</h2>
 
 <h3 id="函数申明">函数申明</h3>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#078;font-weight:bold">int</span> <span style="color:#c0f">xhook_register</span>(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>pathname_regex_str, <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>symbol,
-                   <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">*</span>new_func, <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">**</span>old_func) XHOOK_EXPORT;</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">xhook_register</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pathname_regex_str, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>symbol,
+                   <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>new_func, <span style="color:#66d9ef">void</span> <span style="color:#f92672">**</span>old_func) XHOOK_EXPORT;</code></pre></div>
 <h3 id="函数实现分析">函数实现分析</h3>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#078;font-weight:bold">int</span> <span style="color:#c0f">xhook_register</span>(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>pathname_regex_str, <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>symbol,
-                   <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">*</span>new_func, <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">**</span>old_func)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">xhook_register</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pathname_regex_str, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>symbol,
+                   <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>new_func, <span style="color:#66d9ef">void</span> <span style="color:#f92672">**</span>old_func)
 {
-    <span style="color:#069;font-weight:bold">return</span> xh_core_register(pathname_regex_str, symbol, new_func, old_func);
+    <span style="color:#66d9ef">return</span> xh_core_register(pathname_regex_str, symbol, new_func, old_func);
 }</code></pre></div>
 <h4 id="xh-core-register">xh_core_register</h4>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#078;font-weight:bold">int</span> <span style="color:#c0f">xh_core_register</span>(<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>pathname_regex_str, <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>symbol,
-                     <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">*</span>new_func, <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">**</span>old_func)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">xh_core_register</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pathname_regex_str, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>symbol,
+                     <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>new_func, <span style="color:#66d9ef">void</span> <span style="color:#f92672">**</span>old_func)
 {
-    xh_core_hook_info_t <span style="color:#555">*</span>hi;
+    xh_core_hook_info_t <span style="color:#f92672">*</span>hi;
     regex_t              regex;
 
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">==</span> pathname_regex_str <span style="color:#555">||</span> <span style="color:#366">NULL</span> <span style="color:#555">==</span> symbol <span style="color:#555">||</span> <span style="color:#366">NULL</span> <span style="color:#555">==</span> new_func) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_INVAL;
+    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">==</span> pathname_regex_str <span style="color:#f92672">||</span> NULL <span style="color:#f92672">==</span> symbol <span style="color:#f92672">||</span> NULL <span style="color:#f92672">==</span> new_func) <span style="color:#66d9ef">return</span> XH_ERRNO_INVAL;
 
-    <span style="color:#069;font-weight:bold">if</span>(xh_core_inited)
+    <span style="color:#66d9ef">if</span>(xh_core_inited)
     {
-        XH_LOG_ERROR(<span style="color:#c30">&#34;do not register hook after refresh(): %s, %s&#34;</span>, pathname_regex_str, symbol);
-        <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_INVAL;
+        XH_LOG_ERROR(<span style="color:#e6db74">&#34;do not register hook after refresh(): %s, %s&#34;</span>, pathname_regex_str, symbol);
+        <span style="color:#66d9ef">return</span> XH_ERRNO_INVAL;
     }
 
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> regcomp(<span style="color:#555">&amp;</span>regex, pathname_regex_str, REG_NOSUB)) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_INVAL;
+    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> regcomp(<span style="color:#f92672">&amp;</span>regex, pathname_regex_str, REG_NOSUB)) <span style="color:#66d9ef">return</span> XH_ERRNO_INVAL;
 
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">==</span> (hi <span style="color:#555">=</span> malloc(<span style="color:#069;font-weight:bold">sizeof</span>(xh_core_hook_info_t)))) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_NOMEM;
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">==</span> (hi<span style="color:#555">-&gt;</span>symbol <span style="color:#555">=</span> strdup(symbol)))
+    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">==</span> (hi <span style="color:#f92672">=</span> malloc(<span style="color:#66d9ef">sizeof</span>(xh_core_hook_info_t)))) <span style="color:#66d9ef">return</span> XH_ERRNO_NOMEM;
+    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">==</span> (hi<span style="color:#f92672">-&gt;</span>symbol <span style="color:#f92672">=</span> strdup(symbol)))
     {
         free(hi);
-        <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_NOMEM;
+        <span style="color:#66d9ef">return</span> XH_ERRNO_NOMEM;
     }
-<span style="color:#099">#if XH_CORE_DEBUG
-</span><span style="color:#099"></span>    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">==</span> (hi<span style="color:#555">-&gt;</span>pathname_regex_str <span style="color:#555">=</span> strdup(pathname_regex_str)))
+<span style="color:#75715e">#if XH_CORE_DEBUG
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">==</span> (hi<span style="color:#f92672">-&gt;</span>pathname_regex_str <span style="color:#f92672">=</span> strdup(pathname_regex_str)))
     {
-        free(hi<span style="color:#555">-&gt;</span>symbol);
+        free(hi<span style="color:#f92672">-&gt;</span>symbol);
         free(hi);
-        <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_NOMEM;
+        <span style="color:#66d9ef">return</span> XH_ERRNO_NOMEM;
     }
-<span style="color:#099">#endif
-</span><span style="color:#099"></span>    hi<span style="color:#555">-&gt;</span>pathname_regex <span style="color:#555">=</span> regex;
-    hi<span style="color:#555">-&gt;</span>new_func <span style="color:#555">=</span> new_func;
-    hi<span style="color:#555">-&gt;</span>old_func <span style="color:#555">=</span> old_func;
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>    hi<span style="color:#f92672">-&gt;</span>pathname_regex <span style="color:#f92672">=</span> regex;
+    hi<span style="color:#f92672">-&gt;</span>new_func <span style="color:#f92672">=</span> new_func;
+    hi<span style="color:#f92672">-&gt;</span>old_func <span style="color:#f92672">=</span> old_func;
     
-    pthread_mutex_lock(<span style="color:#555">&amp;</span>xh_core_mutex);
-    TAILQ_INSERT_TAIL(<span style="color:#555">&amp;</span>xh_core_hook_info, hi, link); <span style="color:#09f;font-style:italic">// 核心
-</span><span style="color:#09f;font-style:italic"></span>    pthread_mutex_unlock(<span style="color:#555">&amp;</span>xh_core_mutex);
+    pthread_mutex_lock(<span style="color:#f92672">&amp;</span>xh_core_mutex);
+    TAILQ_INSERT_TAIL(<span style="color:#f92672">&amp;</span>xh_core_hook_info, hi, link); <span style="color:#75715e">// 核心
+</span><span style="color:#75715e"></span>    pthread_mutex_unlock(<span style="color:#f92672">&amp;</span>xh_core_mutex);
 
-    <span style="color:#069;font-weight:bold">return</span> <span style="color:#f60">0</span>;
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }</code></pre></div>
 <h4 id="xh-elf-init">xh_elf_init:</h4>
 
@@ -536,272 +537,272 @@ xhook_register(<span style="color:#c30">&#34;.*/libhacker</span><span style="col
 <li>找到第一个PT_LOAD段</li>
 <li>找到dynamic_header. 之后解析dynamic segment, 找到strtab, symtab, rel.plt, .rel,等</li>
 </ol>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#078;font-weight:bold">int</span> <span style="color:#c0f">xh_elf_init</span>(xh_elf_t <span style="color:#555">*</span>self, uintptr_t base_addr, <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>pathname)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">xh_elf_init</span>(xh_elf_t <span style="color:#f92672">*</span>self, uintptr_t base_addr, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pathname)
 {
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">==</span> base_addr <span style="color:#555">||</span> <span style="color:#366">NULL</span> <span style="color:#555">==</span> pathname) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_INVAL;
+    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">==</span> base_addr <span style="color:#f92672">||</span> NULL <span style="color:#f92672">==</span> pathname) <span style="color:#66d9ef">return</span> XH_ERRNO_INVAL;
 
-    <span style="color:#09f;font-style:italic">//always reset
-</span><span style="color:#09f;font-style:italic"></span>    memset(self, <span style="color:#f60">0</span>, <span style="color:#069;font-weight:bold">sizeof</span>(xh_elf_t));
+    <span style="color:#75715e">//always reset
+</span><span style="color:#75715e"></span>    memset(self, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(xh_elf_t));
     
-    self<span style="color:#555">-&gt;</span>pathname <span style="color:#555">=</span> pathname;
-    self<span style="color:#555">-&gt;</span>base_addr <span style="color:#555">=</span> (ElfW(Addr))base_addr;
-    self<span style="color:#555">-&gt;</span>ehdr <span style="color:#555">=</span> (ElfW(Ehdr) <span style="color:#555">*</span>)base_addr;
-    self<span style="color:#555">-&gt;</span>phdr <span style="color:#555">=</span> (ElfW(Phdr) <span style="color:#555">*</span>)(base_addr <span style="color:#555">+</span> self<span style="color:#555">-&gt;</span>ehdr<span style="color:#555">-&gt;</span>e_phoff); <span style="color:#09f;font-style:italic">//segmentation fault sometimes
-</span><span style="color:#09f;font-style:italic"></span>
-    <span style="color:#09f;font-style:italic">//find the first load-segment with offset 0
-</span><span style="color:#09f;font-style:italic"></span>    ElfW(Phdr) <span style="color:#555">*</span>phdr0 <span style="color:#555">=</span> xh_elf_get_first_segment_by_type_offset(self, PT_LOAD, <span style="color:#f60">0</span>);
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">==</span> phdr0)
+    self<span style="color:#f92672">-&gt;</span>pathname <span style="color:#f92672">=</span> pathname;
+    self<span style="color:#f92672">-&gt;</span>base_addr <span style="color:#f92672">=</span> (ElfW(Addr))base_addr;
+    self<span style="color:#f92672">-&gt;</span>ehdr <span style="color:#f92672">=</span> (ElfW(Ehdr) <span style="color:#f92672">*</span>)base_addr;
+    self<span style="color:#f92672">-&gt;</span>phdr <span style="color:#f92672">=</span> (ElfW(Phdr) <span style="color:#f92672">*</span>)(base_addr <span style="color:#f92672">+</span> self<span style="color:#f92672">-&gt;</span>ehdr<span style="color:#f92672">-&gt;</span>e_phoff); <span style="color:#75715e">//segmentation fault sometimes
+</span><span style="color:#75715e"></span>
+    <span style="color:#75715e">//find the first load-segment with offset 0
+</span><span style="color:#75715e"></span>    ElfW(Phdr) <span style="color:#f92672">*</span>phdr0 <span style="color:#f92672">=</span> xh_elf_get_first_segment_by_type_offset(self, PT_LOAD, <span style="color:#ae81ff">0</span>);
+    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">==</span> phdr0)
     {
-        XH_LOG_ERROR(<span style="color:#c30">&#34;Can NOT found the first load segment. %s&#34;</span>, pathname);
-        <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
+        XH_LOG_ERROR(<span style="color:#e6db74">&#34;Can NOT found the first load segment. %s&#34;</span>, pathname);
+        <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
     }
 
-<span style="color:#099">#if XH_ELF_DEBUG
-</span><span style="color:#099"></span>    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> phdr0<span style="color:#555">-&gt;</span>p_vaddr)
-        XH_LOG_DEBUG(<span style="color:#c30">&#34;first load-segment vaddr NOT 0 (vaddr: %p). %s&#34;</span>,
-                     (<span style="color:#078;font-weight:bold">void</span> <span style="color:#555">*</span>)(phdr0<span style="color:#555">-&gt;</span>p_vaddr), pathname);
-<span style="color:#099">#endif
-</span><span style="color:#099"></span>
-    <span style="color:#09f;font-style:italic">//save load bias addr
-</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span>(self<span style="color:#555">-&gt;</span>base_addr <span style="color:#555">&lt;</span> phdr0<span style="color:#555">-&gt;</span>p_vaddr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-    self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">=</span> self<span style="color:#555">-&gt;</span>base_addr <span style="color:#555">-</span> phdr0<span style="color:#555">-&gt;</span>p_vaddr;
+<span style="color:#75715e">#if XH_ELF_DEBUG
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> phdr0<span style="color:#f92672">-&gt;</span>p_vaddr)
+        XH_LOG_DEBUG(<span style="color:#e6db74">&#34;first load-segment vaddr NOT 0 (vaddr: %p). %s&#34;</span>,
+                     (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)(phdr0<span style="color:#f92672">-&gt;</span>p_vaddr), pathname);
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>
+    <span style="color:#75715e">//save load bias addr
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(self<span style="color:#f92672">-&gt;</span>base_addr <span style="color:#f92672">&lt;</span> phdr0<span style="color:#f92672">-&gt;</span>p_vaddr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+    self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">=</span> self<span style="color:#f92672">-&gt;</span>base_addr <span style="color:#f92672">-</span> phdr0<span style="color:#f92672">-&gt;</span>p_vaddr;
     
-    <span style="color:#09f;font-style:italic">//find dynamic-segment
-</span><span style="color:#09f;font-style:italic"></span>    ElfW(Phdr) <span style="color:#555">*</span>dhdr <span style="color:#555">=</span> xh_elf_get_first_segment_by_type(self, PT_DYNAMIC);
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">==</span> dhdr)
+    <span style="color:#75715e">//find dynamic-segment
+</span><span style="color:#75715e"></span>    ElfW(Phdr) <span style="color:#f92672">*</span>dhdr <span style="color:#f92672">=</span> xh_elf_get_first_segment_by_type(self, PT_DYNAMIC);
+    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">==</span> dhdr)
     {
-        XH_LOG_ERROR(<span style="color:#c30">&#34;Can NOT found dynamic segment. %s&#34;</span>, pathname);
-        <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
+        XH_LOG_ERROR(<span style="color:#e6db74">&#34;Can NOT found dynamic segment. %s&#34;</span>, pathname);
+        <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
     }
 
-    <span style="color:#09f;font-style:italic">//parse dynamic-segment
-</span><span style="color:#09f;font-style:italic"></span>    self<span style="color:#555">-&gt;</span>dyn          <span style="color:#555">=</span> (ElfW(Dyn) <span style="color:#555">*</span>)(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dhdr<span style="color:#555">-&gt;</span>p_vaddr);
-    self<span style="color:#555">-&gt;</span>dyn_sz       <span style="color:#555">=</span> dhdr<span style="color:#555">-&gt;</span>p_memsz;
-    ElfW(Dyn) <span style="color:#555">*</span>dyn     <span style="color:#555">=</span> self<span style="color:#555">-&gt;</span>dyn;
-    ElfW(Dyn) <span style="color:#555">*</span>dyn_end <span style="color:#555">=</span> self<span style="color:#555">-&gt;</span>dyn <span style="color:#555">+</span> (self<span style="color:#555">-&gt;</span>dyn_sz <span style="color:#555">/</span> <span style="color:#069;font-weight:bold">sizeof</span>(ElfW(Dyn)));
-    uint32_t  <span style="color:#555">*</span>raw;
-    <span style="color:#069;font-weight:bold">for</span>(; dyn <span style="color:#555">&lt;</span> dyn_end; dyn<span style="color:#555">++</span>)
+    <span style="color:#75715e">//parse dynamic-segment
+</span><span style="color:#75715e"></span>    self<span style="color:#f92672">-&gt;</span>dyn          <span style="color:#f92672">=</span> (ElfW(Dyn) <span style="color:#f92672">*</span>)(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dhdr<span style="color:#f92672">-&gt;</span>p_vaddr);
+    self<span style="color:#f92672">-&gt;</span>dyn_sz       <span style="color:#f92672">=</span> dhdr<span style="color:#f92672">-&gt;</span>p_memsz;
+    ElfW(Dyn) <span style="color:#f92672">*</span>dyn     <span style="color:#f92672">=</span> self<span style="color:#f92672">-&gt;</span>dyn;
+    ElfW(Dyn) <span style="color:#f92672">*</span>dyn_end <span style="color:#f92672">=</span> self<span style="color:#f92672">-&gt;</span>dyn <span style="color:#f92672">+</span> (self<span style="color:#f92672">-&gt;</span>dyn_sz <span style="color:#f92672">/</span> <span style="color:#66d9ef">sizeof</span>(ElfW(Dyn)));
+    uint32_t  <span style="color:#f92672">*</span>raw;
+    <span style="color:#66d9ef">for</span>(; dyn <span style="color:#f92672">&lt;</span> dyn_end; dyn<span style="color:#f92672">++</span>)
     {
-        <span style="color:#069;font-weight:bold">switch</span>(dyn<span style="color:#555">-&gt;</span>d_tag) <span style="color:#09f;font-style:italic">//segmentation fault sometimes
-</span><span style="color:#09f;font-style:italic"></span>        {
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_NULL</span>:
-            <span style="color:#09f;font-style:italic">//the end of the dynamic-section
-</span><span style="color:#09f;font-style:italic"></span>            dyn <span style="color:#555">=</span> dyn_end;
-            <span style="color:#069;font-weight:bold">break</span>;
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_STRTAB</span>:
+        <span style="color:#66d9ef">switch</span>(dyn<span style="color:#f92672">-&gt;</span>d_tag) <span style="color:#75715e">//segmentation fault sometimes
+</span><span style="color:#75715e"></span>        {
+        <span style="color:#66d9ef">case</span> DT_NULL:
+            <span style="color:#75715e">//the end of the dynamic-section
+</span><span style="color:#75715e"></span>            dyn <span style="color:#f92672">=</span> dyn_end;
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> DT_STRTAB:
             {
-                self<span style="color:#555">-&gt;</span>strtab <span style="color:#555">=</span> (<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>)(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dyn<span style="color:#555">-&gt;</span>d_un.d_ptr);
-                <span style="color:#069;font-weight:bold">if</span>((ElfW(Addr))(self<span style="color:#555">-&gt;</span>strtab) <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-                <span style="color:#069;font-weight:bold">break</span>;
+                self<span style="color:#f92672">-&gt;</span>strtab <span style="color:#f92672">=</span> (<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_ptr);
+                <span style="color:#66d9ef">if</span>((ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>strtab) <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+                <span style="color:#66d9ef">break</span>;
             }
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_SYMTAB</span>:
+        <span style="color:#66d9ef">case</span> DT_SYMTAB:
             {
-                self<span style="color:#555">-&gt;</span>symtab <span style="color:#555">=</span> (ElfW(Sym) <span style="color:#555">*</span>)(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dyn<span style="color:#555">-&gt;</span>d_un.d_ptr);
-                <span style="color:#069;font-weight:bold">if</span>((ElfW(Addr))(self<span style="color:#555">-&gt;</span>symtab) <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-                <span style="color:#069;font-weight:bold">break</span>;
+                self<span style="color:#f92672">-&gt;</span>symtab <span style="color:#f92672">=</span> (ElfW(Sym) <span style="color:#f92672">*</span>)(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_ptr);
+                <span style="color:#66d9ef">if</span>((ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>symtab) <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+                <span style="color:#66d9ef">break</span>;
             }
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_PLTREL</span>:
-            <span style="color:#09f;font-style:italic">//use rel or rela?
-</span><span style="color:#09f;font-style:italic"></span>            self<span style="color:#555">-&gt;</span>is_use_rela <span style="color:#555">=</span> (dyn<span style="color:#555">-&gt;</span>d_un.d_val <span style="color:#555">==</span> DT_RELA <span style="color:#555">?</span> <span style="color:#f60">1</span> <span style="color:#555">:</span> <span style="color:#f60">0</span>);
-            <span style="color:#069;font-weight:bold">break</span>;
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_JMPREL</span>:
+        <span style="color:#66d9ef">case</span> DT_PLTREL:
+            <span style="color:#75715e">//use rel or rela?
+</span><span style="color:#75715e"></span>            self<span style="color:#f92672">-&gt;</span>is_use_rela <span style="color:#f92672">=</span> (dyn<span style="color:#f92672">-&gt;</span>d_un.d_val <span style="color:#f92672">==</span> DT_RELA <span style="color:#f92672">?</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>);
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> DT_JMPREL:
             {
-                self<span style="color:#555">-&gt;</span>relplt <span style="color:#555">=</span> (ElfW(Addr))(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dyn<span style="color:#555">-&gt;</span>d_un.d_ptr);
-                <span style="color:#069;font-weight:bold">if</span>((ElfW(Addr))(self<span style="color:#555">-&gt;</span>relplt) <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-                <span style="color:#069;font-weight:bold">break</span>;
+                self<span style="color:#f92672">-&gt;</span>relplt <span style="color:#f92672">=</span> (ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_ptr);
+                <span style="color:#66d9ef">if</span>((ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>relplt) <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+                <span style="color:#66d9ef">break</span>;
             }
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_PLTRELSZ</span>:
-            self<span style="color:#555">-&gt;</span>relplt_sz <span style="color:#555">=</span> dyn<span style="color:#555">-&gt;</span>d_un.d_val;
-            <span style="color:#069;font-weight:bold">break</span>;
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_REL</span>:
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_RELA</span>:
+        <span style="color:#66d9ef">case</span> DT_PLTRELSZ:
+            self<span style="color:#f92672">-&gt;</span>relplt_sz <span style="color:#f92672">=</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_val;
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> DT_REL:
+        <span style="color:#66d9ef">case</span> DT_RELA:
             {
-                self<span style="color:#555">-&gt;</span>reldyn <span style="color:#555">=</span> (ElfW(Addr))(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dyn<span style="color:#555">-&gt;</span>d_un.d_ptr);
-                <span style="color:#069;font-weight:bold">if</span>((ElfW(Addr))(self<span style="color:#555">-&gt;</span>reldyn) <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-                <span style="color:#069;font-weight:bold">break</span>;
+                self<span style="color:#f92672">-&gt;</span>reldyn <span style="color:#f92672">=</span> (ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_ptr);
+                <span style="color:#66d9ef">if</span>((ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>reldyn) <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+                <span style="color:#66d9ef">break</span>;
             }
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_RELSZ</span>:
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_RELASZ</span>:
-            self<span style="color:#555">-&gt;</span>reldyn_sz <span style="color:#555">=</span> dyn<span style="color:#555">-&gt;</span>d_un.d_val;
-            <span style="color:#069;font-weight:bold">break</span>;
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_ANDROID_REL</span>:
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_ANDROID_RELA</span>:
+        <span style="color:#66d9ef">case</span> DT_RELSZ:
+        <span style="color:#66d9ef">case</span> DT_RELASZ:
+            self<span style="color:#f92672">-&gt;</span>reldyn_sz <span style="color:#f92672">=</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_val;
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> DT_ANDROID_REL:
+        <span style="color:#66d9ef">case</span> DT_ANDROID_RELA:
             {
-                self<span style="color:#555">-&gt;</span>relandroid <span style="color:#555">=</span> (ElfW(Addr))(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dyn<span style="color:#555">-&gt;</span>d_un.d_ptr);
-                <span style="color:#069;font-weight:bold">if</span>((ElfW(Addr))(self<span style="color:#555">-&gt;</span>relandroid) <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-                <span style="color:#069;font-weight:bold">break</span>;
+                self<span style="color:#f92672">-&gt;</span>relandroid <span style="color:#f92672">=</span> (ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_ptr);
+                <span style="color:#66d9ef">if</span>((ElfW(Addr))(self<span style="color:#f92672">-&gt;</span>relandroid) <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+                <span style="color:#66d9ef">break</span>;
             }
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_ANDROID_RELSZ</span>:
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_ANDROID_RELASZ</span>:
-            self<span style="color:#555">-&gt;</span>relandroid_sz <span style="color:#555">=</span> dyn<span style="color:#555">-&gt;</span>d_un.d_val;
-            <span style="color:#069;font-weight:bold">break</span>;
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_HASH</span>:
+        <span style="color:#66d9ef">case</span> DT_ANDROID_RELSZ:
+        <span style="color:#66d9ef">case</span> DT_ANDROID_RELASZ:
+            self<span style="color:#f92672">-&gt;</span>relandroid_sz <span style="color:#f92672">=</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_val;
+            <span style="color:#66d9ef">break</span>;
+        <span style="color:#66d9ef">case</span> DT_HASH:
             {
-                raw <span style="color:#555">=</span> (uint32_t <span style="color:#555">*</span>)(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dyn<span style="color:#555">-&gt;</span>d_un.d_ptr);
-                <span style="color:#069;font-weight:bold">if</span>((ElfW(Addr))raw <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-                self<span style="color:#555">-&gt;</span>bucket_cnt  <span style="color:#555">=</span> raw[<span style="color:#f60">0</span>];
-                self<span style="color:#555">-&gt;</span>chain_cnt   <span style="color:#555">=</span> raw[<span style="color:#f60">1</span>];
-                self<span style="color:#555">-&gt;</span>bucket      <span style="color:#555">=</span> <span style="color:#555">&amp;</span>raw[<span style="color:#f60">2</span>];
-                self<span style="color:#555">-&gt;</span>chain       <span style="color:#555">=</span> <span style="color:#555">&amp;</span>(self<span style="color:#555">-&gt;</span>bucket[self<span style="color:#555">-&gt;</span>bucket_cnt]);
-                <span style="color:#069;font-weight:bold">break</span>;
+                raw <span style="color:#f92672">=</span> (uint32_t <span style="color:#f92672">*</span>)(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_ptr);
+                <span style="color:#66d9ef">if</span>((ElfW(Addr))raw <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+                self<span style="color:#f92672">-&gt;</span>bucket_cnt  <span style="color:#f92672">=</span> raw[<span style="color:#ae81ff">0</span>];
+                self<span style="color:#f92672">-&gt;</span>chain_cnt   <span style="color:#f92672">=</span> raw[<span style="color:#ae81ff">1</span>];
+                self<span style="color:#f92672">-&gt;</span>bucket      <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>raw[<span style="color:#ae81ff">2</span>];
+                self<span style="color:#f92672">-&gt;</span>chain       <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>(self<span style="color:#f92672">-&gt;</span>bucket[self<span style="color:#f92672">-&gt;</span>bucket_cnt]);
+                <span style="color:#66d9ef">break</span>;
             }
-        <span style="color:#069;font-weight:bold">case</span> <span style="color:#99f">DT_GNU_HASH</span>:
+        <span style="color:#66d9ef">case</span> DT_GNU_HASH:
             {
-                raw <span style="color:#555">=</span> (uint32_t <span style="color:#555">*</span>)(self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> dyn<span style="color:#555">-&gt;</span>d_un.d_ptr);
-                <span style="color:#069;font-weight:bold">if</span>((ElfW(Addr))raw <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-                self<span style="color:#555">-&gt;</span>bucket_cnt  <span style="color:#555">=</span> raw[<span style="color:#f60">0</span>];
-                self<span style="color:#555">-&gt;</span>symoffset   <span style="color:#555">=</span> raw[<span style="color:#f60">1</span>];
-                self<span style="color:#555">-&gt;</span>bloom_sz    <span style="color:#555">=</span> raw[<span style="color:#f60">2</span>];
-                self<span style="color:#555">-&gt;</span>bloom_shift <span style="color:#555">=</span> raw[<span style="color:#f60">3</span>];
-                self<span style="color:#555">-&gt;</span>bloom       <span style="color:#555">=</span> (ElfW(Addr) <span style="color:#555">*</span>)(<span style="color:#555">&amp;</span>raw[<span style="color:#f60">4</span>]);
-                self<span style="color:#555">-&gt;</span>bucket      <span style="color:#555">=</span> (uint32_t <span style="color:#555">*</span>)(<span style="color:#555">&amp;</span>(self<span style="color:#555">-&gt;</span>bloom[self<span style="color:#555">-&gt;</span>bloom_sz]));
-                self<span style="color:#555">-&gt;</span>chain       <span style="color:#555">=</span> (uint32_t <span style="color:#555">*</span>)(<span style="color:#555">&amp;</span>(self<span style="color:#555">-&gt;</span>bucket[self<span style="color:#555">-&gt;</span>bucket_cnt]));
-                self<span style="color:#555">-&gt;</span>is_use_gnu_hash <span style="color:#555">=</span> <span style="color:#f60">1</span>;
-                <span style="color:#069;font-weight:bold">break</span>;
+                raw <span style="color:#f92672">=</span> (uint32_t <span style="color:#f92672">*</span>)(self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> dyn<span style="color:#f92672">-&gt;</span>d_un.d_ptr);
+                <span style="color:#66d9ef">if</span>((ElfW(Addr))raw <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+                self<span style="color:#f92672">-&gt;</span>bucket_cnt  <span style="color:#f92672">=</span> raw[<span style="color:#ae81ff">0</span>];
+                self<span style="color:#f92672">-&gt;</span>symoffset   <span style="color:#f92672">=</span> raw[<span style="color:#ae81ff">1</span>];
+                self<span style="color:#f92672">-&gt;</span>bloom_sz    <span style="color:#f92672">=</span> raw[<span style="color:#ae81ff">2</span>];
+                self<span style="color:#f92672">-&gt;</span>bloom_shift <span style="color:#f92672">=</span> raw[<span style="color:#ae81ff">3</span>];
+                self<span style="color:#f92672">-&gt;</span>bloom       <span style="color:#f92672">=</span> (ElfW(Addr) <span style="color:#f92672">*</span>)(<span style="color:#f92672">&amp;</span>raw[<span style="color:#ae81ff">4</span>]);
+                self<span style="color:#f92672">-&gt;</span>bucket      <span style="color:#f92672">=</span> (uint32_t <span style="color:#f92672">*</span>)(<span style="color:#f92672">&amp;</span>(self<span style="color:#f92672">-&gt;</span>bloom[self<span style="color:#f92672">-&gt;</span>bloom_sz]));
+                self<span style="color:#f92672">-&gt;</span>chain       <span style="color:#f92672">=</span> (uint32_t <span style="color:#f92672">*</span>)(<span style="color:#f92672">&amp;</span>(self<span style="color:#f92672">-&gt;</span>bucket[self<span style="color:#f92672">-&gt;</span>bucket_cnt]));
+                self<span style="color:#f92672">-&gt;</span>is_use_gnu_hash <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+                <span style="color:#66d9ef">break</span>;
             }
-        <span style="color:#069;font-weight:bold">default</span><span style="color:#555">:</span>
-            <span style="color:#069;font-weight:bold">break</span>;
+        <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+            <span style="color:#66d9ef">break</span>;
         }
     }
 
-    <span style="color:#09f;font-style:italic">//check android rel/rela
-</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> self<span style="color:#555">-&gt;</span>relandroid)
+    <span style="color:#75715e">//check android rel/rela
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> self<span style="color:#f92672">-&gt;</span>relandroid)
     {
-        <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>rel <span style="color:#555">=</span> (<span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>)self<span style="color:#555">-&gt;</span>relandroid;
-        <span style="color:#069;font-weight:bold">if</span>(self<span style="color:#555">-&gt;</span>relandroid_sz <span style="color:#555">&lt;</span> <span style="color:#f60">4</span> <span style="color:#555">||</span>
-           rel[<span style="color:#f60">0</span>] <span style="color:#555">!=</span> <span style="color:#c30">&#39;A&#39;</span> <span style="color:#555">||</span>
-           rel[<span style="color:#f60">1</span>] <span style="color:#555">!=</span> <span style="color:#c30">&#39;P&#39;</span> <span style="color:#555">||</span>
-           rel[<span style="color:#f60">2</span>] <span style="color:#555">!=</span> <span style="color:#c30">&#39;S&#39;</span> <span style="color:#555">||</span>
-           rel[<span style="color:#f60">3</span>] <span style="color:#555">!=</span> <span style="color:#c30">&#39;2&#39;</span>)
+        <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>rel <span style="color:#f92672">=</span> (<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)self<span style="color:#f92672">-&gt;</span>relandroid;
+        <span style="color:#66d9ef">if</span>(self<span style="color:#f92672">-&gt;</span>relandroid_sz <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">||</span>
+           rel[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;A&#39;</span> <span style="color:#f92672">||</span>
+           rel[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;P&#39;</span> <span style="color:#f92672">||</span>
+           rel[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;S&#39;</span> <span style="color:#f92672">||</span>
+           rel[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;2&#39;</span>)
         {
-            XH_LOG_ERROR(<span style="color:#c30">&#34;android rel/rela format error</span><span style="color:#c30;font-weight:bold">\n</span><span style="color:#c30">&#34;</span>);
-            <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
+            XH_LOG_ERROR(<span style="color:#e6db74">&#34;android rel/rela format error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+            <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
         }
         
-        self<span style="color:#555">-&gt;</span>relandroid <span style="color:#555">+=</span> <span style="color:#f60">4</span>;
-        self<span style="color:#555">-&gt;</span>relandroid_sz <span style="color:#555">-=</span> <span style="color:#f60">4</span>;
+        self<span style="color:#f92672">-&gt;</span>relandroid <span style="color:#f92672">+=</span> <span style="color:#ae81ff">4</span>;
+        self<span style="color:#f92672">-&gt;</span>relandroid_sz <span style="color:#f92672">-=</span> <span style="color:#ae81ff">4</span>;
     }
 
-    <span style="color:#09f;font-style:italic">//check elf info
-</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> xh_elf_check(self))
+    <span style="color:#75715e">//check elf info
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> xh_elf_check(self))
     {
-        XH_LOG_ERROR(<span style="color:#c30">&#34;elf init check failed. %s&#34;</span>, pathname);
-        <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
+        XH_LOG_ERROR(<span style="color:#e6db74">&#34;elf init check failed. %s&#34;</span>, pathname);
+        <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
     }
     
-<span style="color:#099">#if XH_ELF_DEBUG
-</span><span style="color:#099"></span>    xh_elf_dump(self);
-<span style="color:#099">#endif
-</span><span style="color:#099"></span>
-    XH_LOG_INFO(<span style="color:#c30">&#34;init OK: %s (%s %s PLT:%u DYN:%u ANDROID:%u)</span><span style="color:#c30;font-weight:bold">\n</span><span style="color:#c30">&#34;</span>, self<span style="color:#555">-&gt;</span>pathname,
-                self<span style="color:#555">-&gt;</span>is_use_rela <span style="color:#555">?</span> <span style="color:#c30">&#34;RELA&#34;</span> <span style="color:#555">:</span> <span style="color:#c30">&#34;REL&#34;</span>,
-                self<span style="color:#555">-&gt;</span>is_use_gnu_hash <span style="color:#555">?</span> <span style="color:#c30">&#34;GNU_HASH&#34;</span> <span style="color:#555">:</span> <span style="color:#c30">&#34;ELF_HASH&#34;</span>,
-                self<span style="color:#555">-&gt;</span>relplt_sz, self<span style="color:#555">-&gt;</span>reldyn_sz, self<span style="color:#555">-&gt;</span>relandroid_sz);
+<span style="color:#75715e">#if XH_ELF_DEBUG
+</span><span style="color:#75715e"></span>    xh_elf_dump(self);
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>
+    XH_LOG_INFO(<span style="color:#e6db74">&#34;init OK: %s (%s %s PLT:%u DYN:%u ANDROID:%u)</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, self<span style="color:#f92672">-&gt;</span>pathname,
+                self<span style="color:#f92672">-&gt;</span>is_use_rela <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;RELA&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;REL&#34;</span>,
+                self<span style="color:#f92672">-&gt;</span>is_use_gnu_hash <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;GNU_HASH&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;ELF_HASH&#34;</span>,
+                self<span style="color:#f92672">-&gt;</span>relplt_sz, self<span style="color:#f92672">-&gt;</span>reldyn_sz, self<span style="color:#f92672">-&gt;</span>relandroid_sz);
 
-    <span style="color:#069;font-weight:bold">return</span> <span style="color:#f60">0</span>;
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }</code></pre></div>
 <h2 id="xh-refresh">xh_refresh</h2>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">xh_refresh <span style="color:#555">-&gt;</span> xh_core_refresh <span style="color:#555">-&gt;</span> xh_core_init_once
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">xh_refresh <span style="color:#f92672">-&gt;</span> xh_core_refresh <span style="color:#f92672">-&gt;</span> xh_core_init_once
 
-                              <span style="color:#555">-&gt;</span> xh_core_refresh_impl 
+                              <span style="color:#f92672">-&gt;</span> xh_core_refresh_impl 
    
 
-xh_core_refresh_impl <span style="color:#555">-&gt;</span> xh_core_check_elf_header
-                     <span style="color:#555">-&gt;</span> xh_core_hook             <span style="color:#555">-&gt;</span> xh_core_hook_impl
+xh_core_refresh_impl <span style="color:#f92672">-&gt;</span> xh_core_check_elf_header
+                     <span style="color:#f92672">-&gt;</span> xh_core_hook             <span style="color:#f92672">-&gt;</span> xh_core_hook_impl
                      
                      
-xh_core_hook_impl    <span style="color:#555">-&gt;</span> xh_elf_init
-                     <span style="color:#555">-&gt;</span> xh_elf_hook</code></pre></div>
+xh_core_hook_impl    <span style="color:#f92672">-&gt;</span> xh_elf_init
+                     <span style="color:#f92672">-&gt;</span> xh_elf_hook</code></pre></div>
 <h3 id="xh-elf-hook">xh_elf_hook</h3>
 
 <ol>
 <li>xh_elf_find_symidx_by_name    //find symbol index by symbol name</li>
 <li>replace.</li>
 </ol>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    <span style="color:#09f;font-style:italic">//find symbol index by symbol name
-</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> (r <span style="color:#555">=</span> xh_elf_find_symidx_by_name(self, symbol, <span style="color:#555">&amp;</span>symidx))) <span style="color:#069;font-weight:bold">return</span> <span style="color:#f60">0</span>;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    <span style="color:#75715e">//find symbol index by symbol name
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> (r <span style="color:#f92672">=</span> xh_elf_find_symidx_by_name(self, symbol, <span style="color:#f92672">&amp;</span>symidx))) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
     
-    <span style="color:#09f;font-style:italic">//replace for .rel(a).plt
-</span><span style="color:#09f;font-style:italic"></span>    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> self<span style="color:#555">-&gt;</span>relplt)
+    <span style="color:#75715e">//replace for .rel(a).plt
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> self<span style="color:#f92672">-&gt;</span>relplt)
     {
-        xh_elf_plain_reloc_iterator_init(<span style="color:#555">&amp;</span>plain_iter, self<span style="color:#555">-&gt;</span>relplt, self<span style="color:#555">-&gt;</span>relplt_sz, self<span style="color:#555">-&gt;</span>is_use_rela);
-        <span style="color:#069;font-weight:bold">while</span>(<span style="color:#366">NULL</span> <span style="color:#555">!=</span> (rel_common <span style="color:#555">=</span> xh_elf_plain_reloc_iterator_next(<span style="color:#555">&amp;</span>plain_iter)))
+        xh_elf_plain_reloc_iterator_init(<span style="color:#f92672">&amp;</span>plain_iter, self<span style="color:#f92672">-&gt;</span>relplt, self<span style="color:#f92672">-&gt;</span>relplt_sz, self<span style="color:#f92672">-&gt;</span>is_use_rela);
+        <span style="color:#66d9ef">while</span>(NULL <span style="color:#f92672">!=</span> (rel_common <span style="color:#f92672">=</span> xh_elf_plain_reloc_iterator_next(<span style="color:#f92672">&amp;</span>plain_iter)))
         {
-            <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> (r <span style="color:#555">=</span> xh_elf_find_and_replace_func(self,
-                                                      (self<span style="color:#555">-&gt;</span>is_use_rela <span style="color:#555">?</span> <span style="color:#c30">&#34;.rela.plt&#34;</span> <span style="color:#555">:</span> <span style="color:#c30">&#34;.rel.plt&#34;</span>), <span style="color:#f60">1</span>,
+            <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> (r <span style="color:#f92672">=</span> xh_elf_find_and_replace_func(self,
+                                                      (self<span style="color:#f92672">-&gt;</span>is_use_rela <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;.rela.plt&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;.rel.plt&#34;</span>), <span style="color:#ae81ff">1</span>,
                                                       symbol, new_func, old_func,
-                                                      symidx, rel_common, <span style="color:#555">&amp;</span>found))) <span style="color:#069;font-weight:bold">return</span> r;
-            <span style="color:#069;font-weight:bold">if</span>(found) <span style="color:#069;font-weight:bold">break</span>;
+                                                      symidx, rel_common, <span style="color:#f92672">&amp;</span>found))) <span style="color:#66d9ef">return</span> r;
+            <span style="color:#66d9ef">if</span>(found) <span style="color:#66d9ef">break</span>;
         }
     }</code></pre></div>
 <h4 id="xh-elf-find-symidx-by-name">xh_elf_find_symidx_by_name</h4>
 
 <p>其中: 寻找symidx, 遍历symtab,</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#069;font-weight:bold">static</span> <span style="color:#078;font-weight:bold">int</span> <span style="color:#c0f">xh_elf_find_symidx_by_name</span>(xh_elf_t <span style="color:#555">*</span>self, <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>symbol, uint32_t <span style="color:#555">*</span>symidx)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">xh_elf_find_symidx_by_name</span>(xh_elf_t <span style="color:#f92672">*</span>self, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>symbol, uint32_t <span style="color:#f92672">*</span>symidx)
 {
-    <span style="color:#069;font-weight:bold">if</span>(self<span style="color:#555">-&gt;</span>is_use_gnu_hash)
-        <span style="color:#069;font-weight:bold">return</span> xh_elf_gnu_hash_lookup(self, symbol, symidx);
-    <span style="color:#069;font-weight:bold">else</span>
-        <span style="color:#069;font-weight:bold">return</span> xh_elf_hash_lookup(self, symbol, symidx);
+    <span style="color:#66d9ef">if</span>(self<span style="color:#f92672">-&gt;</span>is_use_gnu_hash)
+        <span style="color:#66d9ef">return</span> xh_elf_gnu_hash_lookup(self, symbol, symidx);
+    <span style="color:#66d9ef">else</span>
+        <span style="color:#66d9ef">return</span> xh_elf_hash_lookup(self, symbol, symidx);
 }</code></pre></div>
 <h4 id="xh-elf-find-and-replace-func">xh_elf_find_and_replace_func</h4>
 
 <p>rel, rela表中存放这r_offset, 和symidx.</p>
 
 <p>真正替换的流程在<strong>xh_elf_find_and_replace_func</strong>.</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#069;font-weight:bold">static</span> <span style="color:#078;font-weight:bold">int</span> <span style="color:#c0f">xh_elf_find_and_replace_func</span>(xh_elf_t <span style="color:#555">*</span>self, <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>section,
-                                        <span style="color:#078;font-weight:bold">int</span> is_plt, <span style="color:#069;font-weight:bold">const</span> <span style="color:#078;font-weight:bold">char</span> <span style="color:#555">*</span>symbol,
-                                        <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">*</span>new_func, <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">**</span>old_func,
-                                        uint32_t symidx, <span style="color:#078;font-weight:bold">void</span> <span style="color:#555">*</span>rel_common,
-                                        <span style="color:#078;font-weight:bold">int</span> <span style="color:#555">*</span>found)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">xh_elf_find_and_replace_func</span>(xh_elf_t <span style="color:#f92672">*</span>self, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>section,
+                                        <span style="color:#66d9ef">int</span> is_plt, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>symbol,
+                                        <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>new_func, <span style="color:#66d9ef">void</span> <span style="color:#f92672">**</span>old_func,
+                                        uint32_t symidx, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>rel_common,
+                                        <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>found)
 {
-    ElfW(Rela)    <span style="color:#555">*</span>rela;
-    ElfW(Rel)     <span style="color:#555">*</span>rel;
+    ElfW(Rela)    <span style="color:#f92672">*</span>rela;
+    ElfW(Rel)     <span style="color:#f92672">*</span>rel;
     ElfW(Addr)     r_offset;
     size_t         r_info;
     size_t         r_sym;
     size_t         r_type;
     ElfW(Addr)     addr;
-    <span style="color:#078;font-weight:bold">int</span>            r;
+    <span style="color:#66d9ef">int</span>            r;
 
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">!=</span> found) <span style="color:#555">*</span>found <span style="color:#555">=</span> <span style="color:#f60">0</span>;
+    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">!=</span> found) <span style="color:#f92672">*</span>found <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
     
-    <span style="color:#069;font-weight:bold">if</span>(self<span style="color:#555">-&gt;</span>is_use_rela)
+    <span style="color:#66d9ef">if</span>(self<span style="color:#f92672">-&gt;</span>is_use_rela)
     {
-        rela <span style="color:#555">=</span> (ElfW(Rela) <span style="color:#555">*</span>)rel_common;
-        r_info <span style="color:#555">=</span> rela<span style="color:#555">-&gt;</span>r_info;
-        r_offset <span style="color:#555">=</span> rela<span style="color:#555">-&gt;</span>r_offset;
+        rela <span style="color:#f92672">=</span> (ElfW(Rela) <span style="color:#f92672">*</span>)rel_common;
+        r_info <span style="color:#f92672">=</span> rela<span style="color:#f92672">-&gt;</span>r_info;
+        r_offset <span style="color:#f92672">=</span> rela<span style="color:#f92672">-&gt;</span>r_offset;
     }
-    <span style="color:#069;font-weight:bold">else</span>
+    <span style="color:#66d9ef">else</span>
     {
-        rel <span style="color:#555">=</span> (ElfW(Rel) <span style="color:#555">*</span>)rel_common;
-        r_info <span style="color:#555">=</span> rel<span style="color:#555">-&gt;</span>r_info;
-        r_offset <span style="color:#555">=</span> rel<span style="color:#555">-&gt;</span>r_offset;
-    }
-
-    <span style="color:#09f;font-style:italic">//check sym
-</span><span style="color:#09f;font-style:italic"></span>    r_sym <span style="color:#555">=</span> XH_ELF_R_SYM(r_info);
-    <span style="color:#069;font-weight:bold">if</span>(r_sym <span style="color:#555">!=</span> symidx) <span style="color:#069;font-weight:bold">return</span> <span style="color:#f60">0</span>;
-
-    <span style="color:#09f;font-style:italic">//check type
-</span><span style="color:#09f;font-style:italic"></span>    r_type <span style="color:#555">=</span> XH_ELF_R_TYPE(r_info);
-    <span style="color:#069;font-weight:bold">if</span>(is_plt <span style="color:#555">&amp;&amp;</span> r_type <span style="color:#555">!=</span> XH_ELF_R_GENERIC_JUMP_SLOT) <span style="color:#069;font-weight:bold">return</span> <span style="color:#f60">0</span>;
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#555">!</span>is_plt <span style="color:#555">&amp;&amp;</span> (r_type <span style="color:#555">!=</span> XH_ELF_R_GENERIC_GLOB_DAT <span style="color:#555">&amp;&amp;</span> r_type <span style="color:#555">!=</span> XH_ELF_R_GENERIC_ABS)) <span style="color:#069;font-weight:bold">return</span> <span style="color:#f60">0</span>;
-
-    <span style="color:#09f;font-style:italic">//we found it
-</span><span style="color:#09f;font-style:italic"></span>    XH_LOG_INFO(<span style="color:#c30">&#34;found %s at %s offset: %p</span><span style="color:#c30;font-weight:bold">\n</span><span style="color:#c30">&#34;</span>, symbol, section, (<span style="color:#078;font-weight:bold">void</span> <span style="color:#555">*</span>)r_offset);
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#366">NULL</span> <span style="color:#555">!=</span> found) <span style="color:#555">*</span>found <span style="color:#555">=</span> <span style="color:#f60">1</span>;
-
-    <span style="color:#09f;font-style:italic">//do replace
-</span><span style="color:#09f;font-style:italic"></span>    addr <span style="color:#555">=</span> self<span style="color:#555">-&gt;</span>bias_addr <span style="color:#555">+</span> r_offset;
-    <span style="color:#069;font-weight:bold">if</span>(addr <span style="color:#555">&lt;</span> self<span style="color:#555">-&gt;</span>base_addr) <span style="color:#069;font-weight:bold">return</span> XH_ERRNO_FORMAT;
-    <span style="color:#069;font-weight:bold">if</span>(<span style="color:#f60">0</span> <span style="color:#555">!=</span> (r <span style="color:#555">=</span> xh_elf_replace_function(self, symbol, addr, new_func, old_func)))
-    {
-        XH_LOG_ERROR(<span style="color:#c30">&#34;replace function failed: %s at %s</span><span style="color:#c30;font-weight:bold">\n</span><span style="color:#c30">&#34;</span>, symbol, section);
-        <span style="color:#069;font-weight:bold">return</span> r;
+        rel <span style="color:#f92672">=</span> (ElfW(Rel) <span style="color:#f92672">*</span>)rel_common;
+        r_info <span style="color:#f92672">=</span> rel<span style="color:#f92672">-&gt;</span>r_info;
+        r_offset <span style="color:#f92672">=</span> rel<span style="color:#f92672">-&gt;</span>r_offset;
     }
 
-    <span style="color:#069;font-weight:bold">return</span> <span style="color:#f60">0</span>;
+    <span style="color:#75715e">//check sym
+</span><span style="color:#75715e"></span>    r_sym <span style="color:#f92672">=</span> XH_ELF_R_SYM(r_info);
+    <span style="color:#66d9ef">if</span>(r_sym <span style="color:#f92672">!=</span> symidx) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+
+    <span style="color:#75715e">//check type
+</span><span style="color:#75715e"></span>    r_type <span style="color:#f92672">=</span> XH_ELF_R_TYPE(r_info);
+    <span style="color:#66d9ef">if</span>(is_plt <span style="color:#f92672">&amp;&amp;</span> r_type <span style="color:#f92672">!=</span> XH_ELF_R_GENERIC_JUMP_SLOT) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+    <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span>is_plt <span style="color:#f92672">&amp;&amp;</span> (r_type <span style="color:#f92672">!=</span> XH_ELF_R_GENERIC_GLOB_DAT <span style="color:#f92672">&amp;&amp;</span> r_type <span style="color:#f92672">!=</span> XH_ELF_R_GENERIC_ABS)) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+
+    <span style="color:#75715e">//we found it
+</span><span style="color:#75715e"></span>    XH_LOG_INFO(<span style="color:#e6db74">&#34;found %s at %s offset: %p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, symbol, section, (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)r_offset);
+    <span style="color:#66d9ef">if</span>(NULL <span style="color:#f92672">!=</span> found) <span style="color:#f92672">*</span>found <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+
+    <span style="color:#75715e">//do replace
+</span><span style="color:#75715e"></span>    addr <span style="color:#f92672">=</span> self<span style="color:#f92672">-&gt;</span>bias_addr <span style="color:#f92672">+</span> r_offset;
+    <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">&lt;</span> self<span style="color:#f92672">-&gt;</span>base_addr) <span style="color:#66d9ef">return</span> XH_ERRNO_FORMAT;
+    <span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">!=</span> (r <span style="color:#f92672">=</span> xh_elf_replace_function(self, symbol, addr, new_func, old_func)))
+    {
+        XH_LOG_ERROR(<span style="color:#e6db74">&#34;replace function failed: %s at %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, symbol, section);
+        <span style="color:#66d9ef">return</span> r;
+    }
+
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }</code></pre></div>
     </div>
 
@@ -809,16 +810,16 @@ xh_core_hook_impl    <span style="color:#555">-&gt;</span> xh_elf_init
     
 <div class="post-copyright">
   <p class="copyright-item">
-    <span class="item-title">文章作者</span>
+    <span class="item-title">Author</span>
     <span class="item-content">L0phTg</span>
   </p>
   <p class="copyright-item">
-    <span class="item-title">上次更新</span>
+    <span class="item-title">LastMod</span>
     <span class="item-content">2019-04-03</span>
   </p>
   
   <p class="copyright-item">
-    <span class="item-title">许可协议</span>
+    <span class="item-title">License</span>
     <span class="item-content">原创文章，如需转载请注明文章作者和出处。谢谢！</span>
   </p>
 </div>
@@ -838,12 +839,12 @@ xh_core_hook_impl    <span style="color:#555">-&gt;</span> xh_elf_init
           <a class="prev" href="/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">Hugo搭建博客</span>
-            <span class="prev-text nav-mobile">上一篇</span>
+            <span class="prev-text nav-mobile">Prev</span>
           </a>
         
           <a class="next" href="/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/">
             <span class="next-text nav-default">InlineHook学习分析</span>
-            <span class="prev-text nav-mobile">下一篇</span>
+            <span class="prev-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>

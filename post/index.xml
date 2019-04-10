@@ -5,12 +5,24 @@
     <link>https://l0phtg.github.io/post/</link>
     <description>Recent content in Posts on L0phTg&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language>
+    <language>en</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Sat, 06 Apr 2019 18:00:53 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 10 Apr 2019 10:17:08 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Kaleidoscope: Tutorial Introduction and Lexer</title>
+      <link>https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/</link>
+      <pubDate>Wed, 10 Apr 2019 10:17:08 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/</guid>
+      <description>&lt;p&gt;translate from &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl01.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl01.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本tutorial将会介绍一个简单语言的实现.
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Dominator(graph Theory)</title>
@@ -34,13 +46,13 @@
       <description>&lt;p&gt;在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!&lt;/p&gt;
 
 &lt;p&gt;所以你输入了下面的几行命令&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;#hahaha
-&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove python
-&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove python3
-&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove pip
-&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt remove pip3
-&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;#一定删除的不彻底, 我要彻底删除
-&lt;/span&gt;&lt;span style=&#34;color:#09f;font-style:italic&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#033&#34;&gt;$sudo&lt;/span&gt; apt autoremove -f 
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#hahaha
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;$sudo apt remove python
+$sudo apt remove python3
+$sudo apt remove pip
+$sudo apt remove pip3
+&lt;span style=&#34;color:#75715e&#34;&gt;#一定删除的不彻底, 我要彻底删除
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;$sudo apt autoremove -f 
 看到要删除600+M, 毅然决然的按了 y.&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&amp;hellip;&lt;/p&gt;
 
@@ -85,7 +97,7 @@
       <description>&lt;p&gt;记录自己Pixel1刷机流程.&lt;/p&gt;
 
 &lt;p&gt;相关网站&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;Requirements
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;Requirements
 https://source.android.google.cn/setup/build/requirements.html#binaries
 
 https://source.android.com/setup/build/running

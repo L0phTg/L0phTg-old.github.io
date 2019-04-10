@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-cn" itemscope itemtype="http://schema.org/WebPage">
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -115,6 +115,7 @@
   }
 });
 </script>
+
 
 
 
@@ -348,8 +349,8 @@
             <a href="https://l0phtg.github.io/categories/life/"> life </a>
             
           </div>
-        <span class="more-meta"> 约 1789 字 </span>
-          <span class="more-meta"> 预计阅读 4 分钟 </span>
+        <span class="more-meta"> 1789 words </span>
+          <span class="more-meta"> 4 min read </span>
 
         
         
@@ -362,7 +363,7 @@
     
     
 <div class="post-toc" id="post-toc">
-  <h2 class="post-toc-title">文章目录</h2>
+  <h2 class="post-toc-title">Table of Contents</h2>
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
@@ -411,7 +412,7 @@
 <p><a href="https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/">https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/</a></p>
 
 <h3 id="我的插件">我的插件</h3>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">plugins=(git autojump web-search last-working-dir zsh-syntax-highlighting colored-man-pages extract zsh-proxychains-ng adb pip npm python)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">plugins=(git autojump web-search last-working-dir zsh-syntax-highlighting colored-man-pages extract zsh-proxychains-ng adb pip npm python)
 #plugins=(git autojump last-working-dir adb pip npm python)</pre></div>
 <h2 id="vim配置">vim配置</h2>
 
@@ -444,19 +445,19 @@
 </ol>
 
 <p>a. 当你使用<code>vim</code>时.</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim</pre></div>
 <p>b. 当你使用`neovim时.</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim</pre></div>
 <ol>
 <li>使用</li>
 </ol>
 
 <p>a. 可以使用git链接</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;https://github.com/junegunn/vim-github-dashboard.git&#39;</pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;https://github.com/junegunn/vim-github-dashboard.git&#39;</pre></div>
 <p>b. 使用git<code>UserName/Project</code>.</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;junegunn/vim-easy-align&#39;</pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;junegunn/vim-easy-align&#39;</pre></div>
 <p>更多可以参考文档.</p>
 
 <ol>
@@ -470,7 +471,7 @@
 <ol>
 <li>例子:(我的部分配置)</li>
 </ol>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 
 Plug &#39;NLKNguyen/papercolor-theme&#39;
 Plug &#39;vim-airline/vim-airline&#39;
@@ -502,11 +503,11 @@ call plug#end()</pre></div>
 <ol>
 <li>安装<code>ctags</code></li>
 </ol>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$sudo apt install ctags</pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$sudo apt install ctags</pre></div>
 <ol>
 <li>vim中配置<code>tagbar</code></li>
 </ol>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 Plug &#39;majutsushi/tagbar&#39;
 call plug#end()
 
@@ -518,7 +519,7 @@ nnoremap &lt;F2&gt; :TagbarToggle &lt;CR&gt;</pre></div>
 <h4 id="airline-主题"><code>airline</code> 主题</h4>
 
 <p><a href="https://github.com/vim-airline/vim-airline">https://github.com/vim-airline/vim-airline</a></p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 
 Plug &#39;NLKNguyen/papercolor-theme&#39;           // 这是我自己的主题
 Plug &#39;vim-airline/vim-airline&#39;
@@ -528,14 +529,14 @@ call plug#end()
 
 let g:airline_theme=&#39;papercolor&#39;</pre></div>
 <h4 id="vimfilter-文件树"><code>vimfilter</code> 文件树</h4>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 Plug &#39;Shougo/vimfiler&#39;
 call plug#end()
 
 &#34;我设置的打开vimfilter的对应快捷键为F3
 nnoremap &lt;F3&gt; :VimFilerExplorer -split -direction=rightbelow &lt;CR&gt;          </pre></div>
 <h4 id="vim-bufabline-buffer窗口"><code>vim-bufabline</code> buffer窗口</h4>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 Plug &#39;ap/vim-buftabline&#39;
 call plug#end()
 
@@ -557,26 +558,26 @@ nmap &lt;leader&gt;0 &lt;Plug&gt;BufTabLine.Go(10)</pre></div>
 <ol>
 <li>下载安装fzf</li>
 </ol>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 ~/.fzf/install</pre></div>
 <ol>
 <li>vim 中配置fzf</li>
 </ol>
 
 <p>插件使用<code>vim-plug</code></p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;~/.fzf&#39;</pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;~/.fzf&#39;</pre></div>
 <ol>
 <li>ag安装</li>
 </ol>
 
 <p>ubuntu</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$sudo apt-get install silversearcher-ag</pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$sudo apt-get install silversearcher-ag</pre></div>
 <ol>
 <li>快捷键映射</li>
 </ol>
 
 <p>在我的vim中, <leader>映射为了<code>space</code></p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">noremap &lt;leader&gt;sff :Files&lt;CR&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">noremap &lt;leader&gt;sff :Files&lt;CR&gt;
 noremap &lt;leader&gt;ssf :Lines&lt;CR&gt;
 noremap &lt;leader&gt;sbf :BLines&lt;CR&gt; 
 noremap &lt;leader&gt;ss  :Ag&lt;CR&gt;
@@ -600,7 +601,7 @@ noremap &lt;leader&gt;stag :BTags&lt;CR&gt;</pre></div>
 <img src="https://l0phtg.github.io/customConfig/searchFile.png" alt="当前目录的文件搜索" /></p>
 
 <h4 id="括号补全-raimondi-delimitmate">括号补全&rsquo;Raimondi/delimitMate&rsquo;</h4>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 Plug &#39;Raimondi/delimitMate&#39;       &#34; 补全, \&#34; \( 等.
 call plug#end()</pre></div>
 <h4 id="c-c-llvm头文件补全-neoinclude">c/c++/llvm头文件补全 neoinclude</h4>
@@ -608,7 +609,7 @@ call plug#end()</pre></div>
 <p>头文件补全需要设置头文件path, (<strong>注意, 是vim配置文件中的path, 而不是系统环境变量的path</strong>)</p>
 
 <p>我使用的是nvim, 配置文件是~/config/nvim/init.vim</p>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&#34; ~/.config/nvim/init.vim
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&#34; ~/.config/nvim/init.vim
 
 set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
 
@@ -616,7 +617,7 @@ call plug#begin()
 Plug &#39;Shougo/neoinclude.vim&#39;
 call plug#end()</pre></div>
 <h3 id="我的配置">我的配置</h3>
-<div class="highlight"><pre style="background-color:#f0f3f3;-moz-tab-size:4;-o-tab-size:4;tab-size:4">set nu
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">set nu
 
 let mapleader= &#39; &#39;
 let g:mapleader = &#39; &#39;
@@ -816,16 +817,16 @@ autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtab
     
 <div class="post-copyright">
   <p class="copyright-item">
-    <span class="item-title">文章作者</span>
+    <span class="item-title">Author</span>
     <span class="item-content">L0phTg</span>
   </p>
   <p class="copyright-item">
-    <span class="item-title">上次更新</span>
+    <span class="item-title">LastMod</span>
     <span class="item-content">2019-04-03</span>
   </p>
   
   <p class="copyright-item">
-    <span class="item-title">许可协议</span>
+    <span class="item-title">License</span>
     <span class="item-content">原创文章，如需转载请注明文章作者和出处。谢谢！</span>
   </p>
 </div>
@@ -842,12 +843,12 @@ autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtab
           <a class="prev" href="/post/%E6%9C%AC%E7%A7%91%E5%BA%94%E5%B1%8A%E7%94%9F%E5%AE%89%E5%85%A8%E5%B2%97%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">本科应届生安全岗面试总结</span>
-            <span class="prev-text nav-mobile">上一篇</span>
+            <span class="prev-text nav-mobile">Prev</span>
           </a>
         
           <a class="next" href="/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/">
             <span class="next-text nav-default">Pixel1 源码编译</span>
-            <span class="prev-text nav-mobile">下一篇</span>
+            <span class="prev-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
       </nav>

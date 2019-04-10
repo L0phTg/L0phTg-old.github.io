@@ -5,7 +5,7 @@
     <link>https://l0phtg.github.io/categories/</link>
     <description>Recent content in Categories on L0phTg&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language>
+    <language>en</language>
     <copyright>l0phtg</copyright>
     <lastBuildDate>Tue, 02 Oct 2018 15:38:56 +0800</lastBuildDate>
     
@@ -45,6 +45,15 @@
       <pubDate>Tue, 02 Apr 2019 21:12:17 +0800</pubDate>
       
       <guid>https://l0phtg.github.io/categories/life/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Llvm</title>
+      <link>https://l0phtg.github.io/categories/llvm/</link>
+      <pubDate>Wed, 10 Apr 2019 10:17:08 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/categories/llvm/</guid>
       <description></description>
     </item>
     

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Llvm on L0phTg&#39;s Blog</title>
+    <link>https://l0phtg.github.io/tags/llvm/</link>
+    <description>Recent content in Llvm on L0phTg&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>l0phtg</copyright>
+    <lastBuildDate>Wed, 10 Apr 2019 10:17:08 +0800</lastBuildDate>
+    
+	<atom:link href="https://l0phtg.github.io/tags/llvm/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Kaleidoscope: Tutorial Introduction and Lexer</title>
+      <link>https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/</link>
+      <pubDate>Wed, 10 Apr 2019 10:17:08 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/</guid>
+      <description>&lt;p&gt;translate from &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl01.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl01.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本tutorial将会介绍一个简单语言的实现.
+&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
