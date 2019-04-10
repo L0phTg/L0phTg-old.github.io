@@ -58,6 +58,8 @@
 
 
 
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
 
 <meta property="og:title" content="我的zsh和vim配置" />
 <meta property="og:description" content="总结了一下自己的vim配置和zsh配置
@@ -78,7 +80,7 @@
 
 <meta itemprop="datePublished" content="2018-10-24T00:14:31&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-24T00:14:31&#43;08:00" />
-<meta itemprop="wordCount" content="1789">
+<meta itemprop="wordCount" content="1766">
 
 
 
@@ -115,8 +117,6 @@
   }
 });
 </script>
-
-
 
 
 </head>
@@ -250,7 +250,7 @@
               <a href="/categories/life/"> life </a>
             
           </div>
-        <span class="more-meta"> 约 1789 字 </span>
+        <span class="more-meta"> 约 1766 字 </span>
         <span class="more-meta"> 预计阅读 4 分钟 </span>
       </div>
     </header>
@@ -307,8 +307,11 @@
 <p><a href="https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/">https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/</a></p>
 
 <h3 id="我的插件">我的插件</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">plugins=(git autojump web-search last-working-dir zsh-syntax-highlighting colored-man-pages extract zsh-proxychains-ng adb pip npm python)
-#plugins=(git autojump last-working-dir adb pip npm python)</pre></div>
+
+<pre><code>plugins=(git autojump web-search last-working-dir zsh-syntax-highlighting colored-man-pages extract zsh-proxychains-ng adb pip npm python)
+#plugins=(git autojump last-working-dir adb pip npm python)
+</code></pre>
+
 <h2 id="vim配置">vim配置</h2>
 
 <ol>
@@ -340,19 +343,31 @@
 </ol>
 
 <p>a. 当你使用<code>vim</code>时.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim</pre></div>
+
+<pre><code>curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+</code></pre>
+
 <p>b. 当你使用`neovim时.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim</pre></div>
+
+<pre><code>curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+</code></pre>
+
 <ol>
 <li>使用</li>
 </ol>
 
 <p>a. 可以使用git链接</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;https://github.com/junegunn/vim-github-dashboard.git&#39;</pre></div>
+
+<pre><code>Plug 'https://github.com/junegunn/vim-github-dashboard.git'
+</code></pre>
+
 <p>b. 使用git<code>UserName/Project</code>.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;junegunn/vim-easy-align&#39;</pre></div>
+
+<pre><code>Plug 'junegunn/vim-easy-align'
+</code></pre>
+
 <p>更多可以参考文档.</p>
 
 <ol>
@@ -366,31 +381,34 @@
 <ol>
 <li>例子:(我的部分配置)</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 
-Plug &#39;NLKNguyen/papercolor-theme&#39;
-Plug &#39;vim-airline/vim-airline&#39;
-Plug &#39;vim-airline/vim-airline-themes&#39;
-Plug &#39;Shougo/denite.nvim&#39;
-Plug &#39;Shougo/unite.vim&#39;
-Plug &#39;Shougo/vimfiler&#39;
-Plug &#39;majutsushi/tagbar&#39;
-Plug &#39;ap/vim-buftabline&#39;
-Plug &#39;Shougo/deoplete.nvim&#39;, { &#39;do&#39;: &#39;:UpdateRemotePlugins&#39; }
-Plug &#39;rip-rip/clang_complete&#39;
-Plug &#39;SirVer/ultisnips&#39;           &#34; 代码片段补全  模板补全
-Plug &#39;honza/vim-snippets&#39;
-Plug &#39;zchee/deoplete-jedi&#39;
+<pre><code>call plug#begin()
 
-Plug &#39;scrooloose/nerdcommenter&#39;   &#34; 自动注释   &lt;leader&gt;cc  注释当先选中文本  
-Plug &#39;ctrlpvim/ctrlp.vim&#39;
+Plug 'NLKNguyen/papercolor-theme'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'Shougo/denite.nvim'
+Plug 'Shougo/unite.vim'
+Plug 'Shougo/vimfiler'
+Plug 'majutsushi/tagbar'
+Plug 'ap/vim-buftabline'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'rip-rip/clang_complete'
+Plug 'SirVer/ultisnips'           &quot; 代码片段补全  模板补全
+Plug 'honza/vim-snippets'
+Plug 'zchee/deoplete-jedi'
 
-Plug &#39;lvht/tagbar-markdown&#39;       &#34; markdown  tagbar显示
+Plug 'scrooloose/nerdcommenter'   &quot; 自动注释   &lt;leader&gt;cc  注释当先选中文本  
+Plug 'ctrlpvim/ctrlp.vim'
 
-Plug &#39;~/.fzf&#39;
-Plug &#39;junegunn/fzf.vim&#39;
+Plug 'lvht/tagbar-markdown'       &quot; markdown  tagbar显示
 
-call plug#end()</pre></div>
+Plug '~/.fzf'
+Plug 'junegunn/fzf.vim'
+
+call plug#end()
+</code></pre>
+
 <h4 id="tagbar"><code>tagbar</code></h4>
 
 <p>README: <a href="https://github.com/majutsushi/tagbar">https://github.com/majutsushi/tagbar</a>.</p>
@@ -398,44 +416,57 @@ call plug#end()</pre></div>
 <ol>
 <li>安装<code>ctags</code></li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$sudo apt install ctags</pre></div>
+
+<pre><code>$sudo apt install ctags
+</code></pre>
+
 <ol>
 <li>vim中配置<code>tagbar</code></li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
-Plug &#39;majutsushi/tagbar&#39;
+
+<pre><code>call plug#begin()
+Plug 'majutsushi/tagbar'
 call plug#end()
 
 let g:tagbar_width=30
 let g:tagbar_left=1
 
-&#34;映射F2快捷键为打开tagbar
-nnoremap &lt;F2&gt; :TagbarToggle &lt;CR&gt;</pre></div>
+&quot;映射F2快捷键为打开tagbar
+nnoremap &lt;F2&gt; :TagbarToggle &lt;CR&gt;
+</code></pre>
+
 <h4 id="airline-主题"><code>airline</code> 主题</h4>
 
 <p><a href="https://github.com/vim-airline/vim-airline">https://github.com/vim-airline/vim-airline</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
 
-Plug &#39;NLKNguyen/papercolor-theme&#39;           // 这是我自己的主题
-Plug &#39;vim-airline/vim-airline&#39;
-Plug &#39;vim-airline/vim-airline-themes&#39;
+<pre><code>call plug#begin()
+
+Plug 'NLKNguyen/papercolor-theme'           // 这是我自己的主题
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
 call plug#end()
 
-let g:airline_theme=&#39;papercolor&#39;</pre></div>
+let g:airline_theme='papercolor'
+</code></pre>
+
 <h4 id="vimfilter-文件树"><code>vimfilter</code> 文件树</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
-Plug &#39;Shougo/vimfiler&#39;
+
+<pre><code>call plug#begin()
+Plug 'Shougo/vimfiler'
 call plug#end()
 
-&#34;我设置的打开vimfilter的对应快捷键为F3
-nnoremap &lt;F3&gt; :VimFilerExplorer -split -direction=rightbelow &lt;CR&gt;          </pre></div>
+&quot;我设置的打开vimfilter的对应快捷键为F3
+nnoremap &lt;F3&gt; :VimFilerExplorer -split -direction=rightbelow &lt;CR&gt;          
+</code></pre>
+
 <h4 id="vim-bufabline-buffer窗口"><code>vim-bufabline</code> buffer窗口</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
-Plug &#39;ap/vim-buftabline&#39;
+
+<pre><code>call plug#begin()
+Plug 'ap/vim-buftabline'
 call plug#end()
 
-&#34;映射对应的快捷键为打开对应的buffer
+&quot;映射对应的快捷键为打开对应的buffer
 nmap &lt;leader&gt;1 &lt;Plug&gt;BufTabLine.Go(1)
 nmap &lt;leader&gt;2 &lt;Plug&gt;BufTabLine.Go(2)
 nmap &lt;leader&gt;3 &lt;Plug&gt;BufTabLine.Go(3)
@@ -445,7 +476,10 @@ nmap &lt;leader&gt;6 &lt;Plug&gt;BufTabLine.Go(6)
 nmap &lt;leader&gt;7 &lt;Plug&gt;BufTabLine.Go(7)
 nmap &lt;leader&gt;8 &lt;Plug&gt;BufTabLine.Go(8)
 nmap &lt;leader&gt;9 &lt;Plug&gt;BufTabLine.Go(9)
-nmap &lt;leader&gt;0 &lt;Plug&gt;BufTabLine.Go(10)</pre></div>
+nmap &lt;leader&gt;0 &lt;Plug&gt;BufTabLine.Go(10)
+
+</code></pre>
+
 <h4 id="fzf-和-ag">fzf 和 ag</h4>
 
 <p><img src="https://l0phtg.github.io/customConfig/fileContentSearch.png" alt="目录下的全部文件内容搜索" /></p>
@@ -453,26 +487,36 @@ nmap &lt;leader&gt;0 &lt;Plug&gt;BufTabLine.Go(10)</pre></div>
 <ol>
 <li>下载安装fzf</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install</pre></div>
+
+<pre><code>git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install
+</code></pre>
+
 <ol>
 <li>vim 中配置fzf</li>
 </ol>
 
 <p>插件使用<code>vim-plug</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Plug &#39;~/.fzf&#39;</pre></div>
+
+<pre><code>Plug '~/.fzf'
+</code></pre>
+
 <ol>
 <li>ag安装</li>
 </ol>
 
 <p>ubuntu</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$sudo apt-get install silversearcher-ag</pre></div>
+
+<pre><code>$sudo apt-get install silversearcher-ag
+</code></pre>
+
 <ol>
 <li>快捷键映射</li>
 </ol>
 
 <p>在我的vim中, <leader>映射为了<code>space</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">noremap &lt;leader&gt;sff :Files&lt;CR&gt;
+
+<pre><code>noremap &lt;leader&gt;sff :Files&lt;CR&gt;
 noremap &lt;leader&gt;ssf :Lines&lt;CR&gt;
 noremap &lt;leader&gt;sbf :BLines&lt;CR&gt; 
 noremap &lt;leader&gt;ss  :Ag&lt;CR&gt;
@@ -481,7 +525,9 @@ noremap &lt;leader&gt;gls :GFiles&lt;CR&gt;
 noremap &lt;leader&gt;gss :GFiles?&lt;CR&gt;   
 
 noremap &lt;leader&gt;btag :Tags&lt;CR&gt;
-noremap &lt;leader&gt;stag :BTags&lt;CR&gt;</pre></div>
+noremap &lt;leader&gt;stag :BTags&lt;CR&gt;
+</code></pre>
+
 <ol>
 <li>使用</li>
 </ol>
@@ -496,26 +542,33 @@ noremap &lt;leader&gt;stag :BTags&lt;CR&gt;</pre></div>
 <img src="https://l0phtg.github.io/customConfig/searchFile.png" alt="当前目录的文件搜索" /></p>
 
 <h4 id="括号补全-raimondi-delimitmate">括号补全&rsquo;Raimondi/delimitMate&rsquo;</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">call plug#begin()
-Plug &#39;Raimondi/delimitMate&#39;       &#34; 补全, \&#34; \( 等.
-call plug#end()</pre></div>
+
+<pre><code>call plug#begin()
+Plug 'Raimondi/delimitMate'       &quot; 补全, \&quot; \( 等.
+call plug#end()
+</code></pre>
+
 <h4 id="c-c-llvm头文件补全-neoinclude">c/c++/llvm头文件补全 neoinclude</h4>
 
 <p>头文件补全需要设置头文件path, (<strong>注意, 是vim配置文件中的path, 而不是系统环境变量的path</strong>)</p>
 
 <p>我使用的是nvim, 配置文件是~/config/nvim/init.vim</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">&#34; ~/.config/nvim/init.vim
+
+<pre><code>&quot; ~/.config/nvim/init.vim
 
 set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
 
 call plug#begin()
-Plug &#39;Shougo/neoinclude.vim&#39;
-call plug#end()</pre></div>
-<h3 id="我的配置">我的配置</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">set nu
+Plug 'Shougo/neoinclude.vim'
+call plug#end()
+</code></pre>
 
-let mapleader= &#39; &#39;
-let g:mapleader = &#39; &#39;
+<h3 id="我的配置">我的配置</h3>
+
+<pre><code>set nu
+
+let mapleader= ' '
+let g:mapleader = ' '
 
 
 syntax on
@@ -528,26 +581,26 @@ filetype plugin on
 
 filetype plugin indent on
 
-&#34; 标签页
+&quot; 标签页
 set tabpagemax=20
 set showtabline=2
 
-&#34; 设置文件浏览器目录为当前目录
+&quot; 设置文件浏览器目录为当前目录
 set bsdir=buffer
 
 
-&#34; 突出显示当前行
+&quot; 突出显示当前行
 set cursorline
 
-&#34; 突出显示当前列
-&#34; set cursorcolumn
+&quot; 突出显示当前列
+&quot; set cursorcolumn
 
-&#34; 括号配对情况, 跳转并高亮匹配的括号
+&quot; 括号配对情况, 跳转并高亮匹配的括号
 set showmatch
-&#34;
+&quot;
 set matchtime=2
 
-&#34; 相对行号: 行号变成相对
+&quot; 相对行号: 行号变成相对
 set relativenumber number
 
 set encoding=utf-8
@@ -555,64 +608,64 @@ set encoding=utf-8
 set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
 set helplang=cn
 
-set rtp+=~/.fzf                  &#34; fzf 
+set rtp+=~/.fzf                  &quot; fzf 
 
 set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
 
 
 
-&#34;plug插件
+&quot;plug插件
 
 call plug#begin()
 
-Plug &#39;NLKNguyen/papercolor-theme&#39;
-Plug &#39;vim-airline/vim-airline&#39;
-Plug &#39;vim-airline/vim-airline-themes&#39;
+Plug 'NLKNguyen/papercolor-theme'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
-Plug &#39;Shougo/denite.nvim&#39;
-Plug &#39;Shougo/unite.vim&#39;
-Plug &#39;Shougo/vimfiler&#39;
-
-
-Plug &#39;Shougo/deoplete.nvim&#39;, { &#39;do&#39;: &#39;:UpdateRemotePlugins&#39; }
-
-Plug &#39;Shougo/neoinclude.vim&#39;
-
-Plug &#39;majutsushi/tagbar&#39;
-&#34;&#34;Plug &#39;https://github.com/fholgado/minibufexpl.vim.git&#39;
-Plug &#39;ap/vim-buftabline&#39;
+Plug 'Shougo/denite.nvim'
+Plug 'Shougo/unite.vim'
+Plug 'Shougo/vimfiler'
 
 
-Plug &#39;justmao945/vim-clang&#39;
-&#34;Plug &#39;Valloric/YouCompleteMe&#39;     &#34; YCM补全
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 
-&#34;Plug &#39;SirVer/ultisnips&#39;           &#34; 代码片段补全  模板补全
+Plug 'Shougo/neoinclude.vim'
 
-&#34;Plug &#39;zchee/deoplete-jedi&#39;       &#34; Python补全
+Plug 'majutsushi/tagbar'
+&quot;&quot;Plug 'https://github.com/fholgado/minibufexpl.vim.git'
+Plug 'ap/vim-buftabline'
 
-Plug &#39;Raimondi/delimitMate&#39;       &#34; 不全, \&#34; \( 等.
 
-Plug &#39;scrooloose/nerdcommenter&#39;   &#34; 自动注释   &lt;leader&gt;cc  注释当先选中文本  &lt;leader&gt;cu 取消选中文本块的注释
+Plug 'justmao945/vim-clang'
+&quot;Plug 'Valloric/YouCompleteMe'     &quot; YCM补全
 
-Plug &#39;lvht/tagbar-markdown&#39;       &#34; markdown  tagbar显示
+&quot;Plug 'SirVer/ultisnips'           &quot; 代码片段补全  模板补全
 
-Plug &#39;~/.fzf&#39;
-Plug &#39;junegunn/fzf.vim&#39;
+&quot;Plug 'zchee/deoplete-jedi'       &quot; Python补全
+
+Plug 'Raimondi/delimitMate'       &quot; 不全, \&quot; \( 等.
+
+Plug 'scrooloose/nerdcommenter'   &quot; 自动注释   &lt;leader&gt;cc  注释当先选中文本  &lt;leader&gt;cu 取消选中文本块的注释
+
+Plug 'lvht/tagbar-markdown'       &quot; markdown  tagbar显示
+
+Plug '~/.fzf'
+Plug 'junegunn/fzf.vim'
 
 call plug#end()
 
 set background=dark
 colorscheme PaperColor
 
-let g:airline_theme=&#39;papercolor&#39;
+let g:airline_theme='papercolor'
 
 
-&#34; 设置tagbar
+&quot; 设置tagbar
 let g:tagbar_width=30
 let g:tagbar_left=1
 
 
-&#34; 配置fzf  和 ag
+&quot; 配置fzf  和 ag
 noremap &lt;leader&gt;sff :Files&lt;CR&gt;
 noremap &lt;leader&gt;ssf :Lines&lt;CR&gt;
 noremap &lt;leader&gt;sbf :BLines&lt;CR&gt; 
@@ -625,7 +678,7 @@ noremap &lt;leader&gt;btag :Tags&lt;CR&gt;
 noremap &lt;leader&gt;stag :BTags&lt;CR&gt;
 
 
-&#34; 配置vimbuftabline
+&quot; 配置vimbuftabline
 let g:buftabline_numbers=2
 
 noremap &lt;leader&gt;&lt;Tab&gt; :bnext&lt;CR&gt;
@@ -641,27 +694,27 @@ nmap &lt;leader&gt;8 &lt;Plug&gt;BufTabLine.Go(8)
 nmap &lt;leader&gt;9 &lt;Plug&gt;BufTabLine.Go(9)
 nmap &lt;leader&gt;0 &lt;Plug&gt;BufTabLine.Go(10)
 
-&#34; 设置 deoplete.nvim
+&quot; 设置 deoplete.nvim
 let g:deoplete#enable_at_startup = 1
 
-&#34;设置Tab为补全
-inoremap &lt;expr&gt; &lt;Tab&gt; pumvisible() ? &#34;\&lt;C-n&gt;&#34; : &#34;\&lt;Tab&gt;&#34;                
-&#34;inoremap &lt;expr&gt; &lt;S-Tab&gt; pumvisible() ? &#34;\&lt;C-p&gt;&#34; : &#34;\&lt;S-Tab&gt;&#34;
-&#34;inoremap &lt;expr&gt; &lt;cr&gt; pumvisible() ? &#34;\&lt;C-y&gt;&#34; : &#34;\&lt;cr&gt;&#34;
+&quot;设置Tab为补全
+inoremap &lt;expr&gt; &lt;Tab&gt; pumvisible() ? &quot;\&lt;C-n&gt;&quot; : &quot;\&lt;Tab&gt;&quot;                
+&quot;inoremap &lt;expr&gt; &lt;S-Tab&gt; pumvisible() ? &quot;\&lt;C-p&gt;&quot; : &quot;\&lt;S-Tab&gt;&quot;
+&quot;inoremap &lt;expr&gt; &lt;cr&gt; pumvisible() ? &quot;\&lt;C-y&gt;&quot; : &quot;\&lt;cr&gt;&quot;
 
 
-&#34; 设置vim-clang
-let g:clang_cpp_options = &#39;-std=c++11&#39;
+&quot; 设置vim-clang
+let g:clang_cpp_options = '-std=c++11'
 let g:clang_check_syntax_auto = 1
-let g:clang_cpp_completeopt = &#39;menuone,longest&#39;
+let g:clang_cpp_completeopt = 'menuone,longest'
 
 
 
-&#34;快捷键只在常规模式下有用 nnoremap
-&#34;设置 F3 为打开vimfiler
-&#34;设置 &#34; &#34;fs 为保存文件
-&#34;function vimfilertoRight()
-&#34;endfunction
+&quot;快捷键只在常规模式下有用 nnoremap
+&quot;设置 F3 为打开vimfiler
+&quot;设置 &quot; &quot;fs 为保存文件
+&quot;function vimfilertoRight()
+&quot;endfunction
 
 nnoremap &lt;F2&gt; :TagbarToggle &lt;CR&gt;
 nnoremap &lt;F3&gt; :VimFilerExplorer -split -direction=rightbelow &lt;CR&gt;          
@@ -669,35 +722,35 @@ nnoremap &lt;leader&gt;fs :w &lt;CR&gt;
 nnoremap &lt;leader&gt;fS :wall &lt;CR&gt;
 
 nnoremap &lt;leader&gt;qq :wq &lt;CR&gt;
-&#34;vim windows窗口左右
+&quot;vim windows窗口左右
 nnoremap &lt;C-h&gt; &lt;C-w&gt;h &lt;CR&gt;
 nnoremap &lt;C-l&gt; &lt;C-w&gt;l &lt;CR&gt;
 nnoremap &lt;C-j&gt; &lt;C-w&gt;j &lt;CR&gt;
 nnoremap &lt;C-k&gt; &lt;C-w&gt;k &lt;CR&gt;
 
-&#34;分割窗口
+&quot;分割窗口
 nnoremap &lt;leader&gt;wj :split&lt;CR&gt;
 nnoremap &lt;leader&gt;wl :vsplit&lt;CR&gt;
 
 
-&#34;set hidden &#34; 避免必须保存才可以跳转buffer
+&quot;set hidden &quot; 避免必须保存才可以跳转buffer
 
-&#34; my settings 对vimfiler的配置
+&quot; my settings 对vimfiler的配置
 let g:vimfiler_as_default_explorer = 1
 let g:vimfiler_safe_mode_by_default = 0
-let g:vimfiler_tree_leaf_icon = &#39; &#39;
-let g:vimfiler_tree_opened_icon = &#39;▾&#39;
-let g:vimfiler_tree_closed_icon = &#39;▸&#39;
+let g:vimfiler_tree_leaf_icon = ' '
+let g:vimfiler_tree_opened_icon = '▾'
+let g:vimfiler_tree_closed_icon = '▸'
 let g:vimfiler_enable_auto_cd = 1
-let g:vimfiler_file_icon = &#39;-&#39;
-let g:vimfiler_marked_file_icon = &#39;✓&#39;
-let g:vimfiler_readonly_file_icon = &#39;✗&#39;
-let g:vimfiler_time_format = &#39;%m-%d-%y %H:%M:%S&#39;
+let g:vimfiler_file_icon = '-'
+let g:vimfiler_marked_file_icon = '✓'
+let g:vimfiler_readonly_file_icon = '✗'
+let g:vimfiler_time_format = '%m-%d-%y %H:%M:%S'
 let g:vimfiler_expand_jump_to_first_child = 0
-let g:vimfiler_ignore_pattern = &#39;\.git\|\.DS_Store\|\.pyc&#39;
+let g:vimfiler_ignore_pattern = '\.git\|\.DS_Store\|\.pyc'
 
 
-&#34; 文件类型设置 FileType Settings
+&quot; 文件类型设置 FileType Settings
 set sw=4
 set ts=4
 autocmd FileType markdown set tabstop=4 shiftwidth=4 expandtab ai
@@ -705,7 +758,10 @@ autocmd FileType c++ set tabstop=4 shiftwidth=4 expandtab ai
 autocmd FileType c set tabstop=4 shiftwidth=4 expandtab ai
 
 autocmd FileType python set tabstop=4 shiftwidth=4 expandtab ai
-autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai</pre></div>
+autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai
+
+
+</code></pre>
     </div>
 
     
@@ -804,6 +860,10 @@ autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtab
 
 
 
+<script src="/js/highlight.pack.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
 
 </body>
 </html>

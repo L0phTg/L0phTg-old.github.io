@@ -59,6 +59,8 @@
 
 
 
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
 
 <meta property="og:title" content="装机日志-deepin" />
 <meta property="og:description" content="17年使用了一段时间deepin系统, 这里简单记录一些使用心得(现在已转ubuntu.
@@ -122,8 +124,6 @@
   }
 });
 </script>
-
-
 
 
 </head>
@@ -308,7 +308,11 @@
 <h2 id="装机过程">装机过程</h2>
 
 <p>装机过程很简单, 下载好官方的镜像源, 之后检验一下<strong>md5</strong>.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$checksum  </code></pre></div>
+
+<pre><code class="language-bash">$checksum  
+
+</code></pre>
+
 <p>然后用<strong>官方的启动盘制作工具</strong>把U盘装入deepin, 重启时插入U盘, 设置为U盘启动就可以了.</p>
 
 <p><strong>重点来了</strong>, 因为我不想用windows10了, 所以直接把系统装在c盘中, 因为原来的系统有<strong>3个分区, 所以装机时不用格式化 D 盘 和 E 盘</strong>(<code>我的E盘有7/8个虚拟机文件, 在装好deepin后, 依然可以正常使用</code>)</p>
@@ -347,7 +351,10 @@
 <li>font支持: (读者可以自行查看readme进行安装) git地址: <code>https://github.com/powerline/fonts.git</code> , 用来更好的显示vim界面(字体, 状态栏&hellip;).</li>
 <li>tagbar支持: 安装 <code>ctags</code>.</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">sudo apt install ctags</code></pre></div>
+
+<pre><code class="language-shell">sudo apt install ctags
+</code></pre>
+
 <p><strong>安装</strong>:</p>
 
 <ul>
@@ -367,26 +374,41 @@
 <ul>
 <li>默认预览浏览器为<code>google-chrome</code>:</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">let g:mkdp_path_to_chrome <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;google-chrome&#39;</span></code></pre></div>
+
+<pre><code class="language-bash">let g:mkdp_path_to_chrome = 'google-chrome'
+</code></pre>
+
 <ul>
 <li>映射预览为<code>F4</code>:</li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">nmap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        <span style="color:#e6db74">&#34; for normal mode
-</span><span style="color:#e6db74">imap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        &#34;</span> <span style="color:#66d9ef">for</span> insert mode</code></pre></div>
+
+<pre><code class="language-bash">nmap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        &quot; for normal mode
+imap &lt;silent&gt; &lt;F4&gt; &lt;Plug&gt;MarkdownPreview        &quot; for insert mode
+</code></pre>
+
 <ol>
 <li>设置状态栏分隔符为箭头:</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">let g:spacevim_statusline_separator <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;arrow&#39;</span></code></pre></div>
+
+<pre><code class="language-bash">let g:spacevim_statusline_separator = 'arrow'
+</code></pre>
+
 <h3 id="配置zsh-oh-my-zsh">配置zsh/oh-my-zsh</h3>
 
 <ol>
 <li>安装zsh</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt install zsh</code></pre></div>
+
+<pre><code class="language-bash">sudo apt install zsh
+</code></pre>
+
 <ol>
 <li>安装oh-my-zsh</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sh -c <span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span></code></pre></div>
+
+<pre><code class="language-bash">sh -c &quot;$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)&quot;
+</code></pre>
+
 <p>具体的配置看个人喜好.</p>
 
 <h3 id="安装tools">安装tools</h3>
@@ -511,6 +533,10 @@
 
 
 
+<script src="/js/highlight.pack.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
 
 </body>
 </html>

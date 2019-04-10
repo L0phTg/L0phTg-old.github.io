@@ -46,14 +46,17 @@
       <description>&lt;p&gt;在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!&lt;/p&gt;
 
 &lt;p&gt;所以你输入了下面的几行命令&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#hahaha
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;$sudo apt remove python
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#hahaha
+$sudo apt remove python
 $sudo apt remove python3
 $sudo apt remove pip
 $sudo apt remove pip3
-&lt;span style=&#34;color:#75715e&#34;&gt;#一定删除的不彻底, 我要彻底删除
-&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;$sudo apt autoremove -f 
-看到要删除600+M, 毅然决然的按了 y.&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+#一定删除的不彻底, 我要彻底删除
+$sudo apt autoremove -f 
+看到要删除600+M, 毅然决然的按了 y.
+&lt;/code&gt;&lt;/pre&gt;
+
 &lt;p&gt;&amp;hellip;&lt;/p&gt;
 
 &lt;p&gt;Bingo 然后你看到了我这篇文章.
@@ -97,7 +100,8 @@ $sudo apt remove pip3
       <description>&lt;p&gt;记录自己Pixel1刷机流程.&lt;/p&gt;
 
 &lt;p&gt;相关网站&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;Requirements
+
+&lt;pre&gt;&lt;code&gt;Requirements
 https://source.android.google.cn/setup/build/requirements.html#binaries
 
 https://source.android.com/setup/build/running
@@ -108,7 +112,9 @@ https://source.android.com/setup/start/build-numbers
 https://source.android.com/setup/build/downloading
 
 驱动
-https://developers.google.com/android/drivers&lt;/pre&gt;&lt;/div&gt;
+https://developers.google.com/android/drivers
+&lt;/code&gt;&lt;/pre&gt;
+
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
     

@@ -57,6 +57,8 @@
 
 
 
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
 
 <meta property="og:title" content="Kaleidoscope: Tutorial Introduction and Lexer" />
 <meta property="og:description" content="translate from http://llvm.org/docs/tutorial/LangImpl01.html
@@ -111,8 +113,6 @@
   }
 });
 </script>
-
-
 
 
 </head>
@@ -284,24 +284,30 @@
 <p>因为我们都想要把事情做的简单. 所以in Kaleidoscope中, 唯一的数据类型是<strong>64-bit floating point type</strong>. 因此, 所有的values都隐式地<strong>double</strong>类型.</p>
 
 <p>下面是使用Kaleidoscope来计算Fibonacci numbers的一个simple example:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e"># Compute the x&#39;th fibonacci number.
-</span><span style="color:#75715e"></span>def fib(x)
-    <span style="color:#66d9ef">if</span> x <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">3</span> then 
-        <span style="color:#ae81ff">1</span>
-    <span style="color:#66d9ef">else</span>
-        fib(x<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) <span style="color:#f92672">+</span> fib(x<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>)
 
-<span style="color:#75715e"># This expression will compute the 40th number        
-</span><span style="color:#75715e"></span>fib(<span style="color:#ae81ff">40</span>)</code></pre></div>
+<pre><code class="language-c"># Compute the x'th fibonacci number.
+def fib(x)
+    if x &lt; 3 then 
+        1
+    else
+        fib(x-1) + fib(x-2)
+
+# This expression will compute the 40th number        
+fib(40)
+</code></pre>
+
 <p>我们也允许Kaleidoscope来调用标准库函数. 这意味着, 你可以在函数前面加关键字&rdquo;<strong>extern</strong>&rdquo;.</p>
 
 <p>For Example:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">extern</span> <span style="color:#a6e22e">sin</span>(arg);
-<span style="color:#66d9ef">extern</span> <span style="color:#a6e22e">cos</span>(arg);
-<span style="color:#66d9ef">extern</span> <span style="color:#a6e22e">atan2</span>(arg2, arg2);
 
-atan2(sin(<span style="color:#ae81ff">.4</span>), cos(<span style="color:#ae81ff">42</span>))</code></pre></div>
+<pre><code class="language-c">#
+extern sin(arg);
+extern cos(arg);
+extern atan2(arg2, arg2);
+
+atan2(sin(.4), cos(42))
+</code></pre>
+
 <p>第6章包含更有趣的例子, 我们使用Kaleidoscope写了一个小型应用 display a Mandelbrot Set at various levels of magnification.</p>
 
 <p>下面让我们探究Kaleidoscope的实现吧!!!.</p>
@@ -309,82 +315,93 @@ atan2(sin(<span style="color:#ae81ff">.4</span>), cos(<span style="color:#ae81ff
 <h1 id="1-3-lexer">1.3 Lexer</h1>
 
 <p>Token类型:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#75715e">//
-</span><span style="color:#75715e">// The lexer returns tokens [0-255] if it is an unknown character, otherwise one
-</span><span style="color:#75715e">// of these for known things.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">enum</span> Token {
-  tok_eof <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>,
 
-  <span style="color:#75715e">// commands
-</span><span style="color:#75715e"></span>  tok_def <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>,
-  tok_extern <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">3</span>,
+<pre><code class="language-cpp">//
+// The lexer returns tokens [0-255] if it is an unknown character, otherwise one
+// of these for known things.
+enum Token {
+  tok_eof = -1,
 
-  <span style="color:#75715e">// primary
-</span><span style="color:#75715e"></span>  tok_identifier <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">4</span>,
-  tok_number <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">5</span>,
+  // commands
+  tok_def = -2,
+  tok_extern = -3,
+
+  // primary
+  tok_identifier = -4,
+  tok_number = -5,
 };
 
-<span style="color:#66d9ef">static</span> std<span style="color:#f92672">::</span>string IdentifierStr; <span style="color:#75715e">// Filled in if tok_identifier
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">double</span> NumVal;             <span style="color:#75715e">// Filled in if tok_number
-</span><span style="color:#75715e"></span></code></pre></div>
+static std::string IdentifierStr; // Filled in if tok_identifier
+static double NumVal;             // Filled in if tok_number
+</code></pre>
+
 <p>从标准输入中返回next token</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#75715e">//
-</span><span style="color:#75715e">/// gettok - Return the next token from standard input.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">gettok</span>() {
-  <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> LastChar <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39; &#39;</span>;
 
-  <span style="color:#75715e">// Skip any whitespace.
-</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">while</span> (isspace(LastChar))
-    LastChar <span style="color:#f92672">=</span> getchar();
-</code></pre></div>
+<pre><code class="language-cpp">//
+/// gettok - Return the next token from standard input.
+static int gettok() {
+  static int LastChar = ' ';
+
+  // Skip any whitespace.
+  while (isspace(LastChar))
+    LastChar = getchar();
+</code></pre>
+
 <p>判断token是否为标识符</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#75715e">//
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> (isalpha(LastChar)) { <span style="color:#75715e">// identifier: [a-zA-Z][a-zA-Z0-9]*
-</span><span style="color:#75715e"></span>  IdentifierStr <span style="color:#f92672">=</span> LastChar;
-  <span style="color:#66d9ef">while</span> (isalnum((LastChar <span style="color:#f92672">=</span> getchar())))
-    IdentifierStr <span style="color:#f92672">+=</span> LastChar;
 
-  <span style="color:#66d9ef">if</span> (IdentifierStr <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;def&#34;</span>)
-    <span style="color:#66d9ef">return</span> tok_def;
-  <span style="color:#66d9ef">if</span> (IdentifierStr <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;extern&#34;</span>)
-    <span style="color:#66d9ef">return</span> tok_extern;
-  <span style="color:#66d9ef">return</span> tok_identifier;
+<pre><code class="language-cpp">//
+if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+  IdentifierStr = LastChar;
+  while (isalnum((LastChar = getchar())))
+    IdentifierStr += LastChar;
+
+  if (IdentifierStr == &quot;def&quot;)
+    return tok_def;
+  if (IdentifierStr == &quot;extern&quot;)
+    return tok_extern;
+  return tok_identifier;
 }
-</code></pre></div>
+</code></pre>
+
 <p>判断token是否为数字</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">if</span> (isdigit(LastChar) <span style="color:#f92672">||</span> LastChar <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;.&#39;</span>) {   <span style="color:#75715e">// Number: [0-9.]+
-</span><span style="color:#75715e"></span>  std<span style="color:#f92672">::</span>string NumStr;
-  <span style="color:#66d9ef">do</span> {
-    NumStr <span style="color:#f92672">+=</span> LastChar;
-    LastChar <span style="color:#f92672">=</span> getchar();
-  } <span style="color:#66d9ef">while</span> (isdigit(LastChar) <span style="color:#f92672">||</span> LastChar <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;.&#39;</span>);
 
-  NumVal <span style="color:#f92672">=</span> strtod(NumStr.c_str(), <span style="color:#ae81ff">0</span>);
-  <span style="color:#66d9ef">return</span> tok_number;
+<pre><code class="language-cpp">if (isdigit(LastChar) || LastChar == '.') {   // Number: [0-9.]+
+  std::string NumStr;
+  do {
+    NumStr += LastChar;
+    LastChar = getchar();
+  } while (isdigit(LastChar) || LastChar == '.');
+
+  NumVal = strtod(NumStr.c_str(), 0);
+  return tok_number;
 }
-</code></pre></div>
+</code></pre>
+
 <p>判断是否为注释</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#66d9ef">if</span> (LastChar <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;#&#39;</span>) {
-  <span style="color:#75715e">// Comment until end of line.
-</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">do</span>
-    LastChar <span style="color:#f92672">=</span> getchar();
-  <span style="color:#66d9ef">while</span> (LastChar <span style="color:#f92672">!=</span> EOF <span style="color:#f92672">&amp;&amp;</span> LastChar <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;\n&#39;</span> <span style="color:#f92672">&amp;&amp;</span> LastChar <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;\r&#39;</span>);
 
-  <span style="color:#66d9ef">if</span> (LastChar <span style="color:#f92672">!=</span> EOF)
-    <span style="color:#66d9ef">return</span> gettok();
+<pre><code class="language-cpp">if (LastChar == '#') {
+  // Comment until end of line.
+  do
+    LastChar = getchar();
+  while (LastChar != EOF &amp;&amp; LastChar != '\n' &amp;&amp; LastChar != '\r');
+
+  if (LastChar != EOF)
+    return gettok();
 }
-</code></pre></div>
+</code></pre>
+
 <p>是否文件末尾</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp">  <span style="color:#75715e">// Check for end of file.  Don&#39;t eat the EOF.
-</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (LastChar <span style="color:#f92672">==</span> EOF)
-    <span style="color:#66d9ef">return</span> tok_eof;
 
-  <span style="color:#75715e">// Otherwise, just return the character as its ascii value.
-</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> ThisChar <span style="color:#f92672">=</span> LastChar;
-  LastChar <span style="color:#f92672">=</span> getchar();
-  <span style="color:#66d9ef">return</span> ThisChar;
+<pre><code class="language-cpp">  // Check for end of file.  Don't eat the EOF.
+  if (LastChar == EOF)
+    return tok_eof;
+
+  // Otherwise, just return the character as its ascii value.
+  int ThisChar = LastChar;
+  LastChar = getchar();
+  return ThisChar;
 }
-</code></pre></div>
+</code></pre>
     </div>
 
     
@@ -482,6 +499,10 @@ atan2(sin(<span style="color:#ae81ff">.4</span>), cos(<span style="color:#ae81ff
 
 
 
+<script src="/js/highlight.pack.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
 
 </body>
 </html>

@@ -27,7 +27,7 @@
 <meta name="author" content="L0phTg" />
   <meta name="description" content="在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!
 所以你输入了下面的几行命令
-#hahaha $sudo apt remove python $sudo apt remove python3 $sudo apt remove pip $sudo apt remove pip3 #一定删除的不彻底, 我要彻底删除 $sudo apt autoremove -f 看到要删除600&#43;M, 毅然决然的按了 y. &amp;hellip;
+#hahaha $sudo apt remove python $sudo apt remove python3 $sudo apt remove pip $sudo apt remove pip3 #一定删除的不彻底, 我要彻底删除 $sudo apt autoremove -f 看到要删除600&#43;M, 毅然决然的按了 y.  &amp;hellip;
 Bingo 然后你看到了我这篇文章. " />
 <meta name="keywords" content="ubuntu, python, 冲动" />
 
@@ -59,11 +59,14 @@ Bingo 然后你看到了我这篇文章. " />
 
 
 
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
 
 <meta property="og:title" content="如果你冲动删除了python" />
 <meta property="og:description" content="在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!
 
 所以你输入了下面的几行命令
+
 #hahaha
 $sudo apt remove python
 $sudo apt remove python3
@@ -72,6 +75,8 @@ $sudo apt remove pip3
 #一定删除的不彻底, 我要彻底删除
 $sudo apt autoremove -f 
 看到要删除600&#43;M, 毅然决然的按了 y.
+
+
 &hellip;
 
 Bingo 然后你看到了我这篇文章.
@@ -83,6 +88,7 @@ Bingo 然后你看到了我这篇文章.
 <meta itemprop="description" content="在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!
 
 所以你输入了下面的几行命令
+
 #hahaha
 $sudo apt remove python
 $sudo apt remove python3
@@ -91,6 +97,8 @@ $sudo apt remove pip3
 #一定删除的不彻底, 我要彻底删除
 $sudo apt autoremove -f 
 看到要删除600&#43;M, 毅然决然的按了 y.
+
+
 &hellip;
 
 Bingo 然后你看到了我这篇文章.
@@ -109,6 +117,7 @@ Bingo 然后你看到了我这篇文章.
 <meta name="twitter:description" content="在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!
 
 所以你输入了下面的几行命令
+
 #hahaha
 $sudo apt remove python
 $sudo apt remove python3
@@ -117,6 +126,8 @@ $sudo apt remove pip3
 #一定删除的不彻底, 我要彻底删除
 $sudo apt autoremove -f 
 看到要删除600&#43;M, 毅然决然的按了 y.
+
+
 &hellip;
 
 Bingo 然后你看到了我这篇文章.
@@ -146,8 +157,6 @@ Bingo 然后你看到了我这篇文章.
   }
 });
 </script>
-
-
 
 
 </head>
@@ -317,14 +326,17 @@ Bingo 然后你看到了我这篇文章.
       <p>在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!</p>
 
 <p>所以你输入了下面的几行命令</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#hahaha
-</span><span style="color:#75715e"></span>$sudo apt remove python
+
+<pre><code class="language-bash">#hahaha
+$sudo apt remove python
 $sudo apt remove python3
 $sudo apt remove pip
 $sudo apt remove pip3
-<span style="color:#75715e">#一定删除的不彻底, 我要彻底删除
-</span><span style="color:#75715e"></span>$sudo apt autoremove -f 
-看到要删除600+M, 毅然决然的按了 y.</code></pre></div>
+#一定删除的不彻底, 我要彻底删除
+$sudo apt autoremove -f 
+看到要删除600+M, 毅然决然的按了 y.
+</code></pre>
+
 <p>&hellip;</p>
 
 <p>Bingo 然后你看到了我这篇文章.
@@ -341,20 +353,29 @@ $sudo apt remove pip3
 <p>所以<strong>为了满足系统的需要</strong>, 我们<strong>需要重新安装python2.7 和 python3.5</strong>.</p>
 
 <p>安装方式很简单:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#安装python2.7和python3.5
-</span><span style="color:#75715e"></span>$sudo apt install python  <span style="color:#75715e"># 默认安装的python2.7
-</span><span style="color:#75715e"></span>$sudo apt install python3 # 默认安装的python3.5</code></pre></div>
+
+<pre><code class="language-bash">#安装python2.7和python3.5
+$sudo apt install python  # 默认安装的python2.7
+$sudo apt install python3 # 默认安装的python3.5
+</code></pre>
+
 <p>除此之外, 我们还需要安装一些<strong>python的dev库</strong> ,  因为系统和很多软件运行时都依赖它(这也是我们删除python 并 autoremove后, 发现系统gg的一部分原因)</p>
 
 <p>安装方式同样很简单:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#安装dev库
-</span><span style="color:#75715e"></span>$sudo apt install libpython2.7 libpython2.7-dev
-$sudo apt install libpython3.5 libpython3.5-dev</code></pre></div>
+
+<pre><code class="language-bash">#安装dev库
+$sudo apt install libpython2.7 libpython2.7-dev
+$sudo apt install libpython3.5 libpython3.5-dev
+</code></pre>
+
 <p><strong>注意</strong>: 虽然系统的apt源不直接提供python3.6以及更高版本的python程序. 但是<strong>提供了python全版本的libdev库</strong>.</p>
 
 <p>所以, 如果你想要安装<strong>libpython3.6</strong>的话, 也是可以的:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#安装python3.6的dev库
-</span><span style="color:#75715e"></span>$sudo apt install libpython3.6 </code></pre></div>
+
+<pre><code class="language-bash">#安装python3.6的dev库
+$sudo apt install libpython3.6 
+</code></pre>
+
 <p>但是如果想要安装<strong>python3.6</strong>及以上的包, 该怎么办呢?</p>
 
 <p>方法有很多, 这里推荐<strong>源安装的方式</strong> :</p>
@@ -362,16 +383,19 @@ $sudo apt install libpython3.5 libpython3.5-dev</code></pre></div>
 <p>可以参考(<a href="https://linuxize.com/post/how-to-install-python-3-7-on-ubuntu-18-04/">https://linuxize.com/post/how-to-install-python-3-7-on-ubuntu-18-04/</a>)</p>
 
 <p>具体操作:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 安装python3.6 above
-</span><span style="color:#75715e"></span>$sudo apt update
+
+<pre><code class="language-bash"># 安装python3.6 above
+$sudo apt update
 $sudo apt install software-properties-common
 
-$sudo add-apt-repository ppa:deadsnakes/ppa   <span style="color:#75715e">#加入python源, 并按[enter]确认
-</span><span style="color:#75715e"></span>
-$sudo apt update      <span style="color:#75715e"># 之后重新更新我们的源库
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e"># 现在就可以安装python的其他版本了
-</span><span style="color:#75715e"></span>$sudo apt install python3.6       # 例如你想安装python3.6</code></pre></div>
+$sudo add-apt-repository ppa:deadsnakes/ppa   #加入python源, 并按[enter]确认
+
+$sudo apt update      # 之后重新更新我们的源库
+
+# 现在就可以安装python的其他版本了
+$sudo apt install python3.6       # 例如你想安装python3.6
+</code></pre>
+
 <p><img src="https://l0phtg.github.io/life/python-install.png" alt="" /></p>
 
 <h3 id="1-2-安装pip">1.2 安装pip</h3>
@@ -381,13 +405,19 @@ $sudo apt update      <span style="color:#75715e"># 之后重新更新我们的�
 <p>参照官方安装文档: <a href="https://pip.pypa.io/en/stable/installing/">https://pip.pypa.io/en/stable/installing/</a></p>
 
 <p>首先, 下载<strong>get-pip.py</strong> :</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#使用curl命令(如果未安装, 先{sudo apt install curl}) 来下载get-pip.py  
-</span><span style="color:#75715e"></span>$curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py # 下载get-pip.py</code></pre></div>
+
+<pre><code class="language-bash">#使用curl命令(如果未安装, 先{sudo apt install curl}) 来下载get-pip.py  
+$curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py # 下载get-pip.py
+</code></pre>
+
 <p>然后, 安装<strong>你需要的pip版本</strong> , (注意: 这里有<strong>全局安装</strong>和<strong>user安装</strong> 两种方式) :</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#安装pip3.6
-</span><span style="color:#75715e"></span>$ sudo python3.6 get-pip.py    <span style="color:#75715e"># 全局安装
-</span><span style="color:#75715e"></span>
-$ python3.6 get-pip.py --user  # user安装</code></pre></div>
+
+<pre><code class="language-bash">#安装pip3.6
+$ sudo python3.6 get-pip.py    # 全局安装
+
+$ python3.6 get-pip.py --user  # user安装
+</code></pre>
+
 <h2 id="2-pip使用">2. pip使用</h2>
 
 <h3 id="2-1-全局安装package和user安装package">2.1 全局安装package和user安装package</h3>
@@ -397,15 +427,21 @@ $ python3.6 get-pip.py --user  # user安装</code></pre></div>
 <ol>
 <li><strong>全局安装</strong> package, 对所有系统用户生效</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> 
-$sudo pip2.7 install <span style="color:#f92672">{</span>package<span style="color:#f92672">}</span>   <span style="color:#75715e"># python2.7使用pip2.7安装package 
-</span><span style="color:#75715e"></span>$sudo pip3.5 install <span style="color:#f92672">{</span>package<span style="color:#f92672">}</span>   # python3.5使用pip3.5安装package </code></pre></div>
+
+<pre><code class="language-bash"> 
+$sudo pip2.7 install {package}   # python2.7使用pip2.7安装package 
+$sudo pip3.5 install {package}   # python3.5使用pip3.5安装package 
+</code></pre>
+
 <ol>
 <li><strong>user安装</strong> package, 只对user(当前用户生效)</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#
-</span><span style="color:#75715e"></span>$pip2.7 install --user <span style="color:#f92672">{</span>package<span style="color:#f92672">}</span> 
-$pip3.5 install --user <span style="color:#f92672">{</span>package<span style="color:#f92672">}</span></code></pre></div>
+
+<pre><code class="language-bash">#
+$pip2.7 install --user {package} 
+$pip3.5 install --user {package}
+</code></pre>
+
 <p>相信<strong>sudo</strong>和<strong>&ndash;user</strong>大家一眼就可以看到.</p>
 
 <p>那么除了这两个地方的不同, 还有哪些不同值得我们了解的呢?</p>
@@ -419,21 +455,28 @@ $pip3.5 install --user <span style="color:#f92672">{</span>package<span style="c
 <ol>
 <li><strong>全局安装</strong>时的<strong>package存放路径</strong>:</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 
-</span><span style="color:#75715e"></span>$sudo pip3.6 --version
-pip <span style="color:#ae81ff">19</span>.0.3 from /usr/local/lib/python3.6/dist-packages/pip <span style="color:#f92672">(</span>python <span style="color:#ae81ff">3</span>.6<span style="color:#f92672">)</span></code></pre></div>
+
+<pre><code class="language-bash"># 
+$sudo pip3.6 --version
+pip 19.0.3 from /usr/local/lib/python3.6/dist-packages/pip (python 3.6)
+</code></pre>
+
 <ol>
 <li><strong>user安装</strong>时的<strong>package存放路径</strong>:</li>
 </ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#
-</span><span style="color:#75715e"></span>$ pwd             <span style="color:#75715e"># 查看当前绝对路径
-</span><span style="color:#75715e"></span>/home/l0phtg
 
-$ pip3.6 install --user neovim  <span style="color:#75715e"># 注意这里显示的路径是相对路径
-</span><span style="color:#75715e"></span>Requirement already satisfied: neovim in ./.local/lib/python3.6/site-packages <span style="color:#f92672">(</span><span style="color:#ae81ff">0</span>.3.1<span style="color:#f92672">)</span>
-Requirement already satisfied: pynvim&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.3.1 in ./.local/lib/python3.6/site-packages <span style="color:#f92672">(</span>from neovim<span style="color:#f92672">)</span> <span style="color:#f92672">(</span><span style="color:#ae81ff">0</span>.3.2<span style="color:#f92672">)</span>
-Requirement already satisfied: msgpack&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.5.0 in ./.local/lib/python3.6/site-packages <span style="color:#f92672">(</span>from pynvim&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.3.1-&gt;neovim<span style="color:#f92672">)</span> <span style="color:#f92672">(</span><span style="color:#ae81ff">0</span>.6.1<span style="color:#f92672">)</span>
-Requirement already satisfied: greenlet in ./.local/lib/python3.6/site-packages <span style="color:#f92672">(</span>from pynvim&gt;<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>.3.1-&gt;neovim<span style="color:#f92672">)</span> <span style="color:#f92672">(</span><span style="color:#ae81ff">0</span>.4.15<span style="color:#f92672">)</span></code></pre></div>
+<pre><code class="language-bash">#
+$ pwd             # 查看当前绝对路径
+/home/l0phtg
+
+$ pip3.6 install --user neovim  # 注意这里显示的路径是相对路径
+Requirement already satisfied: neovim in ./.local/lib/python3.6/site-packages (0.3.1)
+Requirement already satisfied: pynvim&gt;=0.3.1 in ./.local/lib/python3.6/site-packages (from neovim) (0.3.2)
+Requirement already satisfied: msgpack&gt;=0.5.0 in ./.local/lib/python3.6/site-packages (from pynvim&gt;=0.3.1-&gt;neovim) (0.6.1)
+Requirement already satisfied: greenlet in ./.local/lib/python3.6/site-packages (from pynvim&gt;=0.3.1-&gt;neovim) (0.4.15)
+
+</code></pre>
+
 <p>即<strong>user安装python3.6的package时</strong>, package 默认存放在了 <strong>~/.local/lib/python3.6/site-packages</strong> .路径下.</p>
 
 <h1 id="二-安装被你意外删掉的库">二、 安装被你意外删掉的库</h1>
@@ -441,7 +484,10 @@ Requirement already satisfied: greenlet in ./.local/lib/python3.6/site-packages 
 <p>在安装了前面所需的python2.7, python3.5, pip2.7, pip3.5, libpython2.7,  libpython2.7-dev, libpython3.5, libpython3.5-dev 之后, 你需要安装ubuntu系统的一些库.</p>
 
 <p>ubuntu系统所需的库为<strong>ubuntu-minimal, ubuntu-standard, ubuntu-desktop</strong> .</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$sudo apt install ubuntu-minimal ubuntu-standard ubuntu-desktop</code></pre></div>
+
+<pre><code class="language-bash">$sudo apt install ubuntu-minimal ubuntu-standard ubuntu-desktop
+</code></pre>
+
 <p>这时, 系统就已经可以<strong>正常启动, 并正常进入和显示桌面</strong> 了.</p>
 
 <p>最后,  因为你的操作, 可能导致<strong>一些三方应用不能启动</strong> , 这时你只能自行重装了.</p>
@@ -551,6 +597,10 @@ Requirement already satisfied: greenlet in ./.local/lib/python3.6/site-packages 
 
 
 
+<script src="/js/highlight.pack.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
 
 </body>
 </html>

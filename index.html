@@ -57,6 +57,8 @@
 
 
 
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
 
 <meta property="og:title" content="L0phTg&#39;s Blog" />
 <meta property="og:description" content="L0phTg&#39;s Blog" />
@@ -94,8 +96,6 @@
   }
 });
 </script>
-
-
 
 
 </head>
@@ -309,14 +309,17 @@
       <p>在你经历了痛苦的pip安装, 各种报错之后. 一气之前, 你决定卸载python, 重新安装. 那么, 既然要卸载, 就要卸载的彻底!</p>
 
 <p>所以你输入了下面的几行命令</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#hahaha
-</span><span style="color:#75715e"></span>$sudo apt remove python
+
+<pre><code class="language-bash">#hahaha
+$sudo apt remove python
 $sudo apt remove python3
 $sudo apt remove pip
 $sudo apt remove pip3
-<span style="color:#75715e">#一定删除的不彻底, 我要彻底删除
-</span><span style="color:#75715e"></span>$sudo apt autoremove -f 
-看到要删除600+M, 毅然决然的按了 y.</code></pre></div>
+#一定删除的不彻底, 我要彻底删除
+$sudo apt autoremove -f 
+看到要删除600+M, 毅然决然的按了 y.
+</code></pre>
+
 <p>&hellip;</p>
 
 <p>Bingo 然后你看到了我这篇文章.
@@ -474,6 +477,10 @@ $sudo apt remove pip3
 
 
 
+<script src="/js/highlight.pack.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
 
 </body>
 </html>
