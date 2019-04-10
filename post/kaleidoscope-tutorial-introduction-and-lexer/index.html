@@ -67,7 +67,7 @@
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/" /><meta property="article:published_time" content="2019-04-10T10:17:08&#43;08:00"/>
-<meta property="article:modified_time" content="2019-04-10T10:17:08&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-10T21:37:36&#43;08:00"/>
 <meta itemprop="name" content="Kaleidoscope: Tutorial Introduction and Lexer">
 <meta itemprop="description" content="translate from http://llvm.org/docs/tutorial/LangImpl01.html
 
@@ -77,7 +77,7 @@
 
 <meta itemprop="datePublished" content="2019-04-10T10:17:08&#43;08:00" />
 <meta itemprop="dateModified" content="2019-04-10T10:17:08&#43;08:00" />
-<meta itemprop="wordCount" content="742">
+<meta itemprop="wordCount" content="737">
 
 
 
@@ -246,7 +246,7 @@
               <a href="/categories/llvm/"> llvm </a>
             
           </div>
-        <span class="more-meta"> 约 742 字 </span>
+        <span class="more-meta"> 约 737 字 </span>
         <span class="more-meta"> 预计阅读 2 分钟 </span>
       </div>
     </header>
@@ -285,7 +285,7 @@
 
 <p>下面是使用Kaleidoscope来计算Fibonacci numbers的一个simple example:</p>
 
-<pre><code class="language-c"># Compute the x'th fibonacci number.
+<pre><code class="language-c">//Compute the x'th fibonacci number.
 def fib(x)
     if x &lt; 3 then 
         1
@@ -300,8 +300,7 @@ fib(40)
 
 <p>For Example:</p>
 
-<pre><code class="language-c">#
-extern sin(arg);
+<pre><code class="language-c">extern sin(arg);
 extern cos(arg);
 extern atan2(arg2, arg2);
 
@@ -316,8 +315,7 @@ atan2(sin(.4), cos(42))
 
 <p>Token类型:</p>
 
-<pre><code class="language-cpp">//
-// The lexer returns tokens [0-255] if it is an unknown character, otherwise one
+<pre><code class="language-cpp">// The lexer returns tokens [0-255] if it is an unknown character, otherwise one
 // of these for known things.
 enum Token {
   tok_eof = -1,
@@ -337,8 +335,7 @@ static double NumVal;             // Filled in if tok_number
 
 <p>从标准输入中返回next token</p>
 
-<pre><code class="language-cpp">//
-/// gettok - Return the next token from standard input.
+<pre><code class="language-cpp">// gettok - Return the next token from standard input.
 static int gettok() {
   static int LastChar = ' ';
 
@@ -349,8 +346,7 @@ static int gettok() {
 
 <p>判断token是否为标识符</p>
 
-<pre><code class="language-cpp">//
-if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+<pre><code class="language-cpp">if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
   IdentifierStr = LastChar;
   while (isalnum((LastChar = getchar())))
     IdentifierStr += LastChar;
@@ -392,14 +388,14 @@ if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
 
 <p>是否文件末尾</p>
 
-<pre><code class="language-cpp">  // Check for end of file.  Don't eat the EOF.
-  if (LastChar == EOF)
-    return tok_eof;
+<pre><code class="language-cpp">// Check for end of file.  Don't eat the EOF.
+if (LastChar == EOF)
+      return tok_eof;
 
-  // Otherwise, just return the character as its ascii value.
-  int ThisChar = LastChar;
-  LastChar = getchar();
-  return ThisChar;
+// Otherwise, just return the character as its ascii value.
+int ThisChar = LastChar;
+LastChar = getchar();
+return ThisChar;
 }
 </code></pre>
     </div>

@@ -52,7 +52,7 @@
 
 &lt;p&gt;下面是使用Kaleidoscope来计算Fibonacci numbers的一个simple example:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;# Compute the x&#39;th fibonacci number.
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;//Compute the x&#39;th fibonacci number.
 def fib(x)
     if x &amp;lt; 3 then 
         1
@@ -67,8 +67,7 @@ fib(40)
 
 &lt;p&gt;For Example:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;#
-extern sin(arg);
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;extern sin(arg);
 extern cos(arg);
 extern atan2(arg2, arg2);
 
@@ -83,8 +82,7 @@ atan2(sin(.4), cos(42))
 
 &lt;p&gt;Token类型:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;//
-// The lexer returns tokens [0-255] if it is an unknown character, otherwise one
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// The lexer returns tokens [0-255] if it is an unknown character, otherwise one
 // of these for known things.
 enum Token {
   tok_eof = -1,
@@ -104,8 +102,7 @@ static double NumVal;             // Filled in if tok_number
 
 &lt;p&gt;从标准输入中返回next token&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;//
-/// gettok - Return the next token from standard input.
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// gettok - Return the next token from standard input.
 static int gettok() {
   static int LastChar = &#39; &#39;;
 
@@ -116,8 +113,7 @@ static int gettok() {
 
 &lt;p&gt;判断token是否为标识符&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;//
-if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
   IdentifierStr = LastChar;
   while (isalnum((LastChar = getchar())))
     IdentifierStr += LastChar;
@@ -159,14 +155,14 @@ if (isalpha(LastChar)) { // identifier: [a-zA-Z][a-zA-Z0-9]*
 
 &lt;p&gt;是否文件末尾&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;  // Check for end of file.  Don&#39;t eat the EOF.
-  if (LastChar == EOF)
-    return tok_eof;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Check for end of file.  Don&#39;t eat the EOF.
+if (LastChar == EOF)
+      return tok_eof;
 
-  // Otherwise, just return the character as its ascii value.
-  int ThisChar = LastChar;
-  LastChar = getchar();
-  return ThisChar;
+// Otherwise, just return the character as its ascii value.
+int ThisChar = LastChar;
+LastChar = getchar();
+return ThisChar;
 }
 &lt;/code&gt;&lt;/pre&gt;</description>
       
