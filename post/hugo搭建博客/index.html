@@ -70,7 +70,7 @@
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://l0phtg.github.io/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/" /><meta property="article:published_time" content="2018-09-19T20:04:10&#43;08:00"/>
-<meta property="article:modified_time" content="2019-04-06T20:53:32&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-11T11:36:59&#43;08:00"/>
 <meta itemprop="name" content="Hugo搭建博客">
 <meta itemprop="description" content="博客半年多没更新了. 正好最近时间比较多, 想着把博客更新下, 再把几篇平时总结的文章上传在Blog里面.
 
@@ -81,7 +81,7 @@
 
 <meta itemprop="datePublished" content="2018-09-19T20:04:10&#43;08:00" />
 <meta itemprop="dateModified" content="2018-09-19T20:04:10&#43;08:00" />
-<meta itemprop="wordCount" content="1252">
+<meta itemprop="wordCount" content="1521">
 
 
 
@@ -251,8 +251,8 @@
               <a href="/categories/life/"> life </a>
             
           </div>
-        <span class="more-meta"> 约 1252 字 </span>
-        <span class="more-meta"> 预计阅读 3 分钟 </span>
+        <span class="more-meta"> 约 1521 字 </span>
+        <span class="more-meta"> 预计阅读 4 分钟 </span>
       </div>
     </header>
 
@@ -283,7 +283,11 @@
 <li><a href="#插入图片">插入图片</a></li>
 <li><a href="#文章摘要">文章摘要</a></li>
 <li><a href="#显示toc">显示toc</a></li>
-<li><a href="#语法高亮">语法高亮</a></li>
+<li><a href="#语法高亮">语法高亮</a>
+<ul>
+<li><a href="#chroma">Chroma</a></li>
+<li><a href="#highlight-js">highlight.js</a></li>
+</ul></li>
 <li><a href="#显示最后更新日期">显示最后更新日期</a></li>
 <li><a href="#数学公式">数学公式</a>
 <ul>
@@ -522,16 +526,43 @@ contentCopyright: false
 reward: false
 mathjax: false
 ---
-
 </code></pre>
 
 <h3 id="语法高亮">语法高亮</h3>
 
-<p>hugo <strong>使用chroma默认进行语法高亮</strong></p>
+<h4 id="chroma">Chroma</h4>
+
+<p>hugo <strong>使用chroma默认进行语法高亮, 垃圾, 不好用, 推荐highlight.js</strong></p>
 
 <pre><code class="language-bash">pygmentsCodefences = true #高亮markdown的代码块
 pygmentsCodefencesGuessSyntax = true #高亮markdown中没有标注语言的代码块
 pygmentsStyle = 'manni' #高亮主题
+</code></pre>
+
+<p>有些主题的默认css设置了background. 会导致highlight时出现字体白色阴影. 此时我们需要将它的background-color删掉或者覆盖掉.</p>
+
+<p>我使用的主题是<code>jane</code>, 默认css样式是<code>/themes/jane/static/dist/jane.min.css</code>:</p>
+
+<pre><code class="language-css">#jane.min.css
+ code{padding:0 7px;background:#f8f5ec;border-radius:4px;color:#c7254e}
+</code></pre>
+
+<p>把该块删掉.</p>
+
+<p>这要就可以解决阴影的问题了.<strong>可能自己的主题版本太老了, 可以pull一下最新版本, 这个问题应该会被修复了</strong> .</p>
+
+<h4 id="highlight-js">highlight.js</h4>
+
+<p>添加<strong>主题css</strong>和<strong>highlight.pack.js</strong>.</p>
+
+<pre><code class="language-toml">customCSS = ['styles/dracula.css]
+customJS = ['highlight.pack.js]
+
+</code></pre>
+
+<p><strong>body</strong>中添加<strong>script</strong>:</p>
+
+<pre><code class="language-js">&lt;script&gt;hljs.initHighlightingOnLoad();&lt;/script&gt;
 </code></pre>
 
 <h3 id="显示最后更新日期">显示最后更新日期</h3>
@@ -611,7 +642,7 @@ expiryDate = [&quot;expiryDate&quot;]
   </p>
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
-    <span class="item-content">2019-04-06</span>
+    <span class="item-content">2019-04-11</span>
   </p>
   
   <p class="copyright-item">

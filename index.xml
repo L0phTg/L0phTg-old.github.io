@@ -1708,16 +1708,43 @@ contentCopyright: false
 reward: false
 mathjax: false
 ---
-
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3 id=&#34;语法高亮&#34;&gt;语法高亮&lt;/h3&gt;
 
-&lt;p&gt;hugo &lt;strong&gt;使用chroma默认进行语法高亮&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;chroma&#34;&gt;Chroma&lt;/h4&gt;
+
+&lt;p&gt;hugo &lt;strong&gt;使用chroma默认进行语法高亮, 垃圾, 不好用, 推荐highlight.js&lt;/strong&gt;&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pygmentsCodefences = true #高亮markdown的代码块
 pygmentsCodefencesGuessSyntax = true #高亮markdown中没有标注语言的代码块
 pygmentsStyle = &#39;manni&#39; #高亮主题
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;有些主题的默认css设置了background. 会导致highlight时出现字体白色阴影. 此时我们需要将它的background-color删掉或者覆盖掉.&lt;/p&gt;
+
+&lt;p&gt;我使用的主题是&lt;code&gt;jane&lt;/code&gt;, 默认css样式是&lt;code&gt;/themes/jane/static/dist/jane.min.css&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-css&#34;&gt;#jane.min.css
+ code{padding:0 7px;background:#f8f5ec;border-radius:4px;color:#c7254e}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;把该块删掉.&lt;/p&gt;
+
+&lt;p&gt;这要就可以解决阴影的问题了.&lt;strong&gt;可能自己的主题版本太老了, 可以pull一下最新版本, 这个问题应该会被修复了&lt;/strong&gt; .&lt;/p&gt;
+
+&lt;h4 id=&#34;highlight-js&#34;&gt;highlight.js&lt;/h4&gt;
+
+&lt;p&gt;添加&lt;strong&gt;主题css&lt;/strong&gt;和&lt;strong&gt;highlight.pack.js&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-toml&#34;&gt;customCSS = [&#39;styles/dracula.css]
+customJS = [&#39;highlight.pack.js]
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;body&lt;/strong&gt;中添加&lt;strong&gt;script&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;&amp;lt;script&amp;gt;hljs.initHighlightingOnLoad();&amp;lt;/script&amp;gt;
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3 id=&#34;显示最后更新日期&#34;&gt;显示最后更新日期&lt;/h3&gt;
