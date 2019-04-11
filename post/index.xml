@@ -7,10 +7,25 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Wed, 10 Apr 2019 10:17:08 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 11 Apr 2019 15:41:17 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Kaleidoscope: Implementing a Parser and AST</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/</link>
+      <pubDate>Thu, 11 Apr 2019 15:41:17 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/</guid>
+      <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl02.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl02.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/dots/uml/ExprAst-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;介绍AST(抽象语法树)和Parser.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Kaleidoscope: Tutorial Introduction and Lexer</title>

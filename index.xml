@@ -29,6 +29,419 @@
     </item>
     
     <item>
+      <title>Kaleidoscope: Implementing a Parser and AST</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/</link>
+      <pubDate>Thu, 11 Apr 2019 15:41:17 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/</guid>
+      
+        <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl02.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl02.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/dots/uml/ExprAst-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;介绍AST(抽象语法树)和Parser.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;2-1-introduction&#34;&gt;2.1 Introduction&lt;/h1&gt;
+
+&lt;p&gt;本章介绍如何使用&lt;strong&gt;Lexer&lt;/strong&gt;, 来build一个完整的&lt;strong&gt;parser&lt;/strong&gt; for our Kaleidoscope language. 一旦我们有了parser, 我们将会定义并且build 一个 AST.&lt;/p&gt;
+
+&lt;h1 id=&#34;2-2-ast&#34;&gt;2.2 AST&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/llvm/chapter2-AST.png&#34; alt=&#34;Chapter2 AST&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;2-3-parser-basic&#34;&gt;2.3 Parser Basic&lt;/h1&gt;
+
+&lt;p&gt;现在我们有了AST, 我们需要定义parser code来build it. 这里的想法是我们要解析类似于&amp;rdquo;&lt;strong&gt;x+y&lt;/strong&gt;&amp;rdquo;(由词法分析器会返回3个Token)到AST中, 可以通过下面的代码产生:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;auto LHS = llvm::make_unique&amp;lt;VariableExprAST&amp;gt;(&amp;quot;x&amp;quot;);
+auto RHS = llvm::make_unique&amp;lt;VariableExprAST&amp;gt;(&amp;quot;y&amp;quot;);
+auto Result = std::make_unique&amp;lt;BinaryExprAST&amp;gt;(&#39;+&#39;, std::move(LHS),
+                                              std::move(RHS));
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Log&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// LogError* - These are little helper functions for error handling.
+std::unique_ptr&amp;lt;ExprAST&amp;gt; LogError(const char *Str) {
+  fprintf(stderr, &amp;quot;LogError: %s\n&amp;quot;, Str);
+  return nullptr;
+}
+std::unique_ptr&amp;lt;PrototypeAST&amp;gt; LogErrorP(const char *Str) {
+  LogError(Str);
+  return nullptr;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;2-4-basic-expression-parsing&#34;&gt;2.4 Basic Expression Parsing&lt;/h1&gt;
+
+&lt;p&gt;&lt;strong&gt;ParseNumberExpr&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// numberexpr ::= number
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseNumberExpr() {
+  auto Result = llvm::make_unique&amp;lt;NumberExprAST&amp;gt;(NumVal);
+  getNextToken(); // consume the number
+  return std::move(Result);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;ParseParenExpr&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;p&gt;这里有一些有趣的点. 最主要的一点是 this routine eats all of the tokens that correspond to the production. 并且将next token返回到词法缓冲区中. (这不是一定要要求的), 这是一个实现递归下降parser的相当标准的写法.&lt;/p&gt;
+
+&lt;p&gt;a better example, 括号运算符的parser defined like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// parenexpr ::= &#39;(&#39; expression &#39;)&#39;
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseParenExpr() {  
+  getNextToken(); // eat (.
+  auto V = ParseExpression();
+  if (!V)
+    return nullptr;
+
+  if (CurTok != &#39;)&#39;)
+    return LogError(&amp;quot;expected &#39;)&#39;&amp;quot;);
+  getNextToken(); // eat ).
+  return V;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;该函数说明了大量关于parser的有趣的事情:&lt;/p&gt;
+
+&lt;p&gt;1) 展示了我们可以怎么样使用&lt;strong&gt;LogError&lt;/strong&gt;. 当被调用的时候, 该函数期待current token是 &amp;lsquo;&lt;strong&gt;(&lt;/strong&gt;&amp;rsquo;, 然后之后开始解析subexpression, (可能没有&amp;rsquo;)&amp;rsquo; waiting), 如果用户输入&amp;rdquo;(4 x&amp;rdquo; 代替 &amp;ldquo;(4)&amp;rdquo;, the parser应该弹一个error. 因为error发生了, parser需要一种方法来表明error发生时, 程序会做什么.在我们的解析器中, 当&lt;strong&gt;error&lt;/strong&gt;发生时, 我们会返回&lt;strong&gt;null&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;2) 另一个有趣的点是&lt;strong&gt;该函数使用了递归来调用ParserExpression&lt;/strong&gt;(我们不久将会看到&lt;strong&gt;ParserExpression&lt;/strong&gt;中调用了&lt;strong&gt;ParserParentExpr&lt;/strong&gt;). 这是一种处理递归语法的相当不错的方法. 并且它保证每个过程都十分simple. 注意, &lt;strong&gt;括号并不会引起AST node的构造&lt;/strong&gt;. 当我们这样做的时候, 括号最重要的角色就是&lt;strong&gt;知道parser来提供grouping&lt;/strong&gt;. 一旦parser成功构造了AST, 括号就不再被需要的.&lt;/p&gt;
+
+&lt;p&gt;下面的例子是处理变量引用和函数调用:&lt;/p&gt;
+
+&lt;p&gt;变量后面跟括号, 代表函数调用. 如果不是, 代码变量为identifier.&lt;/p&gt;
+
+&lt;h1 id=&#34;2-5-binary-expression-parsing&#34;&gt;2.5 Binary Expression Parsing&lt;/h1&gt;
+
+&lt;p&gt;二元表达式很难解析, 因为它们通常是模棱两可的. 例如, 当给 the string &amp;ldquo;x+y*z&amp;rdquo;, the parser可以选择&amp;rdquo;(x+y)*z&amp;rdquo;, 也可以选择&amp;rdquo;x+(y&lt;em&gt;z)&amp;ldquo;, 根据数学的定义, 我们的理解后面的是正确的. 因为 &amp;ldquo;&lt;/em&gt;&amp;ldquo;的优先级比&amp;rdquo;+&amp;ldquo;更高.&lt;/p&gt;
+
+&lt;p&gt;有很多种方法来处理它, 但是一种优雅的和有效的方法是&lt;strong&gt;Operator-Precedence-Parsing&lt;/strong&gt;. 这种解析技术使用优先级来指导二元操作符递归处理. To start with, we need a table of precedences:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// BinopPrecedence - This holds the precedence for each binary operator that is
+/// defined.
+static std::map&amp;lt;char, int&amp;gt; BinopPrecedence;
+
+/// GetTokPrecedence - Get the precedence of the pending binary operator token.
+static int GetTokPrecedence() {
+  if (!isascii(CurTok))
+    return -1;
+
+  // Make sure it&#39;s a declared binop.
+  int TokPrec = BinopPrecedence[CurTok];
+  if (TokPrec &amp;lt;= 0) return -1;
+  return TokPrec;
+}
+
+int main() {
+  // Install standard binary operators.
+  // 1 is lowest precedence.
+  BinopPrecedence[&#39;&amp;lt;&#39;] = 10;
+  BinopPrecedence[&#39;+&#39;] = 20;
+  BinopPrecedence[&#39;-&#39;] = 20;
+  BinopPrecedence[&#39;*&#39;] = 40;  // highest.
+  ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于Kaleidoscope基本的形式来说, 我们只支持4种二元操作符(很明显你可以扩展它, our brave and interpid reader). The &lt;strong&gt;GetTokPrecedence&lt;/strong&gt;返回目前token的优先级, 如果&lt;strong&gt;不是二元操作符的话, 返回 -1&lt;/strong&gt;. 通过一个map来增加一些操作符是一种不错的方法. 并且这很容易比较优先级.&lt;/p&gt;
+
+&lt;p&gt;有了上面的定义, 我们就可以解析二元操作符了. 运算符优先级解析的基本思想是:&lt;strong&gt;将具有可能不明确的二元运算符的表达式分成多个&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Ex: 表达式&amp;rdquo;&lt;strong&gt;a+b+(c+d)*e*f+g&lt;/strong&gt;. operator precedence 将该表达式视为一个primary expressions流 separated by binary operators. 它将会先解析&lt;strong&gt;a&lt;/strong&gt;, 然后[+, b] [+, (c+d)] [&lt;em&gt;, e] [&lt;/em&gt;, f] and [+, g]. 注意括号也是primary expressions. 二元表达式不用担心它的subexpressions like (c+d) at all .&lt;/p&gt;
+
+&lt;p&gt;To start, an expression is a primary expression. 可能后面跟着[binop, primaryexpr].&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// expression
+///   ::= primary binoprhs
+///
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseExpression() {
+  auto LHS = ParsePrimary();
+  if (!LHS)
+    return nullptr;
+
+  return ParseBinOpRHS(0, std::move(LHS));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;ParseBinOpRHS&lt;/strong&gt;是一个函数来解析一系列的&lt;strong&gt;pairs&lt;/strong&gt;. 它需要一个优先级和指向表达式的指针.&lt;/p&gt;
+
+&lt;p&gt;注意 that &amp;ldquo;&lt;strong&gt;x&lt;/strong&gt;&amp;rdquo; 是一个完全有效的表达式, 例如: &amp;ldquo;binoprhs&amp;rdquo; 可以是空的. 在这种情况下, it returns the expression that is passed into it. 在我们上面的例子中, 代码传递表达式&amp;rdquo;a&amp;rdquo;到ParseBinOpRHS 并且当前的token是 &amp;ldquo;+&amp;rdquo;;&lt;/p&gt;
+
+&lt;p&gt;传递给ParseBinOpRHS的优先级值表示函数被允许eat 的 the minimal operator precedence.
+例如, 如果目前的pair stream is [+, x] and ParseBinOpRHS被传递的优先级是40, 它将不会消耗任何tokens(因为&amp;rsquo;+&amp;lsquo;的优先级是20). 根据这种思想, ParseBinOpRHS starts with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// binoprhs
+///   ::= (&#39;+&#39; primary)*
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseBinOpRHS(int ExprPrec,
+                                              std::unique_ptr&amp;lt;ExprAST&amp;gt; LHS) {
+  // If this is a binop, find its precedence.
+  while (1) {
+    int TokPrec = GetTokPrecedence();
+
+    // If this is a binop that binds at least as tightly as the current binop,
+    // consume it, otherwise we are done.
+    if (TokPrec &amp;lt; ExprPrec)
+      return LHS;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;该代码获得当前token的优先级, 并且检查它是否是too low. 因为我们定义无效的tokens的优先级是-1, 所以这隐式地可以知道(当run out of binary operators时, pair-stream就结束了).如果this check succeed, 我们知道token是一个二元表达式并且它将被included in this expression:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;    // Okay, we know this is a binop.
+    int BinOp = CurTok;
+    getNextToken();  // eat binop
+    
+    // Parse the primary expression after the binary operator.
+    auto RHS = ParsePrimary();
+    if (!RHS)
+      return nullptr;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As such, this code eats(and remembers) 二元表达式 and 解析primary expression that follows. This build up the whole pair, the first of which is [+, b] for the running example.&lt;/p&gt;
+
+&lt;p&gt;现在我们解析表达式的左边和一组RHS sequence, 我们不得不决定which way the expression associates. 特别地, 我们 have &amp;ldquo;(a+b)&amp;rdquo; binop unparsed or &amp;ldquo;a+(b binop unparsed&amp;rdquo;. 为了确定这个, 我们look ahead at &amp;ldquo;binop&amp;rdquo; to 确定它的优先级并且将它与BinOp&amp;rsquo;s 优先级比较(which is &amp;lsquo;+&amp;rsquo; in this case):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;// If BinOp binds less tightly with RHS than the operator after RHS, let
+// the pending operator take RHS as its LHS.
+int NextPrec = GetTokPrecedence();
+if (TokPrec &amp;lt; NextPrec) {
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果binop在&amp;rdquo;RHS&amp;rdquo;右侧的优先级低于或者等于我们当前运算符的优先级. in our example, 目前的操作符是&amp;rdquo;+&amp;rdquo; 并且下一个操作符是&amp;rdquo;+&amp;ldquo;, 我们明白他们有相同的优先级. in this case 我们将会创建node for &amp;ldquo;a+b&amp;rdquo;, and then continue parsing:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;      ... if body omitted ...
+    }
+
+    // Merge LHS/RHS.
+    LHS = llvm::make_unique&amp;lt;BinaryExprAST&amp;gt;(BinOp, std::move(LHS),
+                                           std::move(RHS));
+  }  // loop around to the top of the while loop.
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在我们的例子中. 这将把 &amp;ldquo;a + b&amp;rdquo; into &amp;ldquo;(a + b)&amp;ldquo;并且来执行下一次循环的迭代. with &amp;ldquo;+&amp;rdquo; as the current token. 上面的代码将被eat, remember, and parse (&amp;ldquo;c + d&amp;rdquo;) as the primary expression, which makes the 目前的pair equal to [+, (c + d)]. 它将会评估上面的&amp;rdquo;if&amp;rdquo;条件, 并将&amp;rdquo;&lt;em&gt;&amp;ldquo;作为右侧的binop. 在该case中, 优先级 of &amp;ldquo;&lt;/em&gt;&amp;rdquo; 是比+的优先级更高, 因此if条件将会被输入.&lt;/p&gt;
+
+&lt;p&gt;关键的问题是: if条件如何解析右边的全部? In particular, 为了在我们的例子中正确的build AST. 它需要将&amp;rdquo;(c + d)*e*f&amp;rdquo;作为RHS表达式变量. 执行该操作的代码相当简单.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;    // If BinOp binds less tightly with RHS than the operator after RHS, let
+    // the pending operator take RHS as its LHS.
+    int NextPrec = GetTokPrecedence();
+    if (TokPrec &amp;lt; NextPrec) {
+      RHS = ParseBinOpRHS(TokPrec+1, std::move(RHS));
+      if (!RHS)
+        return nullptr;
+    }
+    // Merge LHS/RHS.
+    LHS = llvm::make_unique&amp;lt;BinaryExprAST&amp;gt;(BinOp, std::move(LHS),
+                                           std::move(RHS));
+  }  // loop around to the top of the while loop.
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在这一点上, 我们知道我们主要的RHS的二元运算符优于我们当前正在解析的binop. 因此, 我们知道任何运算符都优先于&amp;rdquo;+&amp;ldquo;的序列应该一起解析并作为&amp;rdquo;RHS&amp;rdquo;返回.&lt;/p&gt;
+
+&lt;h2 id=&#34;example&#34;&gt;Example&lt;/h2&gt;
+
+&lt;p&gt;递归构造.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;a+b*c*(d+e) + f&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;第一次循环:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;!--1. [0, a] 和 [+, b]; [0, a] 为LHS; 0 &amp;lt; +,  [1+, b] 继续ParseBinOpRHS--&amp;gt;
+&amp;lt;!--2. [+, b] 和 [*, c]; [+, b] 为LHS; + &amp;lt; *,  [*, c] 继续ParseBinOpRHS--&amp;gt;
+&amp;lt;!--3. [*, c] 和 [(), d+e]; [*, c]为LHS     --&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;div class=&#34;mermaid&#34;&gt;
+graph TB
+    1((a)) 
+    2((b))
+    3((c))
+    4((d))
+    5((e))
+    
+    7((+))
+    8((*))
+    9((*))
+    10((+))
+    
+    7 --&gt; 1
+    
+    8 --&gt; 2
+    8 --&gt; 3
+    9 --&gt; 8
+    9 --&gt; 10
+    10 --&gt; 4
+    10 --&gt; 5
+    
+    7 --&gt; 9
+&lt;/div&gt;
+
+&lt;p&gt;第二次循环&lt;/p&gt;
+
+&lt;div class=&#34;mermaid&#34;&gt;
+graph TB
+    1((a)) 
+    2((b))
+    3((c))
+    4((d))
+    5((e))
+    6((f))
+    7((+))
+    8((*))
+    9((*))
+    10((+))
+    11((+))
+    
+    7 --&gt; 1
+    
+    8 --&gt; 2
+    8 --&gt; 3
+    9 --&gt; 8
+    9 --&gt; 10
+    10 --&gt; 4
+    10 --&gt; 5
+    
+    7 --&gt; 9
+    
+    subgraph TB
+    11 --&gt; 7
+    11 --&gt; 6
+    end
+&lt;/div&gt;
+
+&lt;h1 id=&#34;2-6-parse-the-rest&#34;&gt;2.6 Parse the Rest&lt;/h1&gt;
+
+&lt;p&gt;下一件事情是解析函数申明. in Kaleidoscope, &lt;code&gt;extern&lt;/code&gt;函数申明以及函数体定义. 代码是相当直接的, not very interesting(once you&amp;rsquo;re survived expressions):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// prototype
+///   ::= id &#39;(&#39; id* &#39;)&#39;
+static std::unique_ptr&amp;lt;PrototypeAST&amp;gt; ParsePrototype() {
+  if (CurTok != tok_identifier)
+    return LogErrorP(&amp;quot;Expected function name in prototype&amp;quot;);
+
+  std::string FnName = IdentifierStr;
+  getNextToken();
+
+  if (CurTok != &#39;(&#39;)
+    return LogErrorP(&amp;quot;Expected &#39;(&#39; in prototype&amp;quot;);
+
+  // Read the list of argument names.
+  std::vector&amp;lt;std::string&amp;gt; ArgNames;
+  while (getNextToken() == tok_identifier)
+    ArgNames.push_back(IdentifierStr);
+  if (CurTok != &#39;)&#39;)
+    return LogErrorP(&amp;quot;Expected &#39;)&#39; in prototype&amp;quot;);
+
+  // success.
+  getNextToken();  // eat &#39;)&#39;.
+
+  return llvm::make_unique&amp;lt;PrototypeAST&amp;gt;(FnName, std::move(ArgNames));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当然了, 函数定义是相当简单的, just &lt;strong&gt;一个申明&lt;/strong&gt;加&lt;strong&gt;一个表达式&lt;/strong&gt;来实现函数体.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// definition ::= &#39;def&#39; prototype expression
+static std::unique_ptr&amp;lt;FunctionAST&amp;gt; ParseDefinition() {
+  getNextToken();  // eat def.
+  auto Proto = ParsePrototype();
+  if (!Proto) return nullptr;
+
+  if (auto E = ParseExpression())
+    return llvm::make_unique&amp;lt;FunctionAST&amp;gt;(std::move(Proto), std::move(E));
+  return nullptr;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;另外，我们支持&lt;code&gt;extern&lt;/code&gt;来声明&lt;code&gt;sin&lt;/code&gt;和&lt;code&gt;cos&lt;/code&gt;之类的函数，以及支持用户函数的前向声明。这些&lt;code&gt;extern&lt;/code&gt;只是没有身体的原型:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// external ::= &#39;extern&#39; prototype
+static std::unique_ptr&amp;lt;PrototypeAST&amp;gt; ParseExtern() {
+  getNextToken();  // eat extern.
+  return ParsePrototype();
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后, 我们让用户输入任意顶级表达式并evaluate them. 我们将会处理this by defining anonymous nullary(zero argument) functions for them:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// toplevelexpr ::= expression
+static std::unique_ptr&amp;lt;FunctionAST&amp;gt; ParseTopLevelExpr() {
+  if (auto E = ParseExpression()) {
+    // Make an anonymous proto.
+    auto Proto = llvm::make_unique&amp;lt;PrototypeAST&amp;gt;(&amp;quot;&amp;quot;, std::vector&amp;lt;std::string&amp;gt;());
+    return llvm::make_unique&amp;lt;FunctionAST&amp;gt;(std::move(Proto), std::move(E));
+  }
+  return nullptr;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在我们have all the pieces, let&amp;rsquo;s build a little driver that will let us actually execute this code we&amp;rsquo;ve built!&lt;/p&gt;
+
+&lt;h1 id=&#34;2-7-the-driver&#34;&gt;2.7 The Driver&lt;/h1&gt;
+
+&lt;p&gt;The Driver仅仅是通过调用所有的解析pieces.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// top ::= definition | external | expression | &#39;;&#39;
+static void MainLoop() {
+  while (1) {
+    fprintf(stderr, &amp;quot;ready&amp;gt; &amp;quot;);
+    switch (CurTok) {
+    case tok_eof:
+      return;
+    case &#39;;&#39;: // ignore top-level semicolons.
+      getNextToken();
+      break;
+    case tok_def:
+      HandleDefinition();
+      break;
+    case tok_extern:
+      HandleExtern();
+      break;
+    default:
+      HandleTopLevelExpression();
+      break;
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;一件有趣的事情是:  我们忽略了顶级&amp;rdquo;;&amp;ldquo;.&lt;/p&gt;
+
+&lt;h1 id=&#34;2-8-conclusions&#34;&gt;2.8 Conclusions&lt;/h1&gt;
+
+&lt;p&gt;通过这仅仅400行的代码, 我们定义了我们的最小的语言, 包含一个词法分析器, 解析器, 和AST builder.&lt;/p&gt;
+
+&lt;p&gt;这是一个简单的交互例子:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ./a.out
+ready&amp;gt; def foo(x y) x+foo(y, 4.0);
+Parsed a function definition.
+ready&amp;gt; def foo(x y) x+y y;
+Parsed a function definition.
+Parsed a top-level expr
+ready&amp;gt; def foo(x y) x+y );
+Parsed a function definition.
+Error: unknown token when expecting an expression
+ready&amp;gt; extern sin(a);
+ready&amp;gt; Parsed an extern
+ready&amp;gt; ^D
+$
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;2-9-full-code-listing&#34;&gt;2.9 Full Code Listing&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl02.html#the-abstract-syntax-tree-ast&#34;&gt;http://llvm.org/docs/tutorial/LangImpl02.html#the-abstract-syntax-tree-ast&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope: Tutorial Introduction and Lexer</title>
       <link>https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/</link>
       <pubDate>Wed, 10 Apr 2019 10:17:08 +0800</pubDate>
@@ -1799,6 +2212,40 @@ expiryDate = [&amp;quot;expiryDate&amp;quot;]
 &amp;lt;/script&amp;gt;
 
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;mermaid&#34;&gt;mermaid&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;mermaid&lt;/code&gt;支持画流程图, 甘特图等.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/knsv/mermaid/releases&#34;&gt;https://github.com/knsv/mermaid/releases&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;和使用&lt;code&gt;highlight.js&lt;/code&gt;的方法类似:&lt;/p&gt;
+
+&lt;p&gt;添加&lt;code&gt;mermaid.css&lt;/code&gt; 和 &lt;code&gt;mermaid.min.js&lt;/code&gt; .&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-toml&#34;&gt;customCSS = [&#39;styles/dracula.css&#39;, &#39;mermaid.css&#39;]            # if [&#39;custom.css&#39;], load &#39;/static/css/custom.css&#39; file
+customJS = [&#39;highlight.pack.js&#39;,&#39;mermaid.min.js&#39;]             # if [&#39;custom.js&#39;], load &#39;/static/js/custom.js&#39; file
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;script.html&lt;/code&gt;中添加&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-html&#34;&gt;&amp;lt;script&amp;gt; mermaid.initialize({ startOnLoad: true });&amp;lt;/script&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;使用-1&#34;&gt;使用&lt;/h5&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-markdown&#34;&gt;&amp;lt;div class=&amp;quot;mermaid&amp;quot;&amp;gt;
+graph TD
+    Start --&amp;gt; Stop
+&amp;lt;/div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;生成:&lt;/p&gt;
+
+&lt;div class=&#34;mermaid&#34;&gt;
+graph TD
+    Start --&gt; Stop
+&lt;/div&gt;
 
 &lt;h1 id=&#34;博客搭建心得&#34;&gt;博客搭建心得&lt;/h1&gt;
 

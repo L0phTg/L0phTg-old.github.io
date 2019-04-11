@@ -63,6 +63,8 @@ symbol -&amp;gt; symid -&amp;gt; 在got表中的offset -&amp;gt; 目标函数实
 
 <link rel="stylesheet" href="/css/styles/dracula.css">
 
+<link rel="stylesheet" href="/css/mermaid.css">
+
 
 <meta property="og:title" content="Iqiyi开源hook框架XHook分析" />
 <meta property="og:description" content="Got Hook 可以使用dlsym得到目标函数的地址, 然后遍历got表进行Hook.
@@ -830,8 +832,11 @@ xh_core_hook_impl    -&gt; xh_elf_init
 
 <script src="/js/highlight.pack.js"></script>
 
+<script src="/js/mermaid.min.js"></script>
+
 
 <script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
 
 </body>
 </html>
