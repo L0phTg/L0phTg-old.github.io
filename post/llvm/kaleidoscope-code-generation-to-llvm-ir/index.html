@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Kaleidoscope: Code Generation to LLVM IR - L0phTg&#39;s Blog</title>
+  <link rel="alternate" hreflang="zh-cn" href="https://l0phtg.github.io/" />
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl03.html
+介绍四个基本表达式和函数申明与定义的Codegen.
+" />
+<meta name="keywords" content="Kaleidoscope" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
+<link rel="stylesheet" href="/css/mermaid.css">
+
+
+<meta property="og:title" content="Kaleidoscope: Code Generation to LLVM IR" />
+<meta property="og:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl03.html
+
+介绍四个基本表达式和函数申明与定义的Codegen.
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/" /><meta property="article:published_time" content="2019-04-12T16:55:05&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-12T17:09:48&#43;08:00"/>
+<meta itemprop="name" content="Kaleidoscope: Code Generation to LLVM IR">
+<meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl03.html
+
+介绍四个基本表达式和函数申明与定义的Codegen.
+
+
+">
+
+
+<meta itemprop="datePublished" content="2019-04-12T16:55:05&#43;08:00" />
+<meta itemprop="dateModified" content="2019-04-12T16:55:05&#43;08:00" />
+<meta itemprop="wordCount" content="5479">
+
+
+
+<meta itemprop="keywords" content="llvm,Kaleidoscope," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kaleidoscope: Code Generation to LLVM IR"/>
+<meta name="twitter:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl03.html
+
+介绍四个基本表达式和函数申明与定义的Codegen.
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a><a href="https://gohugo.io">
+        <li class="mobile-menu-item">external-link</li>
+      </a>
+  </ul>
+</nav>
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg&#39;s Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+  </ul>
+</nav>
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Kaleidoscope: Code Generation to LLVM IR</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-04-12 </span>
+        <div class="post-category">
+            
+              <a href="/categories/llvm/"> llvm </a>
+            
+          </div>
+        <span class="more-meta"> 约 5479 字 </span>
+        <span class="more-meta"> 预计阅读 11 分钟 </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#3-1-chapter-3-introduction">3.1 Chapter 3 Introduction</a></li>
+<li><a href="#3-2-code-generation-setup">3.2 Code Generation Setup</a></li>
+<li><a href="#3-3-expression-code-generation">3.3 Expression Code Generation</a>
+<ul>
+<li><a href="#numexpr">numExpr</a></li>
+<li><a href="#variableexpr">VariableExpr</a></li>
+<li><a href="#binaryexprast">BinaryExprAST</a></li>
+<li><a href="#callexprast">CallExprAST</a></li>
+</ul></li>
+<li><a href="#3-4-function-code-generation">3.4 Function Code Generation</a>
+<ul>
+<li><a href="#prototypeast">PrototypeAST</a></li>
+<li><a href="#functionast">FunctionAST</a></li>
+</ul></li>
+<li><a href="#3-5-driver-changes-and-closing-thoughts">3.5 Driver Changes and Closing Thoughts</a></li>
+<li><a href="#3-6-full-code-listing">3.6 Full Code Listing</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl03.html">http://llvm.org/docs/tutorial/LangImpl03.html</a></p>
+
+<p>介绍四个基本表达式和函数申明与定义的Codegen.</p>
+
+<p><img src="/docs-pic/llvm/Codegen.png" alt="codegen .png" />
+</p>
+
+<h1 id="3-1-chapter-3-introduction">3.1 Chapter 3 Introduction</h1>
+
+<p>本章将会向你介绍如何转换为AST. built in Chapter2, into LLVM IR. 这将会教给你a little bit about LLVM是如何做这个的. 以及展示它的实用性. 构建一个词法分析器和解析器要比生成LLVM IR代码的工作多得多.</p>
+
+<p><strong>please note</strong>: 本章和之后的代码是基于LLVM 3.7 and later. LLVM 3.6 和之前的版本将不会工作for this code. 也要注意, 你需要一个匹配你的LLVM Release版本的tutorial.</p>
+
+<h1 id="3-2-code-generation-setup">3.2 Code Generation Setup</h1>
+
+<p>为了产生LLVM IR, 我们想要一些简单的setup来start. 首先我们定义virtual code generation(codegen)方法在每一个AST类中.</p>
+
+<pre><code class="language-c++">/// ExprAST - Base class for all expression nodes.
+class ExprAST {
+public:
+  virtual ~ExprAST() {}
+  virtual Value *codegen() = 0;
+};
+
+/// NumberExprAST - Expression class for numeric literals like &quot;1.0&quot;.
+class NumberExprAST : public ExprAST {
+  double Val;
+
+public:
+  NumberExprAST(double Val) : Val(Val) {}
+  virtual Value *codegen();
+};
+</code></pre>
+
+<p>codegen()表示为AST节点依赖它们来产生IR , 并且他们都返回一个<strong>Value</strong>对象(被用来表示&rdquo;Static Single Assigment(SSA) register&rdquo; or &ldquo;SSA value&rdquo;in LLVM).</p>
+
+<p>SSA值的最独特的方面是当相关指令执行时, 他们的值被计算. 并且在指令再次执行之前, 它不会获得新值. 换句话说, 没有方法来改变SSA值. 为了了解更多关于SSA的信息, please read up on <a href="https://l0phtg.github.io/post/llvm/static-single-assignment/">Static Single Assignment</a> - 一旦你理解了它, the concepts are really quite natural.</p>
+
+<p>请注意, 不是将虚方法添加到ExprAST的类层次结构中, 使用访问者模式或者其他方式对此进行建模也是有意义的.</p>
+
+<p>Again, 本教程将不再讨论良好的软件工程实践: 出于我们的目的, 添加虚拟方法是最简单的.</p>
+
+<p>我们想要的第二件事情, 是像我们在编写解析器时那样, 当发生错误时报告error. (例如, 对一个未声明参数的使用).</p>
+
+<pre><code class="language-c++">static LLVMContext TheContext;
+static IRBuilder&lt;&gt; Builder(TheContext);
+static std::unique_ptr&lt;Module&gt; TheModule;
+static std::map&lt;std::string, Value *&gt; NamedValues;
+
+Value *LogErrorV(const char *Str) {
+  LogError(Str);
+  return nullptr;
+}
+</code></pre>
+
+<p>在代码产生阶段, 静态变量将会被使用. TheContext 是一个掌握了大量的核心LLVM data 结构不透明的对象, 例如the type and 常量value tables. 我们不必关注它的细节, 我们仅仅需要一个简单的实例, 直接将它传到我们需要的API中即可.</p>
+
+<p>The <strong>Builder object</strong> 帮助我们使产生IR这件事变得很容易. <strong>IRBuilder</strong>类的实例模板来<strong>跟踪当前插入指令的位置</strong>并且<strong>提供创建新指令的方法</strong>.</p>
+
+<p><strong>TheModule</strong> 是一个LLVM construct(包含函数和全局变量). In many ways, 它是一个LLVM IR用于包含代码的顶级结构.它将会掌控我们产生的IR的内存 (这就是为什么 codegen() method返回一个<strong>raw value</strong>*, 而不是<strong>unique_ptr<Value></strong>).</p>
+
+<p><strong>The NamedValues map</strong> 会跟踪<strong>当前作用域</strong>中<strong>定义的值</strong>以及它们的LLVM表示形式. (换句话说, 它是代码的符号表). <code>在 Kaleidoscope的形式中, 能被引用的唯一的things 是函数参数. 因此, 当为函数体进行Codegen时, 函数参数将会存在于该map中</code>.</p>
+
+<p>有了这些基础知识, 我们可以开始讨论如何为每个表达式 generate code. 注意: this 假定已经设置了Builder来生成代码. 现在, 我们假设已经完成了, 我们将会just 用它来emit code.</p>
+
+<h1 id="3-3-expression-code-generation">3.3 Expression Code Generation</h1>
+
+<p>为每一个表达式产生LLVM code是非常直接的.</p>
+
+<h2 id="numexpr">numExpr</h2>
+
+<p>First we&rsquo;ll do <strong>numberic literals</strong>:</p>
+
+<pre><code class="language-c++">Value *NumberExprAST::codegen() {
+  return ConstantFP::get(TheContext, APFloat(Val));
+}
+</code></pre>
+
+<p>在LLVM IR中, 数字常量用<strong>ConstantFP</strong>类来表示, (在内部保存APFloat的值)(
+APFloat 具有保存任意精度的浮点常数的能力). 这段代码基本就是创建并返回了一个<strong>ConstantFP</strong>. 注意 在LLVM IR中, 常量都是唯一的, 并且被共享. 出于这个原因, The <strong>API use the &ldquo;foo::(..)&ldquo;而不是 &ldquo;new foo(&hellip;)&rdquo; or &ldquo;foo::Create(..)&rdquo;</strong>.</p>
+
+<h2 id="variableexpr">VariableExpr</h2>
+
+<pre><code class="language-c++">Value *VariableExprAST::codegen() {
+  // Look this variable up in the function.
+  Value *V = NamedValues[Name];
+  if (!V)
+    LogErrorV(&quot;Unknown variable name&quot;);
+  return V;
+}
+</code></pre>
+
+<p>使用LLVM对变量的引用也非常简单. 在我们simple Kaleidoscope中, 我们假定变量已经被emitted somewhere 并且它的值是可用的. 实际上,  In the namedValues map 的唯一的值是函数参数. 此代码只是检查指定的name是否在map中. (如果没有, 未知变量将会被引用) 并且返回value for it. 在未来的章节, we&rsquo;ll 将会在符号表和局部变量中增加<strong>Loop Induction variables</strong> (可以阅读第5章: 对 Loop 进行 codegen的部分).</p>
+
+<h2 id="binaryexprast">BinaryExprAST</h2>
+
+<pre><code class="language-c++">Value *BinaryExprAST::codegen() {
+  Value *L = LHS-&gt;codegen();
+  Value *R = RHS-&gt;codegen();
+  if (!L || !R)
+    return nullptr;
+
+  switch (Op) {
+  case '+':
+    return Builder.CreateFAdd(L, R, &quot;addtmp&quot;);
+  case '-':
+    return Builder.CreateFSub(L, R, &quot;subtmp&quot;);
+  case '*':
+    return Builder.CreateFMul(L, R, &quot;multmp&quot;);
+  case '&lt;':
+    L = Builder.CreateFCmpULT(L, R, &quot;cmptmp&quot;);
+    // Convert bool 0/1 to double 0.0 or 1.0
+    return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext),
+                                &quot;booltmp&quot;);
+  default:
+    return LogErrorV(&quot;invalid binary operator&quot;);
+  }
+}
+</code></pre>
+
+<p>二元操作符开始变得有趣.</p>
+
+<p>这里的基本思想: <code>我们递归地为表达式的左侧emit code, 然后是右侧, 然后我们计算二进制表达式的结果. 在这个代码中, 我们做一个简单的switch on the opcode来创建正确的LLVM 指令</code>.</p>
+
+<p>在上面的例子中, LLVM Builder类开始显示其值. <strong>IRBuilder知道在哪里插入新创建的指令, 你所做的就是要指定什么指令将会被创建</strong> (例如, 使用 <strong>CreateFAdd</strong>), which <strong>使用哪些操作数(L and R here)</strong> 并且optionally <strong>为生成的指令提供一个名字</strong>.</p>
+
+<p>关于LLVM, 一个不错的事情是名称就像一个提示.  例如, 如果上面的代码emit 多条 &ldquo;addtmp&rdquo; <strong>变量</strong>, LLVM将自动地为每个变量提供一个递增的, 独特的数字suffix(后缀). 指令的本地值名称purely可选择的, but 它的名称应该要更方便我们阅读.</p>
+
+<p>LLVM 指令是被严格的规则所限制: For Example, <strong>一个指令的左边和右边的操作符一定要有相同的类型</strong>, 并且add的<strong>结果类型一定要匹配操作数类型</strong>. 因为in Kaleidoscope所有的值都是doubles, this makes for very simple code for add, sub, mul.</p>
+
+<p>在另一方面, LLVM 指定 <strong>fcmp</strong> 指令总是返回一个 &ldquo;i1&rdquo; 值( 1 比特整型). 问题是 Kaleidoscope希望值是<strong>0.0</strong>或者<strong>1.0</strong>. 为了获得这些语义, 我们将<strong>fcmp指令</strong>与<strong>uitofp指令</strong>(unsigned integer to float point)结合起来. 该指令通过将它的输入整数转换为浮点值by 将输入视为无符号值. 相反, 如果我们使用<strong>sitofp指令</strong>, The kaleidoscope &lsquo;&lt;&rsquo; 操作符将会返回<strong>0.0</strong>和<strong>-1.0</strong>, 具体依赖于输入值.</p>
+
+<h2 id="callexprast">CallExprAST</h2>
+
+<pre><code class="language-c++">Value *CallExprAST::codegen() {
+  // Look up the name in the global module table. 在全局module table中寻找name
+  Function *CalleeF = TheModule-&gt;getFunction(Callee);
+  if (!CalleeF)
+    return LogErrorV(&quot;Unknown function referenced&quot;);
+
+  // If argument mismatch error.
+  if (CalleeF-&gt;arg_size() != Args.size())
+    return LogErrorV(&quot;Incorrect # arguments passed&quot;);
+
+  std::vector&lt;Value *&gt; ArgsV;
+  for (unsigned i = 0, e = Args.size(); i != e; ++i) {
+    ArgsV.push_back(Args[i]-&gt;codegen());
+    if (!ArgsV.back())
+      return nullptr;
+  }
+
+  return Builder.CreateCall(CalleeF, ArgsV, &quot;calltmp&quot;);
+}
+</code></pre>
+
+<p>使用LLVM来产生函数调用的codegen是相当简单直接的.</p>
+
+<p>上面的代码最开始会在LLVM Module&rsquo;s 符号表中 寻找函数的名称. 回想一下, LLVM Module是一个可以包含我们正在执行的JIT函数的容器. 通过给每一个函数指定与用户指定的相同的名称, 我们可以使用LLVM 符号表来解析我们的函数名称.</p>
+
+<p>一旦我们有函数要调用, 我们递归地codegen(编码)每一个我们要传入的参数, 并且创建一个LLVM调用指令. 注意, LLVM默认使用本地的c调用规定, 允许这些调用来调用标准库函数(like &ldquo;sin&rdquo; and &ldquo;cos&rdquo;)是轻松的, 不需要任何额外的工作.</p>
+
+<p>这包含了我们对四个基本表达式(in Kaileidoscope)的处理. 当然, 你可以随意添加更多. 例如, 通过浏览 <a href="http://llvm.org/docs/LangRef.html">LLVM Language reference</a>. 你将会找到其他一些有趣的指令, 并且将他们加到我们的框架中是非常简单的.</p>
+
+<h1 id="3-4-function-code-generation">3.4 Function Code Generation</h1>
+
+<p>函数申明和函数定义的代码生成要处理大量的细节, which 这使得它们的代码生成不如expression 的代码生成 漂亮, but 这允许我们说明一些重要的点.</p>
+
+<h2 id="prototypeast">PrototypeAST</h2>
+
+<p>首先, 我们先讨论函数申明的代码产生: 他们可以用于函数体, 也可以用于外部函数申明.</p>
+
+<p>The code starts with:</p>
+
+<pre><code class="language-c++">Function *PrototypeAST::codegen() {
+  // Make the function type:  double(double,double) etc.
+  std::vector&lt;Type*&gt; Doubles(Args.size(),
+                             Type::getDoubleTy(TheContext));
+  FunctionType *FT =
+    FunctionType::get(Type::getDoubleTy(TheContext), Doubles, false);
+
+  Function *F =
+    Function::Create(FT, Function::ExternalLinkage, Name, TheModule.get());
+</code></pre>
+
+<p>这段代码将大量的功能集成到几行. First注意, 这个函数返回了一个&rdquo;<strong>Function</strong>&ldquo;而不是&rdquo;<strong>Value</strong>&rdquo;. 因为&rdquo;prototype&rdquo;是在讨论函数的外部接口(而不是表达式计算的值), 当codegen时, 返回LLVM Function是有意义的.</p>
+
+<p><strong>FunctionType::get</strong>的调用创建<strong>FunctionType</strong>(that 被用于给定的声明). 由于Kaleidoscope中所有的函数参数都是double类型的, 第一行创建了一个&rdquo;N个double类型的vector&rdquo;. 然后使用<strong>FunctionType::get</strong>创建了接收N个double类型参数的函数. 返回一个double作为结果,(那不是可变参数(false表示这一点)). 注意 LLVM中类型是和常量一样唯一的, 所以你不用&rdquo;new a type&rdquo;, you &ldquo;get&rdquo; it.</p>
+
+<p>上面的最后一行实际上创建了与Prototype相对应的IR函数. 这表明了要使用的类型, 链接, 名称, 以及要插入的模块. &ldquo;external linkage&rdquo;意味着该函数可能在当前模块之外定义. and or 它能够被模块外面的函数所调用. 传入的名称是用户指定的名称: 由于指定了&rdquo;TheModule&rdquo;, 因此该名称在&rdquo;TheModule&rdquo;符号表中被注册.</p>
+
+<pre><code class="language-c++">// Set names for all arguments. 设置所有参数的名称
+unsigned Idx = 0;
+for (auto &amp;Arg : F-&gt;args())
+  Arg.setName(Args[Idx++]);
+
+return F;
+</code></pre>
+
+<p>最后, 我们根据Prototype中的名称设置每个函数参数的名称. 这一步并不是严格需要的, 但是保持名称的一致是IR的可读性更强, 并允许后面的代码直接引用其名称的参数, 而不需要在PrototypeAST中查找他们.</p>
+
+<h2 id="functionast">FunctionAST</h2>
+
+<p>我们有一个没有函数体的function prototype.  这是LLVM IR表示函数申明的方式. 对于在Kaileidoscope中的extern表达式来说, 这正是我们想要表达的. 然而对于函数定义来说,我们需要codegen并且attach a 函数体:</p>
+
+<pre><code class="language-c++">Function *FunctionAST::codegen() {
+    // First, check for an existing function from a previous 'extern' declaration.
+  Function *TheFunction = TheModule-&gt;getFunction(Proto-&gt;getName());
+
+  if (!TheFunction)
+    TheFunction = Proto-&gt;codegen();
+
+  if (!TheFunction)
+    return nullptr;
+
+  if (!TheFunction-&gt;empty())
+    return (Function*)LogErrorV(&quot;Function cannot be redefined.&quot;);
+</code></pre>
+
+<p>对于函数定义来说, 我们首先在TheModule的符号表中搜索此函数的现有版本.</p>
+
+<ul>
+<li>一种case是:using &ldquo;extern&rdquo; 语句时, 符号表就被创建了. 如果 Module::getFunction 返回 null, 则意味着不存在先前的版本, 所以我们就需要根据申明来进行Prototype Codegen.</li>
+<li>在另一种case中, 我们想要在我们开始之前, assert函数是empty(i.e. 还没有函数体)</li>
+</ul>
+
+<pre><code class="language-c++">// Create a new basic block to start insertion into.  创建一个新的basic block 来插入.
+BasicBlock *BB = BasicBlock::Create(TheContext, &quot;entry&quot;, TheFunction);
+Builder.SetInsertPoint(BB);
+
+// Record the function arguments in the NamedValues map. 在NamedValue mao中记录函数参数.
+NamedValues.clear();
+for (auto &amp;Arg : TheFunction-&gt;args())
+  NamedValues[Arg.getName()] = &amp;Arg;
+</code></pre>
+
+<p>现在我们可以开始建立Builder了:</p>
+
+<p>第一行创建了一个<strong>new basic block(named &ldquo;entry&rdquo;)</strong>, 被直接插入到函数中. 第二行告诉我们新的指令应该被插在<strong>new basic block</strong>的末尾. 在LLVM中<code>Basic Block</code>(define the <strong>Control Flow Graph</strong>)是函数中重要的一部分. 因为我们没有任何控制流, 所以此时我们的函数只包含一个Block. <strong>we&rsquo;ll fix this in Chapter 5</strong>.</p>
+
+<p>现在我们添加函数参数到<strong>NamedValues map</strong>中(当然了, 首先它会被清空) 以便于它们可以被VariableExprAST节点所获取.</p>
+
+<pre><code class="language-c++">if (Value *RetVal = Body-&gt;codegen()) {
+  // Finish off the function.
+  Builder.CreateRet(RetVal);
+
+  // Validate the generated code, checking for consistency.
+  verifyFunction(*TheFunction);
+
+  return TheFunction;
+}
+</code></pre>
+
+<ol>
+<li>一旦在<strong>设置了插入点</strong>, 并且填充了<strong>NamedValues</strong>之后, 我们调用codegen() 方法作为function的 root 表达式.</li>
+<li>如果没有error发生, <strong>this emits code</strong>计算表达式到 <strong>entry block</strong> 并返回计算出的值.</li>
+<li>假设没有error, 我们然后创建<strong>an LLVM ret instruction</strong> (表示函数完成).</li>
+<li>一旦函数被构建后, 我们就会调用<strong>verifyFunction</strong>(which provided by LLVM). 该函数对产生的IR做大量的一致性检测, 来确定是否我们的编译代码都是正确的. 使用它是相当重要地, 它能够捕获大量的bugs. 一旦一个函数完成并验证后, 我们就会返回它.</li>
+</ol>
+
+<pre><code class="language-c++">  // Error reading body, remove function.
+  TheFunction-&gt;eraseFromParent();
+  return nullptr;
+}
+</code></pre>
+
+<p>最后剩下的唯一一件事情就是处理error case. 简单起见, 我们仅仅通过使用<strong>earseFromParent</strong>方法来删除我们Codegen的函数. 这允许用户重新定义他们之前输入错误的函数: 如果我们不删除它,  它将会继续保存在符号表中, 并且它还有body, 阻止我们之后定义.</p>
+
+<p>这代码有一个bug, 如果<strong>FunctionAST::codegen()</strong>方法发现了一个存在的IR Function. 它不会根据自己的申明来验证其签名. 这意味着: 一个更早的<code>extern</code>申明将会优先于函数定义的签名, 这可能导致codegen失败. 例如, 如果函数参数的名称不同.(what means ? 以后再研究)</p>
+
+<p>有很多方法可以解决这个问题, see what you can come up with! Here is a testcase:</p>
+
+<pre><code class="language-c++">extern foo(a);     # ok, defines foo.
+def foo(b) b;      # Error: Unknown variable name. (decl using 'a' takes precedence).
+</code></pre>
+
+<h1 id="3-5-driver-changes-and-closing-thoughts">3.5 Driver Changes and Closing Thoughts</h1>
+
+<p>到目前为止, 除了我们可以查看漂亮的LLVM调用之外, LLVM的Codegen并没有给我们带来太多的帮助. The sample code 将对codegen的调用插入到 &ldquo;HandleDefinition&rdquo;, &ldquo;HandleExtern&rdquo;等函数中, 然后dump out the LLVM IR.</p>
+
+<p>这里有一个简单的方法来查看LLVM IR. Ex:</p>
+
+<pre><code class="language-LLVM">ready&gt; 4+5;
+Read top-level expression:
+define double @0() {
+entry:
+  ret double 9.000000e+00
+}
+</code></pre>
+
+<p>注意 解析器是如何将顶级表达式转换为我们的anonymous函数. 当我们在下一章添加JIT Support时, 这会很便利.</p>
+
+<p>另外, 代码是literally transcribed, 除了IRBuilder会进行简单的常量折叠外, 不会执行任何优化. 下一章, 我们将会添加一些隐式地优化.</p>
+
+<pre><code class="language-LLVM">ready&gt; def foo(a b) a*a + 2*a*b + b*b;
+Read function definition:
+define double @foo(double %a, double %b) {
+entry:
+  %multmp = fmul double %a, %a
+  %multmp1 = fmul double 2.000000e+00, %a
+  %multmp2 = fmul double %multmp1, %b
+  %addtmp = fadd double %multmp, %multmp2
+  %multmp3 = fmul double %b, %b
+  %addtmp4 = fadd double %addtmp, %multmp3
+  ret double %addtmp4
+}
+</code></pre>
+
+<p>这里展示了一些简单的表达式运算.</p>
+
+<pre><code class="language-LLVM">ready&gt; def bar(a) foo(a, 4.0) + bar(31337);
+Read function definition:
+define double @bar(double %a) {
+entry:
+  %calltmp = call double @foo(double %a, double 4.000000e+00)
+  %calltmp1 = call double @bar(double 3.133700e+04)
+  %addtmp = fadd double %calltmp, %calltmp1
+  ret double %addtmp
+}
+</code></pre>
+
+<p>这里展示了一些函数调用.</p>
+
+<p>Note 如果你调用它的话, 这个函数将会花大量时间来执行.</p>
+
+<p>在未来, 我们将会添加一些条件控制流来使递归变得可以使用.</p>
+
+<pre><code class="language-LLVM">ready&gt; extern cos(x);
+Read extern:
+declare double @cos(double)
+
+ready&gt; cos(1.234);
+Read top-level expression:
+define double @1() {
+entry:
+  %calltmp = call double @cos(double 1.234000e+00)
+  ret double %calltmp
+}
+</code></pre>
+
+<p>这里展示了一个extern for libm &ldquo;cos&rdquo; 函数, and call to it:</p>
+
+<pre><code class="language-LLVM">ready&gt; ^D
+; ModuleID = 'my cool jit'
+
+define double @0() {
+entry:
+  %addtmp = fadd double 4.000000e+00, 5.000000e+00
+  ret double %addtmp
+}
+
+define double @foo(double %a, double %b) {
+entry:
+  %multmp = fmul double %a, %a
+  %multmp1 = fmul double 2.000000e+00, %a
+  %multmp2 = fmul double %multmp1, %b
+  %addtmp = fadd double %multmp, %multmp2
+  %multmp3 = fmul double %b, %b
+  %addtmp4 = fadd double %addtmp, %multmp3
+  ret double %addtmp4
+}
+
+define double @bar(double %a) {
+entry:
+  %calltmp = call double @foo(double %a, double 4.000000e+00)
+  %calltmp1 = call double @bar(double 3.133700e+04)
+  %addtmp = fadd double %calltmp, %calltmp1
+  ret double %addtmp
+}
+
+declare double @cos(double)
+
+define double @1() {
+entry:
+  %calltmp = call double @cos(double 1.234000e+00)
+  ret double %calltmp
+}
+</code></pre>
+
+<p>当你退出demo时(在 linux 上通过CTRL+D,or  windows上通过CTRL+Z来发送EOF), 它将会显示该module产生的所有IR.</p>
+
+<p>这就是Kaleidoscope tutorial 第三章的内容.</p>
+
+<p>接下来, 我们会展示如何添加JIT Codegen和优化器支持, 以便于我们之后可以开始运行代码.</p>
+
+<h1 id="3-6-full-code-listing">3.6 Full Code Listing</h1>
+
+<p><a href="http://llvm.org/docs/tutorial/LangImpl03.html">http://llvm.org/docs/tutorial/LangImpl03.html</a></p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-04-12</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">原创文章，如需转载请注明文章作者和出处。谢谢！</span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/llvm/">llvm</a>
+          
+          <a href="/tags/kaleidoscope/">Kaleidoscope</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/llvm/kaleidoscope-implementing-a-parser-and-ast/">
+            <span class="next-text nav-default">Kaleidoscope: Implementing a Parser and AST</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+    
+  </article>
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener" type="application/rss+xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2018 -
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">l0phtg</span></span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+<script src="/js/highlight.pack.js"></script>
+
+<script src="/js/mermaid.min.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
+
+</body>
+</html>

@@ -29,6 +29,403 @@
     </item>
     
     <item>
+      <title>Kaleidoscope: Code Generation to LLVM IR</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/</link>
+      <pubDate>Fri, 12 Apr 2019 16:55:05 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/</guid>
+      
+        <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl03.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl03.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;介绍四个基本表达式和函数申明与定义的Codegen.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/Codegen.png&#34; alt=&#34;codegen .png&#34; /&gt;
+&lt;/p&gt;
+
+&lt;h1 id=&#34;3-1-chapter-3-introduction&#34;&gt;3.1 Chapter 3 Introduction&lt;/h1&gt;
+
+&lt;p&gt;本章将会向你介绍如何转换为AST. built in Chapter2, into LLVM IR. 这将会教给你a little bit about LLVM是如何做这个的. 以及展示它的实用性. 构建一个词法分析器和解析器要比生成LLVM IR代码的工作多得多.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;please note&lt;/strong&gt;: 本章和之后的代码是基于LLVM 3.7 and later. LLVM 3.6 和之前的版本将不会工作for this code. 也要注意, 你需要一个匹配你的LLVM Release版本的tutorial.&lt;/p&gt;
+
+&lt;h1 id=&#34;3-2-code-generation-setup&#34;&gt;3.2 Code Generation Setup&lt;/h1&gt;
+
+&lt;p&gt;为了产生LLVM IR, 我们想要一些简单的setup来start. 首先我们定义virtual code generation(codegen)方法在每一个AST类中.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// ExprAST - Base class for all expression nodes.
+class ExprAST {
+public:
+  virtual ~ExprAST() {}
+  virtual Value *codegen() = 0;
+};
+
+/// NumberExprAST - Expression class for numeric literals like &amp;quot;1.0&amp;quot;.
+class NumberExprAST : public ExprAST {
+  double Val;
+
+public:
+  NumberExprAST(double Val) : Val(Val) {}
+  virtual Value *codegen();
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;codegen()表示为AST节点依赖它们来产生IR , 并且他们都返回一个&lt;strong&gt;Value&lt;/strong&gt;对象(被用来表示&amp;rdquo;Static Single Assigment(SSA) register&amp;rdquo; or &amp;ldquo;SSA value&amp;rdquo;in LLVM).&lt;/p&gt;
+
+&lt;p&gt;SSA值的最独特的方面是当相关指令执行时, 他们的值被计算. 并且在指令再次执行之前, 它不会获得新值. 换句话说, 没有方法来改变SSA值. 为了了解更多关于SSA的信息, please read up on &lt;a href=&#34;https://l0phtg.github.io/post/llvm/static-single-assignment/&#34;&gt;Static Single Assignment&lt;/a&gt; - 一旦你理解了它, the concepts are really quite natural.&lt;/p&gt;
+
+&lt;p&gt;请注意, 不是将虚方法添加到ExprAST的类层次结构中, 使用访问者模式或者其他方式对此进行建模也是有意义的.&lt;/p&gt;
+
+&lt;p&gt;Again, 本教程将不再讨论良好的软件工程实践: 出于我们的目的, 添加虚拟方法是最简单的.&lt;/p&gt;
+
+&lt;p&gt;我们想要的第二件事情, 是像我们在编写解析器时那样, 当发生错误时报告error. (例如, 对一个未声明参数的使用).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;static LLVMContext TheContext;
+static IRBuilder&amp;lt;&amp;gt; Builder(TheContext);
+static std::unique_ptr&amp;lt;Module&amp;gt; TheModule;
+static std::map&amp;lt;std::string, Value *&amp;gt; NamedValues;
+
+Value *LogErrorV(const char *Str) {
+  LogError(Str);
+  return nullptr;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在代码产生阶段, 静态变量将会被使用. TheContext 是一个掌握了大量的核心LLVM data 结构不透明的对象, 例如the type and 常量value tables. 我们不必关注它的细节, 我们仅仅需要一个简单的实例, 直接将它传到我们需要的API中即可.&lt;/p&gt;
+
+&lt;p&gt;The &lt;strong&gt;Builder object&lt;/strong&gt; 帮助我们使产生IR这件事变得很容易. &lt;strong&gt;IRBuilder&lt;/strong&gt;类的实例模板来&lt;strong&gt;跟踪当前插入指令的位置&lt;/strong&gt;并且&lt;strong&gt;提供创建新指令的方法&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;TheModule&lt;/strong&gt; 是一个LLVM construct(包含函数和全局变量). In many ways, 它是一个LLVM IR用于包含代码的顶级结构.它将会掌控我们产生的IR的内存 (这就是为什么 codegen() method返回一个&lt;strong&gt;raw value&lt;/strong&gt;*, 而不是&lt;strong&gt;unique_ptr&lt;Value&gt;&lt;/strong&gt;).&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;The NamedValues map&lt;/strong&gt; 会跟踪&lt;strong&gt;当前作用域&lt;/strong&gt;中&lt;strong&gt;定义的值&lt;/strong&gt;以及它们的LLVM表示形式. (换句话说, 它是代码的符号表). &lt;code&gt;在 Kaleidoscope的形式中, 能被引用的唯一的things 是函数参数. 因此, 当为函数体进行Codegen时, 函数参数将会存在于该map中&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;有了这些基础知识, 我们可以开始讨论如何为每个表达式 generate code. 注意: this 假定已经设置了Builder来生成代码. 现在, 我们假设已经完成了, 我们将会just 用它来emit code.&lt;/p&gt;
+
+&lt;h1 id=&#34;3-3-expression-code-generation&#34;&gt;3.3 Expression Code Generation&lt;/h1&gt;
+
+&lt;p&gt;为每一个表达式产生LLVM code是非常直接的.&lt;/p&gt;
+
+&lt;h2 id=&#34;numexpr&#34;&gt;numExpr&lt;/h2&gt;
+
+&lt;p&gt;First we&amp;rsquo;ll do &lt;strong&gt;numberic literals&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *NumberExprAST::codegen() {
+  return ConstantFP::get(TheContext, APFloat(Val));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在LLVM IR中, 数字常量用&lt;strong&gt;ConstantFP&lt;/strong&gt;类来表示, (在内部保存APFloat的值)(
+APFloat 具有保存任意精度的浮点常数的能力). 这段代码基本就是创建并返回了一个&lt;strong&gt;ConstantFP&lt;/strong&gt;. 注意 在LLVM IR中, 常量都是唯一的, 并且被共享. 出于这个原因, The &lt;strong&gt;API use the &amp;ldquo;foo::(..)&amp;ldquo;而不是 &amp;ldquo;new foo(&amp;hellip;)&amp;rdquo; or &amp;ldquo;foo::Create(..)&amp;rdquo;&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;variableexpr&#34;&gt;VariableExpr&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *VariableExprAST::codegen() {
+  // Look this variable up in the function.
+  Value *V = NamedValues[Name];
+  if (!V)
+    LogErrorV(&amp;quot;Unknown variable name&amp;quot;);
+  return V;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用LLVM对变量的引用也非常简单. 在我们simple Kaleidoscope中, 我们假定变量已经被emitted somewhere 并且它的值是可用的. 实际上,  In the namedValues map 的唯一的值是函数参数. 此代码只是检查指定的name是否在map中. (如果没有, 未知变量将会被引用) 并且返回value for it. 在未来的章节, we&amp;rsquo;ll 将会在符号表和局部变量中增加&lt;strong&gt;Loop Induction variables&lt;/strong&gt; (可以阅读第5章: 对 Loop 进行 codegen的部分).&lt;/p&gt;
+
+&lt;h2 id=&#34;binaryexprast&#34;&gt;BinaryExprAST&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *BinaryExprAST::codegen() {
+  Value *L = LHS-&amp;gt;codegen();
+  Value *R = RHS-&amp;gt;codegen();
+  if (!L || !R)
+    return nullptr;
+
+  switch (Op) {
+  case &#39;+&#39;:
+    return Builder.CreateFAdd(L, R, &amp;quot;addtmp&amp;quot;);
+  case &#39;-&#39;:
+    return Builder.CreateFSub(L, R, &amp;quot;subtmp&amp;quot;);
+  case &#39;*&#39;:
+    return Builder.CreateFMul(L, R, &amp;quot;multmp&amp;quot;);
+  case &#39;&amp;lt;&#39;:
+    L = Builder.CreateFCmpULT(L, R, &amp;quot;cmptmp&amp;quot;);
+    // Convert bool 0/1 to double 0.0 or 1.0
+    return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext),
+                                &amp;quot;booltmp&amp;quot;);
+  default:
+    return LogErrorV(&amp;quot;invalid binary operator&amp;quot;);
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;二元操作符开始变得有趣.&lt;/p&gt;
+
+&lt;p&gt;这里的基本思想: &lt;code&gt;我们递归地为表达式的左侧emit code, 然后是右侧, 然后我们计算二进制表达式的结果. 在这个代码中, 我们做一个简单的switch on the opcode来创建正确的LLVM 指令&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;在上面的例子中, LLVM Builder类开始显示其值. &lt;strong&gt;IRBuilder知道在哪里插入新创建的指令, 你所做的就是要指定什么指令将会被创建&lt;/strong&gt; (例如, 使用 &lt;strong&gt;CreateFAdd&lt;/strong&gt;), which &lt;strong&gt;使用哪些操作数(L and R here)&lt;/strong&gt; 并且optionally &lt;strong&gt;为生成的指令提供一个名字&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;关于LLVM, 一个不错的事情是名称就像一个提示.  例如, 如果上面的代码emit 多条 &amp;ldquo;addtmp&amp;rdquo; &lt;strong&gt;变量&lt;/strong&gt;, LLVM将自动地为每个变量提供一个递增的, 独特的数字suffix(后缀). 指令的本地值名称purely可选择的, but 它的名称应该要更方便我们阅读.&lt;/p&gt;
+
+&lt;p&gt;LLVM 指令是被严格的规则所限制: For Example, &lt;strong&gt;一个指令的左边和右边的操作符一定要有相同的类型&lt;/strong&gt;, 并且add的&lt;strong&gt;结果类型一定要匹配操作数类型&lt;/strong&gt;. 因为in Kaleidoscope所有的值都是doubles, this makes for very simple code for add, sub, mul.&lt;/p&gt;
+
+&lt;p&gt;在另一方面, LLVM 指定 &lt;strong&gt;fcmp&lt;/strong&gt; 指令总是返回一个 &amp;ldquo;i1&amp;rdquo; 值( 1 比特整型). 问题是 Kaleidoscope希望值是&lt;strong&gt;0.0&lt;/strong&gt;或者&lt;strong&gt;1.0&lt;/strong&gt;. 为了获得这些语义, 我们将&lt;strong&gt;fcmp指令&lt;/strong&gt;与&lt;strong&gt;uitofp指令&lt;/strong&gt;(unsigned integer to float point)结合起来. 该指令通过将它的输入整数转换为浮点值by 将输入视为无符号值. 相反, 如果我们使用&lt;strong&gt;sitofp指令&lt;/strong&gt;, The kaleidoscope &amp;lsquo;&amp;lt;&amp;rsquo; 操作符将会返回&lt;strong&gt;0.0&lt;/strong&gt;和&lt;strong&gt;-1.0&lt;/strong&gt;, 具体依赖于输入值.&lt;/p&gt;
+
+&lt;h2 id=&#34;callexprast&#34;&gt;CallExprAST&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *CallExprAST::codegen() {
+  // Look up the name in the global module table. 在全局module table中寻找name
+  Function *CalleeF = TheModule-&amp;gt;getFunction(Callee);
+  if (!CalleeF)
+    return LogErrorV(&amp;quot;Unknown function referenced&amp;quot;);
+
+  // If argument mismatch error.
+  if (CalleeF-&amp;gt;arg_size() != Args.size())
+    return LogErrorV(&amp;quot;Incorrect # arguments passed&amp;quot;);
+
+  std::vector&amp;lt;Value *&amp;gt; ArgsV;
+  for (unsigned i = 0, e = Args.size(); i != e; ++i) {
+    ArgsV.push_back(Args[i]-&amp;gt;codegen());
+    if (!ArgsV.back())
+      return nullptr;
+  }
+
+  return Builder.CreateCall(CalleeF, ArgsV, &amp;quot;calltmp&amp;quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用LLVM来产生函数调用的codegen是相当简单直接的.&lt;/p&gt;
+
+&lt;p&gt;上面的代码最开始会在LLVM Module&amp;rsquo;s 符号表中 寻找函数的名称. 回想一下, LLVM Module是一个可以包含我们正在执行的JIT函数的容器. 通过给每一个函数指定与用户指定的相同的名称, 我们可以使用LLVM 符号表来解析我们的函数名称.&lt;/p&gt;
+
+&lt;p&gt;一旦我们有函数要调用, 我们递归地codegen(编码)每一个我们要传入的参数, 并且创建一个LLVM调用指令. 注意, LLVM默认使用本地的c调用规定, 允许这些调用来调用标准库函数(like &amp;ldquo;sin&amp;rdquo; and &amp;ldquo;cos&amp;rdquo;)是轻松的, 不需要任何额外的工作.&lt;/p&gt;
+
+&lt;p&gt;这包含了我们对四个基本表达式(in Kaileidoscope)的处理. 当然, 你可以随意添加更多. 例如, 通过浏览 &lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;LLVM Language reference&lt;/a&gt;. 你将会找到其他一些有趣的指令, 并且将他们加到我们的框架中是非常简单的.&lt;/p&gt;
+
+&lt;h1 id=&#34;3-4-function-code-generation&#34;&gt;3.4 Function Code Generation&lt;/h1&gt;
+
+&lt;p&gt;函数申明和函数定义的代码生成要处理大量的细节, which 这使得它们的代码生成不如expression 的代码生成 漂亮, but 这允许我们说明一些重要的点.&lt;/p&gt;
+
+&lt;h2 id=&#34;prototypeast&#34;&gt;PrototypeAST&lt;/h2&gt;
+
+&lt;p&gt;首先, 我们先讨论函数申明的代码产生: 他们可以用于函数体, 也可以用于外部函数申明.&lt;/p&gt;
+
+&lt;p&gt;The code starts with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Function *PrototypeAST::codegen() {
+  // Make the function type:  double(double,double) etc.
+  std::vector&amp;lt;Type*&amp;gt; Doubles(Args.size(),
+                             Type::getDoubleTy(TheContext));
+  FunctionType *FT =
+    FunctionType::get(Type::getDoubleTy(TheContext), Doubles, false);
+
+  Function *F =
+    Function::Create(FT, Function::ExternalLinkage, Name, TheModule.get());
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这段代码将大量的功能集成到几行. First注意, 这个函数返回了一个&amp;rdquo;&lt;strong&gt;Function&lt;/strong&gt;&amp;ldquo;而不是&amp;rdquo;&lt;strong&gt;Value&lt;/strong&gt;&amp;rdquo;. 因为&amp;rdquo;prototype&amp;rdquo;是在讨论函数的外部接口(而不是表达式计算的值), 当codegen时, 返回LLVM Function是有意义的.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;FunctionType::get&lt;/strong&gt;的调用创建&lt;strong&gt;FunctionType&lt;/strong&gt;(that 被用于给定的声明). 由于Kaleidoscope中所有的函数参数都是double类型的, 第一行创建了一个&amp;rdquo;N个double类型的vector&amp;rdquo;. 然后使用&lt;strong&gt;FunctionType::get&lt;/strong&gt;创建了接收N个double类型参数的函数. 返回一个double作为结果,(那不是可变参数(false表示这一点)). 注意 LLVM中类型是和常量一样唯一的, 所以你不用&amp;rdquo;new a type&amp;rdquo;, you &amp;ldquo;get&amp;rdquo; it.&lt;/p&gt;
+
+&lt;p&gt;上面的最后一行实际上创建了与Prototype相对应的IR函数. 这表明了要使用的类型, 链接, 名称, 以及要插入的模块. &amp;ldquo;external linkage&amp;rdquo;意味着该函数可能在当前模块之外定义. and or 它能够被模块外面的函数所调用. 传入的名称是用户指定的名称: 由于指定了&amp;rdquo;TheModule&amp;rdquo;, 因此该名称在&amp;rdquo;TheModule&amp;rdquo;符号表中被注册.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;// Set names for all arguments. 设置所有参数的名称
+unsigned Idx = 0;
+for (auto &amp;amp;Arg : F-&amp;gt;args())
+  Arg.setName(Args[Idx++]);
+
+return F;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后, 我们根据Prototype中的名称设置每个函数参数的名称. 这一步并不是严格需要的, 但是保持名称的一致是IR的可读性更强, 并允许后面的代码直接引用其名称的参数, 而不需要在PrototypeAST中查找他们.&lt;/p&gt;
+
+&lt;h2 id=&#34;functionast&#34;&gt;FunctionAST&lt;/h2&gt;
+
+&lt;p&gt;我们有一个没有函数体的function prototype.  这是LLVM IR表示函数申明的方式. 对于在Kaileidoscope中的extern表达式来说, 这正是我们想要表达的. 然而对于函数定义来说,我们需要codegen并且attach a 函数体:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Function *FunctionAST::codegen() {
+    // First, check for an existing function from a previous &#39;extern&#39; declaration.
+  Function *TheFunction = TheModule-&amp;gt;getFunction(Proto-&amp;gt;getName());
+
+  if (!TheFunction)
+    TheFunction = Proto-&amp;gt;codegen();
+
+  if (!TheFunction)
+    return nullptr;
+
+  if (!TheFunction-&amp;gt;empty())
+    return (Function*)LogErrorV(&amp;quot;Function cannot be redefined.&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于函数定义来说, 我们首先在TheModule的符号表中搜索此函数的现有版本.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;一种case是:using &amp;ldquo;extern&amp;rdquo; 语句时, 符号表就被创建了. 如果 Module::getFunction 返回 null, 则意味着不存在先前的版本, 所以我们就需要根据申明来进行Prototype Codegen.&lt;/li&gt;
+&lt;li&gt;在另一种case中, 我们想要在我们开始之前, assert函数是empty(i.e. 还没有函数体)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;// Create a new basic block to start insertion into.  创建一个新的basic block 来插入.
+BasicBlock *BB = BasicBlock::Create(TheContext, &amp;quot;entry&amp;quot;, TheFunction);
+Builder.SetInsertPoint(BB);
+
+// Record the function arguments in the NamedValues map. 在NamedValue mao中记录函数参数.
+NamedValues.clear();
+for (auto &amp;amp;Arg : TheFunction-&amp;gt;args())
+  NamedValues[Arg.getName()] = &amp;amp;Arg;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在我们可以开始建立Builder了:&lt;/p&gt;
+
+&lt;p&gt;第一行创建了一个&lt;strong&gt;new basic block(named &amp;ldquo;entry&amp;rdquo;)&lt;/strong&gt;, 被直接插入到函数中. 第二行告诉我们新的指令应该被插在&lt;strong&gt;new basic block&lt;/strong&gt;的末尾. 在LLVM中&lt;code&gt;Basic Block&lt;/code&gt;(define the &lt;strong&gt;Control Flow Graph&lt;/strong&gt;)是函数中重要的一部分. 因为我们没有任何控制流, 所以此时我们的函数只包含一个Block. &lt;strong&gt;we&amp;rsquo;ll fix this in Chapter 5&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;现在我们添加函数参数到&lt;strong&gt;NamedValues map&lt;/strong&gt;中(当然了, 首先它会被清空) 以便于它们可以被VariableExprAST节点所获取.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;if (Value *RetVal = Body-&amp;gt;codegen()) {
+  // Finish off the function.
+  Builder.CreateRet(RetVal);
+
+  // Validate the generated code, checking for consistency.
+  verifyFunction(*TheFunction);
+
+  return TheFunction;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;一旦在&lt;strong&gt;设置了插入点&lt;/strong&gt;, 并且填充了&lt;strong&gt;NamedValues&lt;/strong&gt;之后, 我们调用codegen() 方法作为function的 root 表达式.&lt;/li&gt;
+&lt;li&gt;如果没有error发生, &lt;strong&gt;this emits code&lt;/strong&gt;计算表达式到 &lt;strong&gt;entry block&lt;/strong&gt; 并返回计算出的值.&lt;/li&gt;
+&lt;li&gt;假设没有error, 我们然后创建&lt;strong&gt;an LLVM ret instruction&lt;/strong&gt; (表示函数完成).&lt;/li&gt;
+&lt;li&gt;一旦函数被构建后, 我们就会调用&lt;strong&gt;verifyFunction&lt;/strong&gt;(which provided by LLVM). 该函数对产生的IR做大量的一致性检测, 来确定是否我们的编译代码都是正确的. 使用它是相当重要地, 它能够捕获大量的bugs. 一旦一个函数完成并验证后, 我们就会返回它.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  // Error reading body, remove function.
+  TheFunction-&amp;gt;eraseFromParent();
+  return nullptr;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后剩下的唯一一件事情就是处理error case. 简单起见, 我们仅仅通过使用&lt;strong&gt;earseFromParent&lt;/strong&gt;方法来删除我们Codegen的函数. 这允许用户重新定义他们之前输入错误的函数: 如果我们不删除它,  它将会继续保存在符号表中, 并且它还有body, 阻止我们之后定义.&lt;/p&gt;
+
+&lt;p&gt;这代码有一个bug, 如果&lt;strong&gt;FunctionAST::codegen()&lt;/strong&gt;方法发现了一个存在的IR Function. 它不会根据自己的申明来验证其签名. 这意味着: 一个更早的&lt;code&gt;extern&lt;/code&gt;申明将会优先于函数定义的签名, 这可能导致codegen失败. 例如, 如果函数参数的名称不同.(what means ? 以后再研究)&lt;/p&gt;
+
+&lt;p&gt;有很多方法可以解决这个问题, see what you can come up with! Here is a testcase:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;extern foo(a);     # ok, defines foo.
+def foo(b) b;      # Error: Unknown variable name. (decl using &#39;a&#39; takes precedence).
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;3-5-driver-changes-and-closing-thoughts&#34;&gt;3.5 Driver Changes and Closing Thoughts&lt;/h1&gt;
+
+&lt;p&gt;到目前为止, 除了我们可以查看漂亮的LLVM调用之外, LLVM的Codegen并没有给我们带来太多的帮助. The sample code 将对codegen的调用插入到 &amp;ldquo;HandleDefinition&amp;rdquo;, &amp;ldquo;HandleExtern&amp;rdquo;等函数中, 然后dump out the LLVM IR.&lt;/p&gt;
+
+&lt;p&gt;这里有一个简单的方法来查看LLVM IR. Ex:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; 4+5;
+Read top-level expression:
+define double @0() {
+entry:
+  ret double 9.000000e+00
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意 解析器是如何将顶级表达式转换为我们的anonymous函数. 当我们在下一章添加JIT Support时, 这会很便利.&lt;/p&gt;
+
+&lt;p&gt;另外, 代码是literally transcribed, 除了IRBuilder会进行简单的常量折叠外, 不会执行任何优化. 下一章, 我们将会添加一些隐式地优化.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def foo(a b) a*a + 2*a*b + b*b;
+Read function definition:
+define double @foo(double %a, double %b) {
+entry:
+  %multmp = fmul double %a, %a
+  %multmp1 = fmul double 2.000000e+00, %a
+  %multmp2 = fmul double %multmp1, %b
+  %addtmp = fadd double %multmp, %multmp2
+  %multmp3 = fmul double %b, %b
+  %addtmp4 = fadd double %addtmp, %multmp3
+  ret double %addtmp4
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里展示了一些简单的表达式运算.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def bar(a) foo(a, 4.0) + bar(31337);
+Read function definition:
+define double @bar(double %a) {
+entry:
+  %calltmp = call double @foo(double %a, double 4.000000e+00)
+  %calltmp1 = call double @bar(double 3.133700e+04)
+  %addtmp = fadd double %calltmp, %calltmp1
+  ret double %addtmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里展示了一些函数调用.&lt;/p&gt;
+
+&lt;p&gt;Note 如果你调用它的话, 这个函数将会花大量时间来执行.&lt;/p&gt;
+
+&lt;p&gt;在未来, 我们将会添加一些条件控制流来使递归变得可以使用.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; extern cos(x);
+Read extern:
+declare double @cos(double)
+
+ready&amp;gt; cos(1.234);
+Read top-level expression:
+define double @1() {
+entry:
+  %calltmp = call double @cos(double 1.234000e+00)
+  ret double %calltmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里展示了一个extern for libm &amp;ldquo;cos&amp;rdquo; 函数, and call to it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; ^D
+; ModuleID = &#39;my cool jit&#39;
+
+define double @0() {
+entry:
+  %addtmp = fadd double 4.000000e+00, 5.000000e+00
+  ret double %addtmp
+}
+
+define double @foo(double %a, double %b) {
+entry:
+  %multmp = fmul double %a, %a
+  %multmp1 = fmul double 2.000000e+00, %a
+  %multmp2 = fmul double %multmp1, %b
+  %addtmp = fadd double %multmp, %multmp2
+  %multmp3 = fmul double %b, %b
+  %addtmp4 = fadd double %addtmp, %multmp3
+  ret double %addtmp4
+}
+
+define double @bar(double %a) {
+entry:
+  %calltmp = call double @foo(double %a, double 4.000000e+00)
+  %calltmp1 = call double @bar(double 3.133700e+04)
+  %addtmp = fadd double %calltmp, %calltmp1
+  ret double %addtmp
+}
+
+declare double @cos(double)
+
+define double @1() {
+entry:
+  %calltmp = call double @cos(double 1.234000e+00)
+  ret double %calltmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当你退出demo时(在 linux 上通过CTRL+D,or  windows上通过CTRL+Z来发送EOF), 它将会显示该module产生的所有IR.&lt;/p&gt;
+
+&lt;p&gt;这就是Kaleidoscope tutorial 第三章的内容.&lt;/p&gt;
+
+&lt;p&gt;接下来, 我们会展示如何添加JIT Codegen和优化器支持, 以便于我们之后可以开始运行代码.&lt;/p&gt;
+
+&lt;h1 id=&#34;3-6-full-code-listing&#34;&gt;3.6 Full Code Listing&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl03.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl03.html&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope: Implementing a Parser and AST</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/</link>
       <pubDate>Thu, 11 Apr 2019 15:41:17 +0800</pubDate>
