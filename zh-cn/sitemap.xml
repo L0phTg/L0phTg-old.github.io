@@ -11,35 +11,35 @@
   
   <url>
     <loc>https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/</loc>
-    <lastmod>2019-04-12T17:09:48+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/</loc>
-    <lastmod>2019-04-12T16:54:10+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/</loc>
-    <lastmod>2019-04-12T16:54:10+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/post/llvm/static-single-assignment/</loc>
-    <lastmod>2019-04-11T11:25:21+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/post/dominatorgraph-theory/</loc>
-    <lastmod>2019-04-06T19:07:44+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -172,21 +172,21 @@
   
   <url>
     <loc>https://l0phtg.github.io/tags/compiler/</loc>
-    <lastmod>2019-04-11T11:25:21+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/categories/graph/</loc>
-    <lastmod>2019-04-06T19:07:44+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/tags/graph-theory/</loc>
-    <lastmod>2019-04-06T19:07:44+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -214,7 +214,7 @@
   
   <url>
     <loc>https://l0phtg.github.io/tags/kaleidoscope/</loc>
-    <lastmod>2019-04-12T17:09:48+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -242,14 +242,14 @@
   
   <url>
     <loc>https://l0phtg.github.io/tags/llvm/</loc>
-    <lastmod>2019-04-12T17:09:48+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/categories/llvm/</loc>
-    <lastmod>2019-04-12T17:09:48+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -263,7 +263,7 @@
   
   <url>
     <loc>https://l0phtg.github.io/post/</loc>
-    <lastmod>2019-04-12T17:09:48+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -284,7 +284,7 @@
   
   <url>
     <loc>https://l0phtg.github.io/tags/ssa/</loc>
-    <lastmod>2019-04-11T11:25:21+08:00</lastmod>
+    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
