@@ -226,6 +226,92 @@
     
       <article class="post bg-white">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/">Kaleidoscope: Adding JIT and Optimizer Support</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2019-04-13 </span>
+      <div class="post-category">
+          
+            <a href="/categories/llvm/"> llvm </a>
+          
+        </div>
+      <span class="more-meta"> 约 6744 字 </span>
+      <span class="more-meta"> 预计阅读 14 分钟 </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl04.html">http://llvm.org/docs/tutorial/LangImpl04.html</a></p>
+
+<p>本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.</p>
+
+<div class="mermaid">
+graph TB
+
+    subgraph call
+        funcall("foo(1);")
+    end
+
+    subgraph expr
+        nodeExpr("1+2;")
+    end
+    
+    jitAddModule["JIT中 添加此Module"]
+    jitRemoveModule["JIT中 删除此Module"]
+    
+    anoCodegen["执行 匿名函数Codegen"]
+    AnonymousCall["匿名函数包装"]
+    optimizeFunc["执行 Pass优化"]
+    nodeExpr --> AnonymousCall
+    funcall --> AnonymousCall
+    AnonymousCall --> anoCodegen
+    anoCodegen --> jitAddModule
+    jitAddModule --> optimizeFunc
+    optimizeFunc --> exec["JIT 运行此表达式, 并计算值"]
+    exec --> jitRemoveModule
+    
+    subgraph func definition
+        nodeFoo("def foo(x) x+1;")
+        funcCodegen["执行 函数定义Codegen"]
+        nodeFoo --> funcCodegen
+    end
+    
+    funcCodegen --> jitAddFuncModule["jit中 添加此Module"]
+    jitAddFuncModule --> initPassManager["执行 pass优化"]
+
+
+    subgraph extern
+        nodeExtern("extern sin(x);")
+        protoCodegen["执行 函数申明Codegen"]
+        nodeExtern --> protoCodegen
+    end
+    
+    style jitAddModule fill:#f9f
+    style jitRemoveModule fill:#f9f
+    style jitAddFuncModule fill:#f9f
+    
+    style optimizeFunc fill:#ccff66
+    style initPassManager fill:#ccff66
+    
+    style exec fill:#ff3300
+    
+
+</div>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscope-code-generation-to-llvm-ir/">Kaleidoscope: Code Generation to LLVM IR</a></h1>
     
     <div class="post-meta">
@@ -319,40 +405,6 @@
     </div>
     <div class="read-more">
       <a href="/post/kaleidoscope-tutorial-introduction-and-lexer/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/llvm/static-single-assignment/">Static Single Assignment</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2019-04-09 </span>
-      <div class="post-category">
-          
-            <a href="/categories/llvm/"> llvm </a>
-          
-        </div>
-      <span class="more-meta"> 约 1700 字 </span>
-      <span class="more-meta"> 预计阅读 4 分钟 </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>translate from: <a href="https://en.wikipedia.org/wiki/Static_single_assignment_form">https://en.wikipedia.org/wiki/Static_single_assignment_form</a></p>
-
-<p>单一变量赋值
-<img src="/llvm/SSA_example1.2.png" alt="" /></p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/llvm/static-single-assignment/" class="read-more-link">阅读全文</a>
     </div>
     
   </div>

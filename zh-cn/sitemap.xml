@@ -10,6 +10,13 @@
   </url>
   
   <url>
+    <loc>https://l0phtg.github.io/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/</loc>
+    <lastmod>2019-04-13T15:02:51+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/</loc>
     <lastmod>2019-04-12T19:35:57+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -214,7 +221,7 @@
   
   <url>
     <loc>https://l0phtg.github.io/tags/kaleidoscope/</loc>
-    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
+    <lastmod>2019-04-13T15:02:51+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -242,14 +249,14 @@
   
   <url>
     <loc>https://l0phtg.github.io/tags/llvm/</loc>
-    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
+    <lastmod>2019-04-13T15:02:51+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://l0phtg.github.io/categories/llvm/</loc>
-    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
+    <lastmod>2019-04-13T15:02:51+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -263,7 +270,7 @@
   
   <url>
     <loc>https://l0phtg.github.io/post/</loc>
-    <lastmod>2019-04-12T19:35:57+08:00</lastmod>
+    <lastmod>2019-04-13T15:02:51+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

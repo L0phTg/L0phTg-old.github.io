@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Kaleidoscope: Adding JIT and Optimizer Support - L0phTg&#39;s Blog</title>
+  <link rel="alternate" hreflang="zh-cn" href="https://l0phtg.github.io/" />
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl04.html
+本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.
+graph TB subgraph call funcall(&#34;foo(1);&#34;) end subgraph expr nodeExpr(&#34;1&#43;2;&#34;) end jitAddModule[&#34;JIT中 添加此Module&#34;] jitRemoveModule[&#34;JIT中 删除此Module&#34;] anoCodegen[&#34;执行 匿名函数Codegen&#34;] AnonymousCall[&#34;匿名函数包装&#34;] optimizeFunc[&#34;执行 Pass优化&#34;] nodeExpr -- AnonymousCall funcall -- AnonymousCall AnonymousCall -- anoCodegen anoCodegen -- jitAddModule jitAddModule -- optimizeFunc optimizeFunc -- exec[&#34;JIT 运行此表达式, 并计算值&#34;] exec -- jitRemoveModule subgraph func definition nodeFoo(&#34;def foo(x) x&#43;1;&#34;) funcCodegen[&#34;执行 函数定义Codegen&#34;] nodeFoo -- funcCodegen end funcCodegen -- jitAddFuncModule[&#34;jit中 添加此Module&#34;] jitAddFuncModule -- initPassManager[&#34;执行 pass优化&#34;] subgraph extern nodeExtern(&#34;extern sin(x);&#34;) protoCodegen[&#34;执行 函数申明Codegen&#34;] nodeExtern -- protoCodegen end style jitAddModule fill:#f9f style jitRemoveModule fill:#f9f style jitAddFuncModule fill:#f9f style optimizeFunc fill:#ccff66 style initPassManager fill:#ccff66 style exec fill:#ff3300  
+" />
+
+  <meta name="keywords" content="Hugo, theme, jane" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
+<link rel="stylesheet" href="/css/mermaid.css">
+
+
+<meta property="og:title" content="Kaleidoscope: Adding JIT and Optimizer Support" />
+<meta property="og:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl04.html
+
+本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.
+
+
+graph TB
+
+    subgraph call
+        funcall(&#34;foo(1);&#34;)
+    end
+
+    subgraph expr
+        nodeExpr(&#34;1&#43;2;&#34;)
+    end
+    
+    jitAddModule[&#34;JIT中 添加此Module&#34;]
+    jitRemoveModule[&#34;JIT中 删除此Module&#34;]
+    
+    anoCodegen[&#34;执行 匿名函数Codegen&#34;]
+    AnonymousCall[&#34;匿名函数包装&#34;]
+    optimizeFunc[&#34;执行 Pass优化&#34;]
+    nodeExpr --&gt; AnonymousCall
+    funcall --&gt; AnonymousCall
+    AnonymousCall --&gt; anoCodegen
+    anoCodegen --&gt; jitAddModule
+    jitAddModule --&gt; optimizeFunc
+    optimizeFunc --&gt; exec[&#34;JIT 运行此表达式, 并计算值&#34;]
+    exec --&gt; jitRemoveModule
+    
+    subgraph func definition
+        nodeFoo(&#34;def foo(x) x&#43;1;&#34;)
+        funcCodegen[&#34;执行 函数定义Codegen&#34;]
+        nodeFoo --&gt; funcCodegen
+    end
+    
+    funcCodegen --&gt; jitAddFuncModule[&#34;jit中 添加此Module&#34;]
+    jitAddFuncModule --&gt; initPassManager[&#34;执行 pass优化&#34;]
+
+
+    subgraph extern
+        nodeExtern(&#34;extern sin(x);&#34;)
+        protoCodegen[&#34;执行 函数申明Codegen&#34;]
+        nodeExtern --&gt; protoCodegen
+    end
+    
+    style jitAddModule fill:#f9f
+    style jitRemoveModule fill:#f9f
+    style jitAddFuncModule fill:#f9f
+    
+    style optimizeFunc fill:#ccff66
+    style initPassManager fill:#ccff66
+    
+    style exec fill:#ff3300
+    
+
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/" /><meta property="article:published_time" content="2019-04-13T15:02:51&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-13T15:02:51&#43;08:00"/>
+<meta itemprop="name" content="Kaleidoscope: Adding JIT and Optimizer Support">
+<meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl04.html
+
+本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.
+
+
+graph TB
+
+    subgraph call
+        funcall(&#34;foo(1);&#34;)
+    end
+
+    subgraph expr
+        nodeExpr(&#34;1&#43;2;&#34;)
+    end
+    
+    jitAddModule[&#34;JIT中 添加此Module&#34;]
+    jitRemoveModule[&#34;JIT中 删除此Module&#34;]
+    
+    anoCodegen[&#34;执行 匿名函数Codegen&#34;]
+    AnonymousCall[&#34;匿名函数包装&#34;]
+    optimizeFunc[&#34;执行 Pass优化&#34;]
+    nodeExpr --&gt; AnonymousCall
+    funcall --&gt; AnonymousCall
+    AnonymousCall --&gt; anoCodegen
+    anoCodegen --&gt; jitAddModule
+    jitAddModule --&gt; optimizeFunc
+    optimizeFunc --&gt; exec[&#34;JIT 运行此表达式, 并计算值&#34;]
+    exec --&gt; jitRemoveModule
+    
+    subgraph func definition
+        nodeFoo(&#34;def foo(x) x&#43;1;&#34;)
+        funcCodegen[&#34;执行 函数定义Codegen&#34;]
+        nodeFoo --&gt; funcCodegen
+    end
+    
+    funcCodegen --&gt; jitAddFuncModule[&#34;jit中 添加此Module&#34;]
+    jitAddFuncModule --&gt; initPassManager[&#34;执行 pass优化&#34;]
+
+
+    subgraph extern
+        nodeExtern(&#34;extern sin(x);&#34;)
+        protoCodegen[&#34;执行 函数申明Codegen&#34;]
+        nodeExtern --&gt; protoCodegen
+    end
+    
+    style jitAddModule fill:#f9f
+    style jitRemoveModule fill:#f9f
+    style jitAddFuncModule fill:#f9f
+    
+    style optimizeFunc fill:#ccff66
+    style initPassManager fill:#ccff66
+    
+    style exec fill:#ff3300
+    
+
+
+
+">
+
+
+<meta itemprop="datePublished" content="2019-04-13T15:02:51&#43;08:00" />
+<meta itemprop="dateModified" content="2019-04-13T15:02:51&#43;08:00" />
+<meta itemprop="wordCount" content="6744">
+
+
+
+<meta itemprop="keywords" content="llvm,Kaleidoscope," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kaleidoscope: Adding JIT and Optimizer Support"/>
+<meta name="twitter:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl04.html
+
+本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.
+
+
+graph TB
+
+    subgraph call
+        funcall(&#34;foo(1);&#34;)
+    end
+
+    subgraph expr
+        nodeExpr(&#34;1&#43;2;&#34;)
+    end
+    
+    jitAddModule[&#34;JIT中 添加此Module&#34;]
+    jitRemoveModule[&#34;JIT中 删除此Module&#34;]
+    
+    anoCodegen[&#34;执行 匿名函数Codegen&#34;]
+    AnonymousCall[&#34;匿名函数包装&#34;]
+    optimizeFunc[&#34;执行 Pass优化&#34;]
+    nodeExpr --&gt; AnonymousCall
+    funcall --&gt; AnonymousCall
+    AnonymousCall --&gt; anoCodegen
+    anoCodegen --&gt; jitAddModule
+    jitAddModule --&gt; optimizeFunc
+    optimizeFunc --&gt; exec[&#34;JIT 运行此表达式, 并计算值&#34;]
+    exec --&gt; jitRemoveModule
+    
+    subgraph func definition
+        nodeFoo(&#34;def foo(x) x&#43;1;&#34;)
+        funcCodegen[&#34;执行 函数定义Codegen&#34;]
+        nodeFoo --&gt; funcCodegen
+    end
+    
+    funcCodegen --&gt; jitAddFuncModule[&#34;jit中 添加此Module&#34;]
+    jitAddFuncModule --&gt; initPassManager[&#34;执行 pass优化&#34;]
+
+
+    subgraph extern
+        nodeExtern(&#34;extern sin(x);&#34;)
+        protoCodegen[&#34;执行 函数申明Codegen&#34;]
+        nodeExtern --&gt; protoCodegen
+    end
+    
+    style jitAddModule fill:#f9f
+    style jitRemoveModule fill:#f9f
+    style jitAddFuncModule fill:#f9f
+    
+    style optimizeFunc fill:#ccff66
+    style initPassManager fill:#ccff66
+    
+    style exec fill:#ff3300
+    
+
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a><a href="https://gohugo.io">
+        <li class="mobile-menu-item">external-link</li>
+      </a>
+  </ul>
+</nav>
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg&#39;s Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+  </ul>
+</nav>
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Kaleidoscope: Adding JIT and Optimizer Support</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-04-13 </span>
+        <div class="post-category">
+            
+              <a href="/categories/llvm/"> llvm </a>
+            
+          </div>
+        <span class="more-meta"> 约 6744 字 </span>
+        <span class="more-meta"> 预计阅读 14 分钟 </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#chapter-4-介绍">Chapter 4 介绍</a></li>
+<li><a href="#trivial-constant-folding">Trivial Constant Folding</a></li>
+<li><a href="#llvm-optimization-passes">LLVM Optimization Passes</a></li>
+<li><a href="#adding-a-jit-compiler">Adding a JIT Compiler</a></li>
+<li><a href="#full-code-list">Full Code List</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl04.html">http://llvm.org/docs/tutorial/LangImpl04.html</a></p>
+
+<p>本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.</p>
+
+<div class="mermaid">
+graph TB
+
+    subgraph call
+        funcall("foo(1);")
+    end
+
+    subgraph expr
+        nodeExpr("1+2;")
+    end
+    
+    jitAddModule["JIT中 添加此Module"]
+    jitRemoveModule["JIT中 删除此Module"]
+    
+    anoCodegen["执行 匿名函数Codegen"]
+    AnonymousCall["匿名函数包装"]
+    optimizeFunc["执行 Pass优化"]
+    nodeExpr --> AnonymousCall
+    funcall --> AnonymousCall
+    AnonymousCall --> anoCodegen
+    anoCodegen --> jitAddModule
+    jitAddModule --> optimizeFunc
+    optimizeFunc --> exec["JIT 运行此表达式, 并计算值"]
+    exec --> jitRemoveModule
+    
+    subgraph func definition
+        nodeFoo("def foo(x) x+1;")
+        funcCodegen["执行 函数定义Codegen"]
+        nodeFoo --> funcCodegen
+    end
+    
+    funcCodegen --> jitAddFuncModule["jit中 添加此Module"]
+    jitAddFuncModule --> initPassManager["执行 pass优化"]
+
+
+    subgraph extern
+        nodeExtern("extern sin(x);")
+        protoCodegen["执行 函数申明Codegen"]
+        nodeExtern --> protoCodegen
+    end
+    
+    style jitAddModule fill:#f9f
+    style jitRemoveModule fill:#f9f
+    style jitAddFuncModule fill:#f9f
+    
+    style optimizeFunc fill:#ccff66
+    style initPassManager fill:#ccff66
+    
+    style exec fill:#ff3300
+    
+
+</div>
+
+<p></p>
+
+<p>本章主要介绍了两个部分:</p>
+
+<ol>
+<li>使用Pass对LLVM IR进行优化.</li>
+<li>利用JIT. 处理顶级表达式和函数调用. 使他们 eveluate a value.</li>
+</ol>
+
+<p>为了实现这个目的, 我们需要实现这几个功能:</p>
+
+<p>a. 创建PassManager来对Pass进行管理.</p>
+
+<p>b. 为了可以通过FunctionPassManager来对顶级表达式做优化, 我们将每个顶级表达式都视为一个匿名函数. 并将每一个匿名函数作为一个module单独在JIT中处理, 计算完后在JIT中移除该module.</p>
+
+<p>c. 为了不在jit处理顶级函数调用表达式时移除我们定义的函数. 我们将每个定义的函数都放在一个单独的jit module中.</p>
+
+<h1 id="chapter-4-介绍">Chapter 4 介绍</h1>
+
+<p>Welcome to Chapter 4 of the &ldquo;Implementing an language with LLVM&rdquo; tutorial. Chapter 1-3 描述了一个简单语言的实现并且为产生LLVM IR添加了支持.</p>
+
+<p>本章描述两个新的技术: <strong>添加优化支持 to your language</strong>, 和 <strong>添加JIT编译支持</strong>.</p>
+
+<p>这些新增的内容将会展示如何为Kaleidoscope提供更nice, efficient code.</p>
+
+<h1 id="trivial-constant-folding">Trivial Constant Folding</h1>
+
+<p>我们在第三章的展示是优雅的, 并且很容易扩展. 不幸地是, 它不能产生优秀的代码. The IR Builder, 当编译代码的时候, 它确实给了我们很明显的优化.</p>
+
+<pre><code class="language-LLVM">ready&gt; def test(x) 1+2+x;
+Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 3.000000e+00, %x
+        ret double %addtmp
+}
+</code></pre>
+
+<p>上面的代码不是根据字面的AST直接转换的.</p>
+
+<p>如果按照输入的表达式字面值进行生成 IR, 应该是下面这样.</p>
+
+<pre><code class="language-LLVM">ready&gt; def test(x) 1+2+x;
+Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 2.000000e+00, 1.000000e+00
+        %addtmp1 = fadd double %addtmp, %x
+        ret double %addtmp1
+}
+</code></pre>
+
+<p><strong>常量折叠</strong>, 正如我们上面看到的. 这是一个非常普遍的和非常重要的优化: 以至于许多语言的实现者在其AST表示中就已经实现了常量折叠.</p>
+
+<p>在LLVM中, 你<code>不需要在AST中支持常量折叠</code>. 由于所有build LLVM IR的调用都是通过LLVM IRBuilder, 当你调用它的时候, <code>Builder会自动检查是否可以进行常量折叠</code>. 如果可以进行常量折叠, 它会直接进行操作并且返回一个常量而不是一条指令.</p>
+
+<p>Well, that was easy. 在实践中, 当产生像上面这样的代码的时候,  我们推荐使用<strong>IRBuilder</strong>. 它的使用没有语法开销(你不需要在任何地方执行常量检查, 这将会使你的编译器很丑陋). 并且它在一些情况下, 会大大减少LLVM IR的数量.(特别是对于有大量<strong>宏的预处理</strong>or <strong>很多常量的使用</strong>)</p>
+
+<p>在另一方面, IRBuilder被以下事实所限制 that 它在构建代码时将所有的分析与代码内联.</p>
+
+<p>如果你执行一个稍微复杂的例子:</p>
+
+<pre><code>ready&gt; def test(x) (1+2+x)*(x+(1+2));
+ready&gt; Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 3.000000e+00, %x
+        %addtmp1 = fadd double %x, 3.000000e+00
+        %multmp = fmul double %addtmp, %addtmp1
+        ret double %multmp
+}
+</code></pre>
+
+<p>在该情况下, LHS和RHS 是相同的值.</p>
+
+<p>我们其实是希望产生下面这样的 IR:</p>
+
+<pre><code>tmp = x + 3;       
+result = tmp * tmp; 
+</code></pre>
+
+<p>来代替 执行&rdquo;<strong>x+3</strong>&ldquo;两次.</p>
+
+<p>不幸地是, 没有大量的本地分析能够检测并纠正这一点. 这需要两个转换:</p>
+
+<ol>
+<li>表达式的重新转换(to make the add&rsquo;s lexically identical).</li>
+<li>公共的子表达式删除(CES) 来 删除冗余的添加指令.</li>
+</ol>
+
+<p>幸运的是, <code>LLVM 提供大量的优化来供你使用,所有的优化以&quot;passes&quot;的形式存在</code>.</p>
+
+<h1 id="llvm-optimization-passes">LLVM Optimization Passes</h1>
+
+<blockquote>
+<p>Due to the transition to the new PassManager infrastructure this tutorial is based on llvm::legacy::FunctionPassManager which can be found in LegacyPassManager.h. For the purpose of the this tutorial the above should be used until the pass manager transition is complete.</p>
+</blockquote>
+
+<p>LLVM 提供了很多优化passes, 它可以做执行很多不同类型的操作并具有不同的权衡. 不像其他的系统一样, LLVM并不认为一组优化可以对所有语言和所有的情景适用. LLVM允许编译器实现者决定要使用什么样的优化, 按怎样的顺序, 或者在什么情景下.</p>
+
+<p>作为一个具体的例子, LLVM 支持 &ldquo;<strong>whole module passes</strong>&rdquo;, which它看起来像很大的代码 (经常是整个文件, but 如果运行在链接时, 这可能是整个项目中的重要的一部分). 它也支持并包含&rdquo;pre-function&rdquo; passes which 一次操作一个函数, without looking at other function.</p>
+
+<p>想要了解更多关于pass的信息以及他们是怎么样运行的. see <a href="http://llvm.org/docs/WritingAnLLVMPass.html">Write An LLVM PASS</a>文档和<a href="http://llvm.org/docs/Passes.html">List of LLVM Passes</a>.</p>
+
+<p>对于Kaleidoscope来说, 我们目前正在动态生成函数, 一次一个. 当用户输入它们时. We aren&rsquo;t shooting for the ultimate optimization experience in this setting, 但是我们也更想更快的抓住简单快捷的东西. 因此, 当用户输入时, 我们将会选择为每个函数都进行优化. 如果我们想要做一个&rdquo;static Kaleidoscope compiler&rdquo;, 我们将正常使用我们现在有的代码, 除了把优化推迟到整个文件被解析之后.</p>
+
+<p>为了让每个函数都进行优化, 我们需要设置一个<strong><a href="http://llvm.org/docs/WritingAnLLVMPass.html#what-passmanager-doesr">FunctionPassManager</a></strong>来hold and organize 我们想要运行的LLVM 优化. 一旦我们有了这个, 我们就可以添加一组优化来执行. 对于每个我们想要优化的模块, 我们都需要一个<strong>FunctionPassManager</strong>, 所以我们将会写一个函数来创建并且初始化我们的<strong>module</strong>和<strong>pass manager</strong>.</p>
+
+<pre><code class="language-c++">void InitializeModuleAndPassManager(void) {
+  // Open a new module. 打开一个新的module
+  TheModule = llvm::make_unique&lt;Module&gt;(&quot;my cool jit&quot;, TheContext);
+
+  // Create a new pass manager attached to it. 创建一个新的pass manager并且关联到我们的module中
+  TheFPM = llvm::make_unique&lt;FunctionPassManager&gt;(TheModule.get());
+
+  // Do simple &quot;peephole&quot; optimizations and bit-twiddling optzns.
+  TheFPM-&gt;add(createInstructionCombiningPass());
+  // Reassociate expressions.	重新关联表达式
+  TheFPM-&gt;add(createReassociatePass());
+  // Eliminate Common SubExpressions.	消除公共的子表达式
+  TheFPM-&gt;add(createGVNPass());
+  // Simplify the control flow graph (deleting unreachable blocks, etc). 简化控制流(例如: 删除到达不了的blocks)
+  TheFPM-&gt;add(createCFGSimplificationPass());
+
+  TheFPM-&gt;doInitialization();
+}
+</code></pre>
+
+<p>该代码初始化全局module <strong>TheModule</strong>, 和函数pass manager <strong>TheFPM</strong>(which attached to TheModule). 一旦pass manager 被 set up, 我们使用一系列&rdquo;<strong>add</strong>&ldquo;调用来加入 <strong>一堆LLVM passes</strong>.</p>
+
+<p>在这个例子中, 我们选择增加四个优化passes. 我们这里选择的pass是一组相当标准的&rdquo;<strong>cleanup</strong>&rdquo; 优化 (对大多数代码都是适用的). 我不会深挖它们的实现, 请相信我, they are a good starting place :)</p>
+
+<p>一旦PassManager被 set up, 我们就需要使用它.    在我们的新函数被构造之后(in FunctionAST::codegen()), 在 returned to the client之前, we do this by running it.</p>
+
+<pre><code class="language-c++">if (Value *RetVal = Body-&gt;codegen()) {
+  // Finish off the function.
+  Builder.CreateRet(RetVal);
+
+  // Validate the generated code, checking for consistency.
+  verifyFunction(*TheFunction);
+
+  // Optimize the function.
+  TheFPM-&gt;run(*TheFunction);
+
+  return TheFunction;
+}
+</code></pre>
+
+<p>正如你看到的, 这是相当直接的. The <strong>FunctionPassManager</strong>优化并更新LLVM Funtion* in place, 改进他们的body.</p>
+
+<p>有了这个, 我们可以再次尝试我们的test:</p>
+
+<pre><code class="language-LLVM">ready&gt; def test(x) (1+2+x)*(x+(1+2));
+ready&gt; Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double %x, 3.000000e+00
+        %multmp = fmul double %addtmp, %addtmp
+        ret double %multmp
+}
+</code></pre>
+
+<p>正如我们期待的,  我们现在得到了不错的, 优化后的代码, 这个函数的每次运行都只有一个浮点add指令.</p>
+
+<p>LLVM 提供了大量的优化, 可以被用在当前的情况下. <code>Some [pass文档](http://llvm.org/docs/Passes.html)可以获得</code>, 但是那不是全部.  另一个不错的想法是: <code>可以阅读clang启动时运行的pass</code>.</p>
+
+<p><code>The **opt** 允许你从命令行来对pass进行测试</code>, 所以你可以看看它到底做了些什么.</p>
+
+<p>现在我们的前端代码已经很NB了, let&rsquo;s talk about executing it!</p>
+
+<h1 id="adding-a-jit-compiler">Adding a JIT Compiler</h1>
+
+<p>LLVM IR中提供的代码可以应用各种工具. 例如, 你可以对它进行优化(as we did above), 你能dump it out in 文本或者二进制格式, 你可以编译代码到 assembly file(.s) for some target, 或者你能够JIT compiler it.</p>
+
+<p>LLVM IR表示的好处是: 它是在编译器中, 许多不同部分的&rdquo;common currency&rdquo;.</p>
+
+<p>在本节, <strong>我们将会为我们的解释器添加JIT支持</strong>. 添加JIT基本思想是:</p>
+
+<ul>
+<li>我们想要现在这样用户输入函数体, 但是就要立刻计算他们输入的顶级表达式. 例如, 如果他们输入 &ldquo;1+2&rdquo;,  我们应该 <strong>立即让他输出</strong> 3.</li>
+<li>如果他们定义了一个函数, 他们应该能够被<strong>从命令行上被调用</strong>.</li>
+</ul>
+
+<p>为了做这个, 我们首先要准备环境来为本机目标创建代码并申明和初始化JIT. 这可以通过调用 <code>InitializeNativeTarget*</code> 函数来做, 并且添加一个JIT的全局变量, 并在main中初始化:</p>
+
+<pre><code class="language-c++">static std::unique_ptr&lt;KaleidoscopeJIT&gt; TheJIT;
+...
+int main() {
+  InitializeNativeTarget();
+  InitializeNativeTargetAsmPrinter();
+  InitializeNativeTargetAsmParser();
+
+  // Install standard binary operators.
+  // 1 is lowest precedence.
+  BinopPrecedence['&lt;'] = 10;
+  BinopPrecedence['+'] = 20;
+  BinopPrecedence['-'] = 20;
+  BinopPrecedence['*'] = 40; // highest.
+
+  // Prime the first token.
+  fprintf(stderr, &quot;ready&gt; &quot;);
+  getNextToken();
+
+  TheJIT = llvm::make_unique&lt;KaleidoscopeJIT&gt;();
+
+  // Run the main &quot;interpreter loop&quot; now.
+  MainLoop();
+
+  return 0;
+}
+</code></pre>
+
+<p>我们还需要为JIT设置data layout(数据布局):</p>
+
+<pre><code class="language-c++">void InitializeModuleAndPassManager(void) {
+  // Open a new module.
+  TheModule = llvm::make_unique&lt;Module&gt;(&quot;my cool jit&quot;, TheContext);
+  TheModule-&gt;setDataLayout(TheJIT-&gt;getTargetMachine().createDataLayout());
+
+  // Create a new pass manager attached to it.
+  TheFPM = llvm::make_unique&lt;FunctionPassManager&gt;(TheModule.get());
+  ...
+</code></pre>
+
+<p>Kaleidoscope JIT类是一个专门为这个tutorial构建的simple JIT, 可以在 <code>llvm-src/examples/Kaleidoscope/include/Kaleidoscope.h</code>这里找到. 在之后的章节, 我们将会看到它是怎么样工作的并且给它扩展一些新特性, 但是现在我们假设它是直接给定的.</p>
+
+<p>它的API 是非常简单的:</p>
+
+<ul>
+<li><strong>addModule</strong> 会在JIT中增加一个LLVM IR module, 使其功能是可以执行的;</li>
+<li><strong>removeModule</strong>会移除一个module, 释放在这个模块中与之相关联的代码;</li>
+<li><strong>findSymbol</strong>允许我们查找编译代码的指针.</li>
+</ul>
+
+<p>我们可以改变我们的解析顶级表达式的代码, 在其中添加对这几个简单API的调用.</p>
+
+<pre><code class="language-c++">static void HandleTopLevelExpression() {
+  // Evaluate a top-level expression into an anonymous function. 将顶级表达式计算为匿名函数
+  if (auto FnAST = ParseTopLevelExpr()) {
+    if (FnAST-&gt;codegen()) {
+
+      // JIT the module containing the anonymous expression, keeping a handle so
+      // we can free it later.
+      auto H = TheJIT-&gt;addModule(std::move(TheModule));
+      InitializeModuleAndPassManager();
+
+      // Search the JIT for the __anon_expr symbol.
+      auto ExprSymbol = TheJIT-&gt;findSymbol(&quot;__anon_expr&quot;);
+      assert(ExprSymbol &amp;&amp; &quot;Function not found&quot;);
+
+      // Get the symbol's address and cast it to the right type (takes no
+      // arguments, returns a double) so we can call it as a native function.
+      // 得到symbol的地址, 并且将它转换为正确的类型(无参数, 返回值为double类型)
+      double (*FP)() = (double (*)())(intptr_t)ExprSymbol.getAddress();
+      fprintf(stderr, &quot;Evaluated to %f\n&quot;, FP());
+
+      // Delete the anonymous expression module from the JIT.
+      TheJIT-&gt;removeModule(H);
+    }
+</code></pre>
+
+<p>如果<strong>parsing</strong> and <strong>codegen</strong> 成功, 下一步是将包含顶级表达式的module添加到JIT. 我们通过调用<strong>addModule</strong>来 do this, 调用addModule会触发对此module中的所有函数进行codegen,  并且返回一个handle(在之后删除此module时会用到). 一旦module已经被加到JIT中, 它不再被修改,  所以现在我们可以调用<strong>InitializeModuleAndPassManager()</strong>来打开一个module, 以便于hold subsequent code (后续的代码).</p>
+
+<p>一旦我们将模块添加到JIT中, 我们需要获得指向最终生成代码的指针. 我们通过调用JIT&rsquo;s <strong>findSymbol</strong>方法来做这个, and 传递顶级表达式的名称: <strong>__anon_expr</strong>. 由于我们刚刚添加了这个函数, 所以我们确定findSymbol一定会返回结果.</p>
+
+<p>下一步, 我们通过调用<strong>getAddress()</strong>on the symbol来获取<strong>__anoy_expr</strong>函数的内存地址. 回想一下, 我们将顶级表达式编译为一个 self-contained LLVM function(不带参数, 并且返回double). 因为 LLVM JIT 编译器匹配本地平台的ABI, 这意味着你可以将结果指针强制转换为该类型的函数指针并调用它. This means, JIT编译的代码和静态链接到应用程序的本地机器码没有区别.</p>
+
+<p>最终, 由于我们不支持 re-evaluation 顶级表达式, 当我们完成时, 我们从JIT中移除该module来释放相关的内存.</p>
+
+<p>回忆一下 , 我们之前创建的几行代码(<strong>InitializeModuleAndPassManager</strong>)  is still open and waiting for new code to be added.(????)</p>
+
+<p>With just these two changes, let&rsquo;s see Kaleidoscope works how!</p>
+
+<pre><code class="language-LLVM">ready&gt; 4+5;
+Read top-level expression:
+define double @0() {
+entry:
+  ret double 9.000000e+00
+}
+
+Evaluated to 9.000000
+</code></pre>
+
+<p>这看起来基本是有效的, The dump of the function展示了&rdquo;没有参数并总是返回double类型&rdquo;, we synthesize for 每一个输入的顶级表达式.</p>
+
+<p>这展示了最基本的功能, 但是我们还可以如何做更多呢?</p>
+
+<pre><code class="language-LLVM">ready&gt; def testfunc(x y) x + y*2;
+Read function definition:
+define double @testfunc(double %x, double %y) {
+entry:
+  %multmp = fmul double %y, 2.000000e+00
+  %addtmp = fadd double %multmp, %x
+  ret double %addtmp
+}
+
+ready&gt; testfunc(4, 10);		#注意: 由于此刻testfunc的函数定义与testfunc的函数调用的匿名表达式在同一个module, 所以此刻调用testfunc之后会删除testfunc的函数定义.
+Read top-level expression:
+define double @1() {
+entry:
+  %calltmp = call double @testfunc(double 4.000000e+00, double 1.000000e+01)
+  ret double %calltmp
+}
+
+Evaluated to 24.000000
+
+ready&gt; testfunc(5, 10);
+ready&gt; LLVM ERROR: Program used external function 'testfunc' which could not be resolved!
+</code></pre>
+
+<p>函数定义和调用都正常工作了, 但是最后一行出现了一点问题. 该调用看起来是有效的, so what happened?</p>
+
+<p>正如你从API看到的那样, module是JIT分配的单元, and <strong>testfunc</strong>是相同的module中的一部分(它包含匿名表达式). 当我们从JIT中移除module以便于释放匿名表达式的内存时, 我们<strong>删除了testfunc的定义</strong>. 然后, 当我们试图调用第二次调用testfunc时, JIT找不到该函数的定义.</p>
+
+<p>最简单的fix this的方法是: <code>将匿名表达式放在与函数定义不同的module中</code>. 只要每个被调用的函数都有一个原型, JIT很乐意解决跨模块边界的函数调用, 并在调用之前添加到JIT中. 通过把匿名表达式放到不同的module下, 我们可以删除它并且不影响其他的函数.</p>
+
+<p>事实上, 我们将更进一步, 将每个函数放到它自己的module中. 这样做可以允许我们利用KaileidoscopeJIT的有用的属性 that (will 使我们的环境更REPL-like: 函数能够被多次添加到JIT中)(与每个函数一定有一个定义的模块不同).</p>
+
+<p>当你在KaleidoscopeJIT中查找符号时, 它将返回最新的定义:</p>
+
+<pre><code class="language-LLVM">ready&gt; def foo(x) x + 1;
+Read function definition:
+define double @foo(double %x) {
+entry:
+  %addtmp = fadd double %x, 1.000000e+00
+  ret double %addtmp
+}
+
+ready&gt; foo(2);
+Evaluated to 3.000000
+
+ready&gt; def foo(x) x + 2;
+define double @foo(double %x) {
+entry:
+  %addtmp = fadd double %x, 2.000000e+00
+  ret double %addtmp
+}
+
+ready&gt; foo(2);
+Evaluated to 4.000000
+
+</code></pre>
+
+<p>为了让每个函数都存在自己的模块中, 我们需要一个方法来re-generate以前的函数声明到每个我们打开的新模块中:</p>
+
+<pre><code class="language-c++"> static std::unique_ptr&lt;KaleidoscopeJIT&gt; TheJIT;
+
+...
+
+Function *getFunction(std::string Name) {
+  // First, see if the function has already been added to the current module.
+  // 首先, 观察是否函数已经被添加到当前module中.
+  if (auto *F = TheModule-&gt;getFunction(Name))
+    return F;
+
+  // If not, check whether we can codegen the declaration from some existing
+  // prototype.
+  // if not, 检查是否我们可以codegen
+  auto FI = FunctionProtos.find(Name);
+  if (FI != FunctionProtos.end())
+    return FI-&gt;second-&gt;codegen();
+
+  // If no existing prototype exists, return null.
+  return nullptr;
+}
+...
+
+Value *CallExprAST::codegen() {
+  // Look up the name in the global module table.
+  Function *CalleeF = getFunction(Callee);
+
+...
+
+Function *FunctionAST::codegen() {
+  // Transfer ownership of the prototype to the FunctionProtos map, but keep a
+  // reference to it for use below.
+  auto &amp;P = *Proto;
+  FunctionProtos[Proto-&gt;getName()] = std::move(Proto);
+  Function *TheFunction = getFunction(P.getName());
+  if (!TheFunction)
+    return nullptr;
+</code></pre>
+
+<p>为了实现这个目的, 我们首先会添加一个新的全局变量: <strong>FunctionProtos</strong>,  它包含每个函数的最新声明.  我们将添加一个方便的方法, <strong>getFunction()</strong>, 来替换对<strong>TheModule-&gt;getFunction()</strong>的调用. 我们的便利的方法在TheModule中搜索现有的存在的函数声明, 如果找不到函数声明, 则回退到从FunctionProtos生成一个新的声明.  In <strong>CallExprAST::codegen()</strong> 我们 just 需要替换对TheModule-&gt;getFunction()的调用. 在<strong>FunctionAST::codegen()</strong>中, 我们首先需要更新<strong>FunctionProtos map</strong>, 然后调用 <strong>getFunction()</strong>. 通过这样做, 我们总是可以在当前module中获得任何以前声明的函数的函数声明.</p>
+
+<p>我们也需要更新 <strong>HandleDefinition</strong> and <strong>HandleExtern</strong>:</p>
+
+<pre><code class="language-c++"> static void HandleDefinition() {
+  if (auto FnAST = ParseDefinition()) {
+    if (auto *FnIR = FnAST-&gt;codegen()) {
+      fprintf(stderr, &quot;Read function definition:&quot;);
+      FnIR-&gt;print(errs());
+      fprintf(stderr, &quot;\n&quot;);
+      TheJIT-&gt;addModule(std::move(TheModule));
+      InitializeModuleAndPassManager();
+    }
+  } else {
+    // Skip token for error recovery.
+     getNextToken();
+  }
+}
+
+static void HandleExtern() {
+  if (auto ProtoAST = ParseExtern()) {
+    if (auto *FnIR = ProtoAST-&gt;codegen()) {
+      fprintf(stderr, &quot;Read extern: &quot;);
+      FnIR-&gt;print(errs());
+      fprintf(stderr, &quot;\n&quot;);
+      FunctionProtos[ProtoAST-&gt;getName()] = std::move(ProtoAST);
+    }
+  } else {
+    // Skip token for error recovery.
+    getNextToken();
+  }
+}
+ 
+</code></pre>
+
+<p>在HandleDefinition中, 我们添加了两行代码来将定义的函数传递给JIT, 并打开一个new module. In HandleExtern, 我们只需要添加一行来增加函数原型到<strong>FunctionProtos</strong>.</p>
+
+<p>在做了这些改变之后, 让我们再次尝试我的REPL (这次我删除了匿名函数的dump, you should get the idea by now :):</p>
+
+<pre><code class="language-LLVM">ready&gt; def foo(x) x + 1;
+ready&gt; foo(2);
+Evaluated to 3.000000
+
+ready&gt; def foo(x) x + 2;
+ready&gt; foo(2);
+Evaluated to 4.000000
+</code></pre>
+
+<p>即使这些功能很简单, 我们也可以得到surprisingly powerful capbilities - check this out:</p>
+
+<pre><code class="language-LLVM">ready&gt; extern sin(x);
+Read extern:
+declare double @sin(double)
+
+ready&gt; extern cos(x);
+Read extern:
+declare double @cos(double)
+
+ready&gt; sin(1.0);
+Read top-level expression:
+define double @2() {
+entry:
+  ret double 0x3FEAED548F090CEE
+}
+
+Evaluated to 0.841471
+
+ready&gt; def foo(x) sin(x)*sin(x) + cos(x)*cos(x);
+Read function definition:
+define double @foo(double %x) {
+entry:
+  %calltmp = call double @sin(double %x)
+  %multmp = fmul double %calltmp, %calltmp
+  %calltmp2 = call double @cos(double %x)
+  %multmp4 = fmul double %calltmp2, %calltmp2
+  %addtmp = fadd double %multmp, %multmp4
+  ret double %addtmp
+}
+
+ready&gt; foo(4.0);
+Read top-level expression:
+define double @3() {
+entry:
+  %calltmp = call double @foo(double 4.000000e+00)
+  ret double %calltmp
+}
+
+Evaluated to 1.000000
+</code></pre>
+
+<p>whoa, JIT是怎么知道 <strong>sin</strong>和 <strong>cos</strong>的呢?</p>
+
+<p>答案是相当简单的: The kaleidoscopeJIT 有一个直接的符号解析规则, 用于查找当前给定模块中不可用的符号:  首先它搜索添加到JIT中的所有模块, 从最新的到以前的为了找到最新的定义. 如果JIT中找不到定义, 它将会在自身进程上运行 &ldquo;dlsym(sin)&rdquo;. 由于 &ldquo;<strong>sin</strong>&ldquo;是在JIT的地址空间中定义的, 它只是简单的patches up calls 在模块中, 以直接调用到libm版本的sin.</p>
+
+<p>但是在某些情况下,  这甚至会做更多: 正如 <strong>sin</strong>和 <strong>cos</strong> 是标准的数学函数, 当我们使用 <strong>sin(1.0)</strong>进行常量调用时, the constant folder会直接计算调用的结果.</p>
+
+<p>在未来, 我们将会看到如何调整符号解析规则以启用各种有用的特性,  <strong>from security (限制JIT代码可以使用的符号集合), to基于符号名称的动态代码执行, and even lazy complication</strong>.</p>
+
+<p>符号解析规则的一个好处是: 我们可以通过写任意的c++代码来扩展语言.</p>
+
+<p>For example, if we add:</p>
+
+<pre><code class="language-c++">#ifdef _WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
+/// putchard - putchar that takes a double and returns 0.
+extern &quot;C&quot; DLLEXPORT double putchard(double X) {
+  fputc((char)X, stderr);
+  return 0;
+}
+</code></pre>
+
+<p>注意: 对于 windows, 我们实际上需要导出函数, 因为dynamic symbol loader将会使用<strong>GetProcAddress</strong>来寻找symbol.</p>
+
+<p>现在我们可以通过输入: &ldquo;extern putchard(x); putchard(20);&rdquo; 产生简单的输出到控制台上. 类似的代码可以被用来实现 I/O, 控制台输入, 和其他许多Kaleidoscope的特性.</p>
+
+<p>这就是JIT和优化器的教程.</p>
+
+<p>此时, 我们能够编译一个非图灵完备的编程语言, 优化并且JIT编译它 in a user-driver way.</p>
+
+<p>接下来我们会研究使用控制流构造来扩展语言, 解决一些有趣的LLVM IR问题.</p>
+
+<h1 id="full-code-list">Full Code List</h1>
+
+<p><a href="http://llvm.org/docs/tutorial/LangImpl04.html#adding-a-jit-compiler">http://llvm.org/docs/tutorial/LangImpl04.html#adding-a-jit-compiler</a></p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-04-13</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">本文翻译自 http://llvm.org/docs/tutorial/LangImpl04.html. 如需转载请注明出处.</span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/llvm/">llvm</a>
+          
+          <a href="/tags/kaleidoscope/">Kaleidoscope</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/llvm/kaleidoscope-code-generation-to-llvm-ir/">
+            <span class="next-text nav-default">Kaleidoscope: Code Generation to LLVM IR</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+    
+  </article>
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener" type="application/rss+xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2018 -
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">l0phtg</span></span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+<script src="/js/highlight.pack.js"></script>
+
+<script src="/js/mermaid.min.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
+
+</body>
+</html>

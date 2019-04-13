@@ -29,6 +29,584 @@
     </item>
     
     <item>
+      <title>Kaleidoscope: Adding JIT and Optimizer Support</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/</link>
+      <pubDate>Sat, 13 Apr 2019 15:02:51 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/</guid>
+      
+        <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl04.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl04.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.&lt;/p&gt;
+
+&lt;div class=&#34;mermaid&#34;&gt;
+graph TB
+
+    subgraph call
+        funcall(&#34;foo(1);&#34;)
+    end
+
+    subgraph expr
+        nodeExpr(&#34;1+2;&#34;)
+    end
+    
+    jitAddModule[&#34;JIT中 添加此Module&#34;]
+    jitRemoveModule[&#34;JIT中 删除此Module&#34;]
+    
+    anoCodegen[&#34;执行 匿名函数Codegen&#34;]
+    AnonymousCall[&#34;匿名函数包装&#34;]
+    optimizeFunc[&#34;执行 Pass优化&#34;]
+    nodeExpr --&gt; AnonymousCall
+    funcall --&gt; AnonymousCall
+    AnonymousCall --&gt; anoCodegen
+    anoCodegen --&gt; jitAddModule
+    jitAddModule --&gt; optimizeFunc
+    optimizeFunc --&gt; exec[&#34;JIT 运行此表达式, 并计算值&#34;]
+    exec --&gt; jitRemoveModule
+    
+    subgraph func definition
+        nodeFoo(&#34;def foo(x) x+1;&#34;)
+        funcCodegen[&#34;执行 函数定义Codegen&#34;]
+        nodeFoo --&gt; funcCodegen
+    end
+    
+    funcCodegen --&gt; jitAddFuncModule[&#34;jit中 添加此Module&#34;]
+    jitAddFuncModule --&gt; initPassManager[&#34;执行 pass优化&#34;]
+
+
+    subgraph extern
+        nodeExtern(&#34;extern sin(x);&#34;)
+        protoCodegen[&#34;执行 函数申明Codegen&#34;]
+        nodeExtern --&gt; protoCodegen
+    end
+    
+    style jitAddModule fill:#f9f
+    style jitRemoveModule fill:#f9f
+    style jitAddFuncModule fill:#f9f
+    
+    style optimizeFunc fill:#ccff66
+    style initPassManager fill:#ccff66
+    
+    style exec fill:#ff3300
+    
+
+&lt;/div&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;本章主要介绍了两个部分:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;使用Pass对LLVM IR进行优化.&lt;/li&gt;
+&lt;li&gt;利用JIT. 处理顶级表达式和函数调用. 使他们 eveluate a value.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;为了实现这个目的, 我们需要实现这几个功能:&lt;/p&gt;
+
+&lt;p&gt;a. 创建PassManager来对Pass进行管理.&lt;/p&gt;
+
+&lt;p&gt;b. 为了可以通过FunctionPassManager来对顶级表达式做优化, 我们将每个顶级表达式都视为一个匿名函数. 并将每一个匿名函数作为一个module单独在JIT中处理, 计算完后在JIT中移除该module.&lt;/p&gt;
+
+&lt;p&gt;c. 为了不在jit处理顶级函数调用表达式时移除我们定义的函数. 我们将每个定义的函数都放在一个单独的jit module中.&lt;/p&gt;
+
+&lt;h1 id=&#34;chapter-4-介绍&#34;&gt;Chapter 4 介绍&lt;/h1&gt;
+
+&lt;p&gt;Welcome to Chapter 4 of the &amp;ldquo;Implementing an language with LLVM&amp;rdquo; tutorial. Chapter 1-3 描述了一个简单语言的实现并且为产生LLVM IR添加了支持.&lt;/p&gt;
+
+&lt;p&gt;本章描述两个新的技术: &lt;strong&gt;添加优化支持 to your language&lt;/strong&gt;, 和 &lt;strong&gt;添加JIT编译支持&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;这些新增的内容将会展示如何为Kaleidoscope提供更nice, efficient code.&lt;/p&gt;
+
+&lt;h1 id=&#34;trivial-constant-folding&#34;&gt;Trivial Constant Folding&lt;/h1&gt;
+
+&lt;p&gt;我们在第三章的展示是优雅的, 并且很容易扩展. 不幸地是, 它不能产生优秀的代码. The IR Builder, 当编译代码的时候, 它确实给了我们很明显的优化.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def test(x) 1+2+x;
+Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 3.000000e+00, %x
+        ret double %addtmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面的代码不是根据字面的AST直接转换的.&lt;/p&gt;
+
+&lt;p&gt;如果按照输入的表达式字面值进行生成 IR, 应该是下面这样.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def test(x) 1+2+x;
+Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 2.000000e+00, 1.000000e+00
+        %addtmp1 = fadd double %addtmp, %x
+        ret double %addtmp1
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;常量折叠&lt;/strong&gt;, 正如我们上面看到的. 这是一个非常普遍的和非常重要的优化: 以至于许多语言的实现者在其AST表示中就已经实现了常量折叠.&lt;/p&gt;
+
+&lt;p&gt;在LLVM中, 你&lt;code&gt;不需要在AST中支持常量折叠&lt;/code&gt;. 由于所有build LLVM IR的调用都是通过LLVM IRBuilder, 当你调用它的时候, &lt;code&gt;Builder会自动检查是否可以进行常量折叠&lt;/code&gt;. 如果可以进行常量折叠, 它会直接进行操作并且返回一个常量而不是一条指令.&lt;/p&gt;
+
+&lt;p&gt;Well, that was easy. 在实践中, 当产生像上面这样的代码的时候,  我们推荐使用&lt;strong&gt;IRBuilder&lt;/strong&gt;. 它的使用没有语法开销(你不需要在任何地方执行常量检查, 这将会使你的编译器很丑陋). 并且它在一些情况下, 会大大减少LLVM IR的数量.(特别是对于有大量&lt;strong&gt;宏的预处理&lt;/strong&gt;or &lt;strong&gt;很多常量的使用&lt;/strong&gt;)&lt;/p&gt;
+
+&lt;p&gt;在另一方面, IRBuilder被以下事实所限制 that 它在构建代码时将所有的分析与代码内联.&lt;/p&gt;
+
+&lt;p&gt;如果你执行一个稍微复杂的例子:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ready&amp;gt; def test(x) (1+2+x)*(x+(1+2));
+ready&amp;gt; Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 3.000000e+00, %x
+        %addtmp1 = fadd double %x, 3.000000e+00
+        %multmp = fmul double %addtmp, %addtmp1
+        ret double %multmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在该情况下, LHS和RHS 是相同的值.&lt;/p&gt;
+
+&lt;p&gt;我们其实是希望产生下面这样的 IR:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;tmp = x + 3;       
+result = tmp * tmp; 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;来代替 执行&amp;rdquo;&lt;strong&gt;x+3&lt;/strong&gt;&amp;ldquo;两次.&lt;/p&gt;
+
+&lt;p&gt;不幸地是, 没有大量的本地分析能够检测并纠正这一点. 这需要两个转换:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;表达式的重新转换(to make the add&amp;rsquo;s lexically identical).&lt;/li&gt;
+&lt;li&gt;公共的子表达式删除(CES) 来 删除冗余的添加指令.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;幸运的是, &lt;code&gt;LLVM 提供大量的优化来供你使用,所有的优化以&amp;quot;passes&amp;quot;的形式存在&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;llvm-optimization-passes&#34;&gt;LLVM Optimization Passes&lt;/h1&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Due to the transition to the new PassManager infrastructure this tutorial is based on llvm::legacy::FunctionPassManager which can be found in LegacyPassManager.h. For the purpose of the this tutorial the above should be used until the pass manager transition is complete.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;LLVM 提供了很多优化passes, 它可以做执行很多不同类型的操作并具有不同的权衡. 不像其他的系统一样, LLVM并不认为一组优化可以对所有语言和所有的情景适用. LLVM允许编译器实现者决定要使用什么样的优化, 按怎样的顺序, 或者在什么情景下.&lt;/p&gt;
+
+&lt;p&gt;作为一个具体的例子, LLVM 支持 &amp;ldquo;&lt;strong&gt;whole module passes&lt;/strong&gt;&amp;rdquo;, which它看起来像很大的代码 (经常是整个文件, but 如果运行在链接时, 这可能是整个项目中的重要的一部分). 它也支持并包含&amp;rdquo;pre-function&amp;rdquo; passes which 一次操作一个函数, without looking at other function.&lt;/p&gt;
+
+&lt;p&gt;想要了解更多关于pass的信息以及他们是怎么样运行的. see &lt;a href=&#34;http://llvm.org/docs/WritingAnLLVMPass.html&#34;&gt;Write An LLVM PASS&lt;/a&gt;文档和&lt;a href=&#34;http://llvm.org/docs/Passes.html&#34;&gt;List of LLVM Passes&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;对于Kaleidoscope来说, 我们目前正在动态生成函数, 一次一个. 当用户输入它们时. We aren&amp;rsquo;t shooting for the ultimate optimization experience in this setting, 但是我们也更想更快的抓住简单快捷的东西. 因此, 当用户输入时, 我们将会选择为每个函数都进行优化. 如果我们想要做一个&amp;rdquo;static Kaleidoscope compiler&amp;rdquo;, 我们将正常使用我们现在有的代码, 除了把优化推迟到整个文件被解析之后.&lt;/p&gt;
+
+&lt;p&gt;为了让每个函数都进行优化, 我们需要设置一个&lt;strong&gt;&lt;a href=&#34;http://llvm.org/docs/WritingAnLLVMPass.html#what-passmanager-doesr&#34;&gt;FunctionPassManager&lt;/a&gt;&lt;/strong&gt;来hold and organize 我们想要运行的LLVM 优化. 一旦我们有了这个, 我们就可以添加一组优化来执行. 对于每个我们想要优化的模块, 我们都需要一个&lt;strong&gt;FunctionPassManager&lt;/strong&gt;, 所以我们将会写一个函数来创建并且初始化我们的&lt;strong&gt;module&lt;/strong&gt;和&lt;strong&gt;pass manager&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;void InitializeModuleAndPassManager(void) {
+  // Open a new module. 打开一个新的module
+  TheModule = llvm::make_unique&amp;lt;Module&amp;gt;(&amp;quot;my cool jit&amp;quot;, TheContext);
+
+  // Create a new pass manager attached to it. 创建一个新的pass manager并且关联到我们的module中
+  TheFPM = llvm::make_unique&amp;lt;FunctionPassManager&amp;gt;(TheModule.get());
+
+  // Do simple &amp;quot;peephole&amp;quot; optimizations and bit-twiddling optzns.
+  TheFPM-&amp;gt;add(createInstructionCombiningPass());
+  // Reassociate expressions.	重新关联表达式
+  TheFPM-&amp;gt;add(createReassociatePass());
+  // Eliminate Common SubExpressions.	消除公共的子表达式
+  TheFPM-&amp;gt;add(createGVNPass());
+  // Simplify the control flow graph (deleting unreachable blocks, etc). 简化控制流(例如: 删除到达不了的blocks)
+  TheFPM-&amp;gt;add(createCFGSimplificationPass());
+
+  TheFPM-&amp;gt;doInitialization();
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;该代码初始化全局module &lt;strong&gt;TheModule&lt;/strong&gt;, 和函数pass manager &lt;strong&gt;TheFPM&lt;/strong&gt;(which attached to TheModule). 一旦pass manager 被 set up, 我们使用一系列&amp;rdquo;&lt;strong&gt;add&lt;/strong&gt;&amp;ldquo;调用来加入 &lt;strong&gt;一堆LLVM passes&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;在这个例子中, 我们选择增加四个优化passes. 我们这里选择的pass是一组相当标准的&amp;rdquo;&lt;strong&gt;cleanup&lt;/strong&gt;&amp;rdquo; 优化 (对大多数代码都是适用的). 我不会深挖它们的实现, 请相信我, they are a good starting place :)&lt;/p&gt;
+
+&lt;p&gt;一旦PassManager被 set up, 我们就需要使用它.    在我们的新函数被构造之后(in FunctionAST::codegen()), 在 returned to the client之前, we do this by running it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;if (Value *RetVal = Body-&amp;gt;codegen()) {
+  // Finish off the function.
+  Builder.CreateRet(RetVal);
+
+  // Validate the generated code, checking for consistency.
+  verifyFunction(*TheFunction);
+
+  // Optimize the function.
+  TheFPM-&amp;gt;run(*TheFunction);
+
+  return TheFunction;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;正如你看到的, 这是相当直接的. The &lt;strong&gt;FunctionPassManager&lt;/strong&gt;优化并更新LLVM Funtion* in place, 改进他们的body.&lt;/p&gt;
+
+&lt;p&gt;有了这个, 我们可以再次尝试我们的test:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def test(x) (1+2+x)*(x+(1+2));
+ready&amp;gt; Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double %x, 3.000000e+00
+        %multmp = fmul double %addtmp, %addtmp
+        ret double %multmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;正如我们期待的,  我们现在得到了不错的, 优化后的代码, 这个函数的每次运行都只有一个浮点add指令.&lt;/p&gt;
+
+&lt;p&gt;LLVM 提供了大量的优化, 可以被用在当前的情况下. &lt;code&gt;Some [pass文档](http://llvm.org/docs/Passes.html)可以获得&lt;/code&gt;, 但是那不是全部.  另一个不错的想法是: &lt;code&gt;可以阅读clang启动时运行的pass&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;The **opt** 允许你从命令行来对pass进行测试&lt;/code&gt;, 所以你可以看看它到底做了些什么.&lt;/p&gt;
+
+&lt;p&gt;现在我们的前端代码已经很NB了, let&amp;rsquo;s talk about executing it!&lt;/p&gt;
+
+&lt;h1 id=&#34;adding-a-jit-compiler&#34;&gt;Adding a JIT Compiler&lt;/h1&gt;
+
+&lt;p&gt;LLVM IR中提供的代码可以应用各种工具. 例如, 你可以对它进行优化(as we did above), 你能dump it out in 文本或者二进制格式, 你可以编译代码到 assembly file(.s) for some target, 或者你能够JIT compiler it.&lt;/p&gt;
+
+&lt;p&gt;LLVM IR表示的好处是: 它是在编译器中, 许多不同部分的&amp;rdquo;common currency&amp;rdquo;.&lt;/p&gt;
+
+&lt;p&gt;在本节, &lt;strong&gt;我们将会为我们的解释器添加JIT支持&lt;/strong&gt;. 添加JIT基本思想是:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;我们想要现在这样用户输入函数体, 但是就要立刻计算他们输入的顶级表达式. 例如, 如果他们输入 &amp;ldquo;1+2&amp;rdquo;,  我们应该 &lt;strong&gt;立即让他输出&lt;/strong&gt; 3.&lt;/li&gt;
+&lt;li&gt;如果他们定义了一个函数, 他们应该能够被&lt;strong&gt;从命令行上被调用&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;为了做这个, 我们首先要准备环境来为本机目标创建代码并申明和初始化JIT. 这可以通过调用 &lt;code&gt;InitializeNativeTarget*&lt;/code&gt; 函数来做, 并且添加一个JIT的全局变量, 并在main中初始化:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;static std::unique_ptr&amp;lt;KaleidoscopeJIT&amp;gt; TheJIT;
+...
+int main() {
+  InitializeNativeTarget();
+  InitializeNativeTargetAsmPrinter();
+  InitializeNativeTargetAsmParser();
+
+  // Install standard binary operators.
+  // 1 is lowest precedence.
+  BinopPrecedence[&#39;&amp;lt;&#39;] = 10;
+  BinopPrecedence[&#39;+&#39;] = 20;
+  BinopPrecedence[&#39;-&#39;] = 20;
+  BinopPrecedence[&#39;*&#39;] = 40; // highest.
+
+  // Prime the first token.
+  fprintf(stderr, &amp;quot;ready&amp;gt; &amp;quot;);
+  getNextToken();
+
+  TheJIT = llvm::make_unique&amp;lt;KaleidoscopeJIT&amp;gt;();
+
+  // Run the main &amp;quot;interpreter loop&amp;quot; now.
+  MainLoop();
+
+  return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们还需要为JIT设置data layout(数据布局):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;void InitializeModuleAndPassManager(void) {
+  // Open a new module.
+  TheModule = llvm::make_unique&amp;lt;Module&amp;gt;(&amp;quot;my cool jit&amp;quot;, TheContext);
+  TheModule-&amp;gt;setDataLayout(TheJIT-&amp;gt;getTargetMachine().createDataLayout());
+
+  // Create a new pass manager attached to it.
+  TheFPM = llvm::make_unique&amp;lt;FunctionPassManager&amp;gt;(TheModule.get());
+  ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Kaleidoscope JIT类是一个专门为这个tutorial构建的simple JIT, 可以在 &lt;code&gt;llvm-src/examples/Kaleidoscope/include/Kaleidoscope.h&lt;/code&gt;这里找到. 在之后的章节, 我们将会看到它是怎么样工作的并且给它扩展一些新特性, 但是现在我们假设它是直接给定的.&lt;/p&gt;
+
+&lt;p&gt;它的API 是非常简单的:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;addModule&lt;/strong&gt; 会在JIT中增加一个LLVM IR module, 使其功能是可以执行的;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;removeModule&lt;/strong&gt;会移除一个module, 释放在这个模块中与之相关联的代码;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;findSymbol&lt;/strong&gt;允许我们查找编译代码的指针.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;我们可以改变我们的解析顶级表达式的代码, 在其中添加对这几个简单API的调用.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;static void HandleTopLevelExpression() {
+  // Evaluate a top-level expression into an anonymous function. 将顶级表达式计算为匿名函数
+  if (auto FnAST = ParseTopLevelExpr()) {
+    if (FnAST-&amp;gt;codegen()) {
+
+      // JIT the module containing the anonymous expression, keeping a handle so
+      // we can free it later.
+      auto H = TheJIT-&amp;gt;addModule(std::move(TheModule));
+      InitializeModuleAndPassManager();
+
+      // Search the JIT for the __anon_expr symbol.
+      auto ExprSymbol = TheJIT-&amp;gt;findSymbol(&amp;quot;__anon_expr&amp;quot;);
+      assert(ExprSymbol &amp;amp;&amp;amp; &amp;quot;Function not found&amp;quot;);
+
+      // Get the symbol&#39;s address and cast it to the right type (takes no
+      // arguments, returns a double) so we can call it as a native function.
+      // 得到symbol的地址, 并且将它转换为正确的类型(无参数, 返回值为double类型)
+      double (*FP)() = (double (*)())(intptr_t)ExprSymbol.getAddress();
+      fprintf(stderr, &amp;quot;Evaluated to %f\n&amp;quot;, FP());
+
+      // Delete the anonymous expression module from the JIT.
+      TheJIT-&amp;gt;removeModule(H);
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果&lt;strong&gt;parsing&lt;/strong&gt; and &lt;strong&gt;codegen&lt;/strong&gt; 成功, 下一步是将包含顶级表达式的module添加到JIT. 我们通过调用&lt;strong&gt;addModule&lt;/strong&gt;来 do this, 调用addModule会触发对此module中的所有函数进行codegen,  并且返回一个handle(在之后删除此module时会用到). 一旦module已经被加到JIT中, 它不再被修改,  所以现在我们可以调用&lt;strong&gt;InitializeModuleAndPassManager()&lt;/strong&gt;来打开一个module, 以便于hold subsequent code (后续的代码).&lt;/p&gt;
+
+&lt;p&gt;一旦我们将模块添加到JIT中, 我们需要获得指向最终生成代码的指针. 我们通过调用JIT&amp;rsquo;s &lt;strong&gt;findSymbol&lt;/strong&gt;方法来做这个, and 传递顶级表达式的名称: &lt;strong&gt;__anon_expr&lt;/strong&gt;. 由于我们刚刚添加了这个函数, 所以我们确定findSymbol一定会返回结果.&lt;/p&gt;
+
+&lt;p&gt;下一步, 我们通过调用&lt;strong&gt;getAddress()&lt;/strong&gt;on the symbol来获取&lt;strong&gt;__anoy_expr&lt;/strong&gt;函数的内存地址. 回想一下, 我们将顶级表达式编译为一个 self-contained LLVM function(不带参数, 并且返回double). 因为 LLVM JIT 编译器匹配本地平台的ABI, 这意味着你可以将结果指针强制转换为该类型的函数指针并调用它. This means, JIT编译的代码和静态链接到应用程序的本地机器码没有区别.&lt;/p&gt;
+
+&lt;p&gt;最终, 由于我们不支持 re-evaluation 顶级表达式, 当我们完成时, 我们从JIT中移除该module来释放相关的内存.&lt;/p&gt;
+
+&lt;p&gt;回忆一下 , 我们之前创建的几行代码(&lt;strong&gt;InitializeModuleAndPassManager&lt;/strong&gt;)  is still open and waiting for new code to be added.(????)&lt;/p&gt;
+
+&lt;p&gt;With just these two changes, let&amp;rsquo;s see Kaleidoscope works how!&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; 4+5;
+Read top-level expression:
+define double @0() {
+entry:
+  ret double 9.000000e+00
+}
+
+Evaluated to 9.000000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这看起来基本是有效的, The dump of the function展示了&amp;rdquo;没有参数并总是返回double类型&amp;rdquo;, we synthesize for 每一个输入的顶级表达式.&lt;/p&gt;
+
+&lt;p&gt;这展示了最基本的功能, 但是我们还可以如何做更多呢?&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def testfunc(x y) x + y*2;
+Read function definition:
+define double @testfunc(double %x, double %y) {
+entry:
+  %multmp = fmul double %y, 2.000000e+00
+  %addtmp = fadd double %multmp, %x
+  ret double %addtmp
+}
+
+ready&amp;gt; testfunc(4, 10);		#注意: 由于此刻testfunc的函数定义与testfunc的函数调用的匿名表达式在同一个module, 所以此刻调用testfunc之后会删除testfunc的函数定义.
+Read top-level expression:
+define double @1() {
+entry:
+  %calltmp = call double @testfunc(double 4.000000e+00, double 1.000000e+01)
+  ret double %calltmp
+}
+
+Evaluated to 24.000000
+
+ready&amp;gt; testfunc(5, 10);
+ready&amp;gt; LLVM ERROR: Program used external function &#39;testfunc&#39; which could not be resolved!
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;函数定义和调用都正常工作了, 但是最后一行出现了一点问题. 该调用看起来是有效的, so what happened?&lt;/p&gt;
+
+&lt;p&gt;正如你从API看到的那样, module是JIT分配的单元, and &lt;strong&gt;testfunc&lt;/strong&gt;是相同的module中的一部分(它包含匿名表达式). 当我们从JIT中移除module以便于释放匿名表达式的内存时, 我们&lt;strong&gt;删除了testfunc的定义&lt;/strong&gt;. 然后, 当我们试图调用第二次调用testfunc时, JIT找不到该函数的定义.&lt;/p&gt;
+
+&lt;p&gt;最简单的fix this的方法是: &lt;code&gt;将匿名表达式放在与函数定义不同的module中&lt;/code&gt;. 只要每个被调用的函数都有一个原型, JIT很乐意解决跨模块边界的函数调用, 并在调用之前添加到JIT中. 通过把匿名表达式放到不同的module下, 我们可以删除它并且不影响其他的函数.&lt;/p&gt;
+
+&lt;p&gt;事实上, 我们将更进一步, 将每个函数放到它自己的module中. 这样做可以允许我们利用KaileidoscopeJIT的有用的属性 that (will 使我们的环境更REPL-like: 函数能够被多次添加到JIT中)(与每个函数一定有一个定义的模块不同).&lt;/p&gt;
+
+&lt;p&gt;当你在KaleidoscopeJIT中查找符号时, 它将返回最新的定义:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def foo(x) x + 1;
+Read function definition:
+define double @foo(double %x) {
+entry:
+  %addtmp = fadd double %x, 1.000000e+00
+  ret double %addtmp
+}
+
+ready&amp;gt; foo(2);
+Evaluated to 3.000000
+
+ready&amp;gt; def foo(x) x + 2;
+define double @foo(double %x) {
+entry:
+  %addtmp = fadd double %x, 2.000000e+00
+  ret double %addtmp
+}
+
+ready&amp;gt; foo(2);
+Evaluated to 4.000000
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为了让每个函数都存在自己的模块中, 我们需要一个方法来re-generate以前的函数声明到每个我们打开的新模块中:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt; static std::unique_ptr&amp;lt;KaleidoscopeJIT&amp;gt; TheJIT;
+
+...
+
+Function *getFunction(std::string Name) {
+  // First, see if the function has already been added to the current module.
+  // 首先, 观察是否函数已经被添加到当前module中.
+  if (auto *F = TheModule-&amp;gt;getFunction(Name))
+    return F;
+
+  // If not, check whether we can codegen the declaration from some existing
+  // prototype.
+  // if not, 检查是否我们可以codegen
+  auto FI = FunctionProtos.find(Name);
+  if (FI != FunctionProtos.end())
+    return FI-&amp;gt;second-&amp;gt;codegen();
+
+  // If no existing prototype exists, return null.
+  return nullptr;
+}
+...
+
+Value *CallExprAST::codegen() {
+  // Look up the name in the global module table.
+  Function *CalleeF = getFunction(Callee);
+
+...
+
+Function *FunctionAST::codegen() {
+  // Transfer ownership of the prototype to the FunctionProtos map, but keep a
+  // reference to it for use below.
+  auto &amp;amp;P = *Proto;
+  FunctionProtos[Proto-&amp;gt;getName()] = std::move(Proto);
+  Function *TheFunction = getFunction(P.getName());
+  if (!TheFunction)
+    return nullptr;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为了实现这个目的, 我们首先会添加一个新的全局变量: &lt;strong&gt;FunctionProtos&lt;/strong&gt;,  它包含每个函数的最新声明.  我们将添加一个方便的方法, &lt;strong&gt;getFunction()&lt;/strong&gt;, 来替换对&lt;strong&gt;TheModule-&amp;gt;getFunction()&lt;/strong&gt;的调用. 我们的便利的方法在TheModule中搜索现有的存在的函数声明, 如果找不到函数声明, 则回退到从FunctionProtos生成一个新的声明.  In &lt;strong&gt;CallExprAST::codegen()&lt;/strong&gt; 我们 just 需要替换对TheModule-&amp;gt;getFunction()的调用. 在&lt;strong&gt;FunctionAST::codegen()&lt;/strong&gt;中, 我们首先需要更新&lt;strong&gt;FunctionProtos map&lt;/strong&gt;, 然后调用 &lt;strong&gt;getFunction()&lt;/strong&gt;. 通过这样做, 我们总是可以在当前module中获得任何以前声明的函数的函数声明.&lt;/p&gt;
+
+&lt;p&gt;我们也需要更新 &lt;strong&gt;HandleDefinition&lt;/strong&gt; and &lt;strong&gt;HandleExtern&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt; static void HandleDefinition() {
+  if (auto FnAST = ParseDefinition()) {
+    if (auto *FnIR = FnAST-&amp;gt;codegen()) {
+      fprintf(stderr, &amp;quot;Read function definition:&amp;quot;);
+      FnIR-&amp;gt;print(errs());
+      fprintf(stderr, &amp;quot;\n&amp;quot;);
+      TheJIT-&amp;gt;addModule(std::move(TheModule));
+      InitializeModuleAndPassManager();
+    }
+  } else {
+    // Skip token for error recovery.
+     getNextToken();
+  }
+}
+
+static void HandleExtern() {
+  if (auto ProtoAST = ParseExtern()) {
+    if (auto *FnIR = ProtoAST-&amp;gt;codegen()) {
+      fprintf(stderr, &amp;quot;Read extern: &amp;quot;);
+      FnIR-&amp;gt;print(errs());
+      fprintf(stderr, &amp;quot;\n&amp;quot;);
+      FunctionProtos[ProtoAST-&amp;gt;getName()] = std::move(ProtoAST);
+    }
+  } else {
+    // Skip token for error recovery.
+    getNextToken();
+  }
+}
+ 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在HandleDefinition中, 我们添加了两行代码来将定义的函数传递给JIT, 并打开一个new module. In HandleExtern, 我们只需要添加一行来增加函数原型到&lt;strong&gt;FunctionProtos&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;在做了这些改变之后, 让我们再次尝试我的REPL (这次我删除了匿名函数的dump, you should get the idea by now :):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; def foo(x) x + 1;
+ready&amp;gt; foo(2);
+Evaluated to 3.000000
+
+ready&amp;gt; def foo(x) x + 2;
+ready&amp;gt; foo(2);
+Evaluated to 4.000000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;即使这些功能很简单, 我们也可以得到surprisingly powerful capbilities - check this out:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;ready&amp;gt; extern sin(x);
+Read extern:
+declare double @sin(double)
+
+ready&amp;gt; extern cos(x);
+Read extern:
+declare double @cos(double)
+
+ready&amp;gt; sin(1.0);
+Read top-level expression:
+define double @2() {
+entry:
+  ret double 0x3FEAED548F090CEE
+}
+
+Evaluated to 0.841471
+
+ready&amp;gt; def foo(x) sin(x)*sin(x) + cos(x)*cos(x);
+Read function definition:
+define double @foo(double %x) {
+entry:
+  %calltmp = call double @sin(double %x)
+  %multmp = fmul double %calltmp, %calltmp
+  %calltmp2 = call double @cos(double %x)
+  %multmp4 = fmul double %calltmp2, %calltmp2
+  %addtmp = fadd double %multmp, %multmp4
+  ret double %addtmp
+}
+
+ready&amp;gt; foo(4.0);
+Read top-level expression:
+define double @3() {
+entry:
+  %calltmp = call double @foo(double 4.000000e+00)
+  ret double %calltmp
+}
+
+Evaluated to 1.000000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;whoa, JIT是怎么知道 &lt;strong&gt;sin&lt;/strong&gt;和 &lt;strong&gt;cos&lt;/strong&gt;的呢?&lt;/p&gt;
+
+&lt;p&gt;答案是相当简单的: The kaleidoscopeJIT 有一个直接的符号解析规则, 用于查找当前给定模块中不可用的符号:  首先它搜索添加到JIT中的所有模块, 从最新的到以前的为了找到最新的定义. 如果JIT中找不到定义, 它将会在自身进程上运行 &amp;ldquo;dlsym(sin)&amp;rdquo;. 由于 &amp;ldquo;&lt;strong&gt;sin&lt;/strong&gt;&amp;ldquo;是在JIT的地址空间中定义的, 它只是简单的patches up calls 在模块中, 以直接调用到libm版本的sin.&lt;/p&gt;
+
+&lt;p&gt;但是在某些情况下,  这甚至会做更多: 正如 &lt;strong&gt;sin&lt;/strong&gt;和 &lt;strong&gt;cos&lt;/strong&gt; 是标准的数学函数, 当我们使用 &lt;strong&gt;sin(1.0)&lt;/strong&gt;进行常量调用时, the constant folder会直接计算调用的结果.&lt;/p&gt;
+
+&lt;p&gt;在未来, 我们将会看到如何调整符号解析规则以启用各种有用的特性,  &lt;strong&gt;from security (限制JIT代码可以使用的符号集合), to基于符号名称的动态代码执行, and even lazy complication&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;符号解析规则的一个好处是: 我们可以通过写任意的c++代码来扩展语言.&lt;/p&gt;
+
+&lt;p&gt;For example, if we add:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;#ifdef _WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
+/// putchard - putchar that takes a double and returns 0.
+extern &amp;quot;C&amp;quot; DLLEXPORT double putchard(double X) {
+  fputc((char)X, stderr);
+  return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意: 对于 windows, 我们实际上需要导出函数, 因为dynamic symbol loader将会使用&lt;strong&gt;GetProcAddress&lt;/strong&gt;来寻找symbol.&lt;/p&gt;
+
+&lt;p&gt;现在我们可以通过输入: &amp;ldquo;extern putchard(x); putchard(20);&amp;rdquo; 产生简单的输出到控制台上. 类似的代码可以被用来实现 I/O, 控制台输入, 和其他许多Kaleidoscope的特性.&lt;/p&gt;
+
+&lt;p&gt;这就是JIT和优化器的教程.&lt;/p&gt;
+
+&lt;p&gt;此时, 我们能够编译一个非图灵完备的编程语言, 优化并且JIT编译它 in a user-driver way.&lt;/p&gt;
+
+&lt;p&gt;接下来我们会研究使用控制流构造来扩展语言, 解决一些有趣的LLVM IR问题.&lt;/p&gt;
+
+&lt;h1 id=&#34;full-code-list&#34;&gt;Full Code List&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl04.html#adding-a-jit-compiler&#34;&gt;http://llvm.org/docs/tutorial/LangImpl04.html#adding-a-jit-compiler&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope: Code Generation to LLVM IR</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/</link>
       <pubDate>Fri, 12 Apr 2019 16:55:05 +0800</pubDate>
