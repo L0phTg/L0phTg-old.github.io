@@ -278,8 +278,8 @@ graph TB
         nodeFoo --> funcCodegen
     end
     
-    funcCodegen --> jitAddFuncModule["jit中 添加此Module"]
-    jitAddFuncModule --> initPassManager["执行 pass优化"]
+    funcCodegen --> jitAddFuncModule["JIT中 添加此Module"]
+    jitAddFuncModule --> initPassManager["执行 Pass优化"]
 
 
     subgraph extern
