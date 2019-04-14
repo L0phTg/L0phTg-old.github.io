@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Kaleidoscope: Extending the Language Control Flow - L0phTg&#39;s Blog</title>
+  <link rel="alternate" hreflang="zh-cn" href="https://l0phtg.github.io/" />
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl05.html
+本文为Kaleidoscope添加条件判断控制流和循环控制流.
+注意: 本文假定你已经阅读过前面几篇文章, 所以在词法解析和AST生成就写的比较简单(当然了, 这部分内容本身阅读起来就比较轻松), 着重介绍控制流的Codegen部分.
+因为这个系列主要是翻译, 所以基本没有涉及自己的理解. 之后我会单独写一篇文章, 来对Kaleidoscope的前五章做一个总结.
+
+" />
+
+  <meta name="keywords" content="Hugo, theme, jane" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/llvm/kaleidoscope-extending-the-language-control-flow/" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
+<link rel="stylesheet" href="/css/mermaid.css">
+
+
+<meta property="og:title" content="Kaleidoscope: Extending the Language Control Flow" />
+<meta property="og:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl05.html
+
+本文为Kaleidoscope添加条件判断控制流和循环控制流.
+
+注意: 本文假定你已经阅读过前面几篇文章, 所以在词法解析和AST生成就写的比较简单(当然了, 这部分内容本身阅读起来就比较轻松), 着重介绍控制流的Codegen部分.
+
+因为这个系列主要是翻译, 所以基本没有涉及自己的理解. 之后我会单独写一篇文章, 来对Kaleidoscope的前五章做一个总结.
+
+
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscope-extending-the-language-control-flow/" /><meta property="article:published_time" content="2019-04-14T14:43:17&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-14T14:59:42&#43;08:00"/>
+<meta itemprop="name" content="Kaleidoscope: Extending the Language Control Flow">
+<meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl05.html
+
+本文为Kaleidoscope添加条件判断控制流和循环控制流.
+
+注意: 本文假定你已经阅读过前面几篇文章, 所以在词法解析和AST生成就写的比较简单(当然了, 这部分内容本身阅读起来就比较轻松), 着重介绍控制流的Codegen部分.
+
+因为这个系列主要是翻译, 所以基本没有涉及自己的理解. 之后我会单独写一篇文章, 来对Kaleidoscope的前五章做一个总结.
+
+
+
+">
+
+
+<meta itemprop="datePublished" content="2019-04-14T14:43:17&#43;08:00" />
+<meta itemprop="dateModified" content="2019-04-14T14:43:17&#43;08:00" />
+<meta itemprop="wordCount" content="7113">
+
+
+
+<meta itemprop="keywords" content="llvm,Kaleidoscope,control flow," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kaleidoscope: Extending the Language Control Flow"/>
+<meta name="twitter:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl05.html
+
+本文为Kaleidoscope添加条件判断控制流和循环控制流.
+
+注意: 本文假定你已经阅读过前面几篇文章, 所以在词法解析和AST生成就写的比较简单(当然了, 这部分内容本身阅读起来就比较轻松), 着重介绍控制流的Codegen部分.
+
+因为这个系列主要是翻译, 所以基本没有涉及自己的理解. 之后我会单独写一篇文章, 来对Kaleidoscope的前五章做一个总结.
+
+
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a><a href="https://gohugo.io">
+        <li class="mobile-menu-item">external-link</li>
+      </a>
+  </ul>
+</nav>
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg&#39;s Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+  </ul>
+</nav>
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Kaleidoscope: Extending the Language Control Flow</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-04-14 </span>
+        <div class="post-category">
+            
+              <a href="/categories/llvm/"> llvm </a>
+            
+          </div>
+        <span class="more-meta"> 约 7113 字 </span>
+        <span class="more-meta"> 预计阅读 15 分钟 </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#chapter-5-introduction">Chapter 5 Introduction</a></li>
+<li><a href="#if-then-else">if/Then/Else</a>
+<ul>
+<li><a href="#if-then-else的lexer扩展">if/then/else的Lexer扩展</a></li>
+<li><a href="#if-then-else的ast-扩展">if/then/else的AST 扩展</a></li>
+<li><a href="#if-then-else的parser扩展">if/then/else的parser扩展</a></li>
+<li><a href="#if-then-else的llvm-ir">if/then/else的LLVM IR</a></li>
+<li><a href="#if-then-else-的代码产生">if/then/else 的代码产生</a></li>
+</ul></li>
+<li><a href="#for-loop-expression">&lsquo;for&rsquo; Loop Expression</a>
+<ul>
+<li><a href="#lexer-extensions-for-the-for-loop">Lexer Extensions for the &lsquo;for&rsquo; Loop</a></li>
+<li><a href="#ast-extensions-for-the-for-loop">AST Extensions for the &lsquo;for&rsquo; Loop</a></li>
+<li><a href="#parser-extensions-for-the-for-loop">Parser Extensions for the &lsquo;for&rsquo; Loop</a></li>
+<li><a href="#llvm-ir-for-the-for-loop">LLVM IR for the &lsquo;for&rsquo; loop</a></li>
+<li><a href="#code-generation-for-the-for-loop">Code Generation for the &lsquo;for&rsquo; Loop</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl05.html">http://llvm.org/docs/tutorial/LangImpl05.html</a></p>
+
+<p>本文为Kaleidoscope添加条件判断控制流和循环控制流.</p>
+
+<p>注意: 本文假定你已经阅读过前面几篇文章, 所以在词法解析和AST生成就写的比较简单(当然了, 这部分内容本身阅读起来就比较轻松), 着重介绍控制流的Codegen部分.</p>
+
+<p>因为这个系列主要是翻译, 所以基本没有涉及自己的理解. <strong>之后我会单独写一篇文章, 来对Kaleidoscope的前五章做一个总结</strong>.</p>
+
+<p><img src="/docs-pic/llvm/loop.png" alt="" /></p>
+
+<p></p>
+
+<h1 id="chapter-5-introduction">Chapter 5 Introduction</h1>
+
+<p>Welcome to Chapter 5 of the &ldquo;Implementing a language with LLVM &rdquo; tutorial.</p>
+
+<p>第一章到第四章描述了Kaleidoscope的简单的实现并且支持了LLVM IR的生成, 然后是优化和JIT编译器.</p>
+
+<p>不幸地是, 正如你现在现在看到的, Kaleidoscope 是几乎无用的:</p>
+
+<p>​   除了调用和返回之外, 它没有其他控制流. 这意味着你在代码中没有条件分支, 从而限制了它的功能.</p>
+
+<p>在本期 构建编译器中, 我们将会扩展Kaleidoscope, 使它拥有 <strong>if/then/else表达式</strong>和一个简单的 <strong>for 循环</strong>.</p>
+
+<h1 id="if-then-else">if/Then/Else</h1>
+
+<p>扩展Kaleidoscope来支持if/then/else是相当直接的. 它基本上就是为<strong>词法分析器, 解析器, AST, LLVM Code emitter</strong>增加新的概念.</p>
+
+<p>例子是很不错的, 因为它表明了<code>随着时间的推移, 根据新的概念来对语言进行扩展是多么的容易</code>.</p>
+
+<p>在我们进行扩展之前, 让我们讨论一下我们到底想要做什么.</p>
+
+<p>基本的意思是我们想要能够写出这样的代码:</p>
+
+<pre><code class="language-c">def fib(x)
+  if x &lt; 3 then
+    1
+  else
+    fib(x-1)+fib(x-2);
+</code></pre>
+
+<p>在Kaleidoscope中, 每个构造都是一个表达式: 没有语句. 因此, <strong>if/then/else</strong> 表达式需要像其他表达式一样返回值. 由于我们正在使用一个普遍的功能形式, 我们会计算它的条件, 然后根据条件的解析方式返回 <strong>then</strong>或<strong>else</strong>值.</p>
+
+<p>if/then/else的表达式的语义是: <code>它能够将条件计算为一个bool等价的值</code>: 0.0被认为是false, everything else被认为是true. 如果条件为true, 则计算并返回第一个子表达式值; 如果条件为false, 则计算并返回第二个表达式值. 由于Kaleidoscope 允许产生副作用, 所以将该行为确定下来是非常重要的.</p>
+
+<p>现在我们知道了我们想要做什么, 下面让我们一起了解它的组成部分.</p>
+
+<h2 id="if-then-else的lexer扩展">if/then/else的Lexer扩展</h2>
+
+<p>词法分析扩展是相当直接的. 首先我们<strong>为新的tokens增加新的enum值</strong>.</p>
+
+<pre><code class="language-c++">// control
+tok_if = -6,
+tok_then = -7,
+tok_else = -8,
+</code></pre>
+
+<p>一旦我们有了它们 我们就意识到了在词法分析器中有了新的<strong>keywords(关键字)</strong>. This is pretty simple stuff:</p>
+
+<pre><code class="language-c++">...
+if (IdentifierStr == &quot;def&quot;)
+  return tok_def;
+if (IdentifierStr == &quot;extern&quot;)
+  return tok_extern;
+if (IdentifierStr == &quot;if&quot;)
+  return tok_if;
+if (IdentifierStr == &quot;then&quot;)
+  return tok_then;
+if (IdentifierStr == &quot;else&quot;)
+  return tok_else;
+return tok_identifier;
+</code></pre>
+
+<h2 id="if-then-else的ast-扩展">if/then/else的AST 扩展</h2>
+
+<p>if/then/else 属于表达式, 所以==IfExprAST==继承自==ExprAST==.</p>
+
+<pre><code class="language-c++">/// IfExprAST - Expression class for if/then/else.
+class IfExprAST : public ExprAST {
+  std::unique_ptr&lt;ExprAST&gt; Cond, Then, Else;
+
+public:
+  IfExprAST(std::unique_ptr&lt;ExprAST&gt; Cond, std::unique_ptr&lt;ExprAST&gt; Then,
+            std::unique_ptr&lt;ExprAST&gt; Else)
+    : Cond(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {}
+
+  Value *codegen() override;
+};
+</code></pre>
+
+<h2 id="if-then-else的parser扩展">if/then/else的parser扩展</h2>
+
+<p>现在我们有了词法分析的tokens和AST节点, 我们现在的解析逻辑就相当直接了.</p>
+
+<p>首先我们定义一个新的解析函数:</p>
+
+<pre><code class="language-cpp">/// ifexpr ::= 'if' expression 'then' expression 'else' expression
+static std::unique_ptr&lt;ExprAST&gt; ParseIfExpr() {
+  getNextToken();  // eat the if.
+
+  // condition.
+  auto Cond = ParseExpression();
+  if (!Cond)
+    return nullptr;
+
+  if (CurTok != tok_then)
+    return LogError(&quot;expected then&quot;);
+  getNextToken();  // eat the then
+
+  auto Then = ParseExpression();
+  if (!Then)
+    return nullptr;
+
+  if (CurTok != tok_else)
+    return LogError(&quot;expected else&quot;);
+
+  getNextToken();
+
+  auto Else = ParseExpression();
+  if (!Else)
+    return nullptr;
+
+  return llvm::make_unique&lt;IfExprAST&gt;(std::move(Cond), std::move(Then),
+                                      std::move(Else));
+}
+</code></pre>
+
+<p>现在我们将它与primay expression连接起来:</p>
+
+<pre><code class="language-c++">static std::unique_ptr&lt;ExprAST&gt; ParsePrimary() {
+  switch (CurTok) {
+  default:
+    return LogError(&quot;unknown token when expecting an expression&quot;);
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+  case '(':
+    return ParseParenExpr();
+  case tok_if:
+    return ParseIfExpr();
+  }
+}
+</code></pre>
+
+<h2 id="if-then-else的llvm-ir">if/then/else的LLVM IR</h2>
+
+<p>现在我们已经解析完成并且建立了抽象语法树, 最后的内容是增加==LLVM code generation support==. 这是 if/else/then的例子中最有趣的地方, <strong>因为它开始引入了新的概念</strong>. 上面所有的代码都在以前的章节详细介绍过.</p>
+
+<p>为了产生我们想要得到的代码. 让我们看一个简单的例子. Consider:</p>
+
+<pre><code class="language-cpp">extern foo();
+extern bar();
+def baz(x) if x then foo() else bar();
+
+</code></pre>
+
+<p>如果禁用优化, 你可以看到生成的IR是下面这样的:</p>
+
+<pre><code class="language-LLVM">declare double @foo()
+
+declare double @bar()
+
+define double @baz(double %x) {
+entry:
+  %ifcond = fcmp one double %x, 0.000000e+00
+  br i1 %ifcond, label %then, label %else
+
+then:       ; preds = %entry
+  %calltmp = call double @foo()
+  br label %ifcont
+
+else:       ; preds = %entry
+  %calltmp1 = call double @bar()
+  br label %ifcont
+
+ifcont:     ; preds = %else, %then
+  %iftmp = phi double [ %calltmp, %then ], [ %calltmp1, %else ] ; 返回值
+  ret double %iftmp
+}
+</code></pre>
+
+<p>为了使流程图可视化:</p>
+
+<ul>
+<li>你能够使用LLVM <strong>opt</strong> tool的一个漂亮的功能. 如果你将LLVM IR放到 &ldquo;t.ll&rdquo;中, 并且运行 <code>llvm-as &lt; t.ll | opt -analyze -view-cfg</code>, 一个window将会弹出, 并且你将会看到这幅图:</li>
+</ul>
+
+<p><img src="/docs-pic/llvm/if.png" alt="if CFG" /></p>
+
+<ul>
+<li>另一种方法: 可以通过调用 <code>F-&gt;viewCFG()</code> 或者<code>F-&gt;viewCFGOnly()</code>(where F is a &ldquo;Function&rdquo;)通过插入实际的调用到代码中并且重新编译, 可以得到我们想要的CFG图. 或者通过在编译器中调用他们. LLVM具有许多很友好的特性来可视化出各种各样的图形.</li>
+</ul>
+
+<p>回到我们的Codegen代码中, 它是相当简单地:</p>
+
+<p><strong>The entry block</strong>: 计算条件表达式 (在我们的例子中是&rdquo;x&rdquo; ) 并且使用==fcmp one==指令将<strong>result</strong>与<strong>0.0</strong>相比较 ( <strong>one</strong> 表示有序并且不相等). 基于该表达式的结果, 代码跳转到<strong>then block</strong> 或者 <strong>else block</strong>, which 包含 true/false cases的表达式.</p>
+
+<p>一旦 <strong>then/else block</strong>执行完成了, 他们都返回到<strong>&ldquo;ifcont&rdquo; block</strong>来执行 if/then/else 之后发生的代码. 在这种情况下, 唯一要做的事情就是返回到函数的调用者.</p>
+
+<p>现在我们的问题是: <code>代码是如何知道哪一个表达式要返回的呢?</code></p>
+
+<p>这个问题的答案涉及重要的<strong>SSA 操作</strong>: <a href="https://en.wikipedia.org/wiki/Static_single_assignment_form">the Phi operation</a>(或者看我之前翻译的文章: <a href="https://l0phtg.github.io/post/llvm/static-single-assignment/">Staitc Single Assignment</a>). 如果你不熟悉SSA, <a href="https://en.wikipedia.org/wiki/Static_single_assignment_form">the wikipedia article</a>是一个很不错的入门并且你最喜欢的搜索引擎上各种其它的介绍.</p>
+
+<p>一个简单的对$phi$ 函数执行的介绍是: <code>可以确定我们是从哪一个表达式返回的</code>. <strong>The phi operation</strong>采用与输入控制块相对应的value.</p>
+
+<p>在这个例子中, 如果控制来自 <strong>&ldquo;then&rdquo; block</strong>, 则它获得<strong>calltmp</strong>的值.</p>
+
+<p>如果控制来自<strong>&ldquo;else&rdquo; block</strong>, 它获得<strong>calltmp1</strong>的值.</p>
+
+<p>此刻, 你可能已经开始思考了. &ldquo;Oh no!&rdquo; 这意味着我的简单优雅的前端必须开始生成SSA 才能使用LLVM. 幸运地是, 我们强烈建议不要在你的前端实现SSA构造算法除非你有一个非常好的理由这样做. 实际上,  对于你的命令行式编程语言来说,出现下面这两种情况时, 这表明此刻可能需要Phi nodes:</p>
+
+<ol>
+<li>代码涉及用户变量: x = 1; x = x + 1;</li>
+<li>Values可能隐式地在AST结构中, 例如在本例子中的Phi node.</li>
+</ol>
+
+<p>在<a href="http://llvm.org/docs/tutorial/LangImpl07.html">第七章</a>  (&ldquo;多元变量&rdquo;), 我们将讨论第一种情况. 现在, 请相信我你不需要SSA构造来处理这种情况.</p>
+
+<p>对于第二种情况, 你可以选择使用我们将为 #1描述的技术. 或者你能直接插入Phi 节点(如果方便的话).</p>
+
+<p>在我们这个例子中 产生 Phi code真的是简单的, 所以我们选择直接插入Phi节点.</p>
+
+<p>Okay. 我们已经了解了足够多, 让我们生成代码吧.</p>
+
+<h2 id="if-then-else-的代码产生">if/then/else 的代码产生</h2>
+
+<p>为了产生代码, 我们需要实现<strong>IfExpAST</strong>的codegen方法.</p>
+
+<pre><code class="language-c++">Value *IfExprAST::codegen() {
+  Value *CondV = Cond-&gt;codegen();
+  if (!CondV)
+    return nullptr;
+
+  // Convert condition to a bool by comparing non-equal to 0.0.
+  // 转换条件到一个bool值. 
+  CondV = Builder.CreateFCmpONE(
+      CondV, ConstantFP::get(TheContext, APFloat(0.0)), &quot;ifcond&quot;);
+</code></pre>
+
+<p>这段代码很直接, 和我们之前看到的类似. 我们 emit the expression for the condition, 然后将值与0进行比较, 得到bool值.</p>
+
+<pre><code class="language-cpp">Function *TheFunction = Builder.GetInsertBlock()-&gt;getParent();
+
+// Create blocks for the then and else cases.  Insert the 'then' block at the
+// end of the function.
+// 创建then and else case的blocks. 
+// 插入 'then' block在函数的最后
+
+BasicBlock *ThenBB =
+    BasicBlock::Create(TheContext, &quot;then&quot;, TheFunction);
+BasicBlock *ElseBB = BasicBlock::Create(TheContext, &quot;else&quot;);
+BasicBlock *MergeBB = BasicBlock::Create(TheContext, &quot;ifcont&quot;);
+
+Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+</code></pre>
+
+<p>这个代码创建与 <strong>if/then/else</strong>语句相关的<strong>basic block</strong>, 并且直接对应于上例中的块.</p>
+
+<p>第一行获取当前正在构建的<strong>Function</strong>对象: 它通过询问<strong>Builder</strong>当前的<strong>BasicBlock</strong>, 并询问当前<strong>Block的parent</strong>, 来获取此信息.</p>
+
+<p>获得函数之后, 我们会创建三个Blocks. 注意: 它传递&rdquo;TheFunction<strong>到&rdquo;then&rdquo;block的构造器中</strong>. <code>这会导致构造函数会自动地在指定的函数中插入new block</code>. <strong>其他的两个block被创建, 但是还没有被插入</strong>.</p>
+
+<p>一旦<strong>block</strong>被创建, 我们就可以<code>emit the 在它们之间选择的条件分支</code>. 注意, 创建新的<strong>block</strong>不会隐式地影响<strong>IRBuilder</strong>, 因此它仍然可以插入条件到进入的块中.  另外要注意, 它正在<code>创建到&quot;then&quot;block和&quot;else&quot;block的分支</code>, 即使&rdquo;else&rdquo;block还未插入到函数中.</p>
+
+<p>This is all ok. 它是LLVM支持==forward references==的标准方法.</p>
+
+<pre><code class="language-cpp">// Emit then value.       
+Builder.SetInsertPoint(ThenBB);
+
+Value *ThenV = Then-&gt;codegen();
+if (!ThenV)
+  return nullptr;
+
+Builder.CreateBr(MergeBB);
+// Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+// 'Then'的Codegen会改变目前的block, update ThenBB for the PHI.
+ThenBB = Builder.GetInsertBlock();
+</code></pre>
+
+<p>在条件分支被插入之后, 我们move the builder来插入&rdquo;then&rdquo;block. 严格上来说, this call移动插入点到指定block的end. 然而, 由于 &ldquo;then&rdquo; block是空的, 所以它就会从block的开始进行插入.</p>
+
+<p>一旦插入点被设置了, 我们可以递归地从AST中codegen the &ldquo;then&rdquo;表达式. 为了完成&rdquo;then&rdquo;块, 我们为合并块创建了一个无条件分支.</p>
+
+<p>LLVM IR一个有趣的方面是<strong>它要求所有的BasicBlock都用控制流指令来中止(Ex: return and branch)</strong>.</p>
+
+<p>这意味着所有的控制流, including fall throughs, 必须在LLVM IR中被显示地指定. 如果违反此规则, 验证程序会报错.</p>
+
+<p>这里的最后一行相当<strong>微妙</strong>, 但是是非常重要的. 基本问题就是当我们在<strong>merge block</strong>中创建 Phi node时, 我们需要设置 <strong>block/value pairs</strong> 来表明Phi是如何工作的. 重要的 , The Phi node 期待在CFG的块中每一个前节点都有一个entry.</p>
+
+<p>那么, 为什么在第 5 行, 我们设置ThenBB为获取当前块呢?  &ldquo;Then&rdquo;表达式实际上可能会改变当前的block.  例如, 它包含了一个嵌套的&rdquo;if/then/else&rdquo;表达式. 因为递归地调用codegen()会任意改变当前块的notion, 我们需要得到将要设置的Phi node代码的最新值.</p>
+
+<pre><code class="language-c">// Emit else block. 
+TheFunction-&gt;getBasicBlockList().push_back(ElseBB);
+Builder.SetInsertPoint(ElseBB);
+
+Value *ElseV = Else-&gt;codegen();
+if (!ElseV)
+  return nullptr;
+
+Builder.CreateBr(MergeBB);
+// codegen of 'Else' can change the current block, update ElseBB for the PHI.
+ElseBB = Builder.GetInsertBlock();
+</code></pre>
+
+<p><strong>&lsquo;else&rsquo;</strong>代码块的codegen与<strong>&lsquo;then&rsquo; block</strong>的codegen基本相同. 唯一的显著差异是第一行: 它将&rdquo;else&rdquo;block 添加到函数中. 回想之前, 我们已经创建了&rsquo;else&rsquo;块, 但未添加到该函数中.</p>
+
+<p>现在<strong>then</strong> 和 <strong>else</strong> 代码块的IR都已经产生了, 我们现在可以完成我们的<strong>Merge</strong>代码了.</p>
+
+<pre><code class="language-c++">  // Emit merge block.
+  TheFunction-&gt;getBasicBlockList().push_back(MergeBB);
+  Builder.SetInsertPoint(MergeBB);
+  PHINode *PN =
+    Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, &quot;iftmp&quot;);
+
+  PN-&gt;addIncoming(ThenV, ThenBB);
+  PN-&gt;addIncoming(ElseV, ElseBB);
+  return PN;
+}
+
+</code></pre>
+
+<p>开始的两行是相似的: 第一行添加 <strong>&ldquo;merge&rdquo; block</strong>到<strong>function object</strong>中(之前merge block被创建之后, 还没有插入函数中). 第二行改变插入点位置, 所以新的codegen的代码会在<strong>Merge Block</strong>中. 一旦做完这些之后, 我们需要创建PHI node并且给phi 节点设置一组值(block/value pairs).</p>
+
+<p>最后, CodeGen函数返回 phi nodes作为if/then/else表达式计算的值. 在我们上面的例子中, 返回值将会提供给顶级函数的代码中, 该函数将会创建返回指令.</p>
+
+<p>总的来说, 我们现在能够在Kaleidoscope中执行条件代码. 加入这项扩展之后, Kaleidoscope是一个相当完整的语言(因为它可以计算大量的数值函数).</p>
+
+<p>下一步我们将会添加另一个有用的表达式 that is familiar from non-functional languages.</p>
+
+<h1 id="for-loop-expression">&lsquo;for&rsquo; Loop Expression</h1>
+
+<p>现在我们知道了如何在语言中添加基本的控制流, 我们有了一些工具来添加更多强大的功能.</p>
+
+<p>让我们来做一些更有趣的, <strong>&lsquo;for&rsquo; expression</strong>:</p>
+
+<pre><code class="language-cpp">extern putchard(char);
+def printstar(n)
+  for i = 1, i &lt; n, 1.0 in
+    putchard(42);  # ascii 42 = '*'
+
+# print 100 '*' characters
+printstar(100);
+</code></pre>
+
+<p>在此例中, 这个表达式定义的一个新的变量(&ldquo;i&rdquo;), <strong>i</strong> 从初始值开始迭代, 当条件( <strong>&ldquo;i &lt; n&rdquo;</strong> )为true时, 以步长(<strong>&ldquo;1.0&rdquo;</strong>)开始增加.</p>
+
+<p>如果<strong>步长</strong>被省略了, 默认设置它为1.0.</p>
+
+<p>当<strong>循环条件为true</strong>时, 它会执行它的body expression. 因为我们没有什么要返回的, 所以我们定义<strong>the loop总是返回0.0</strong>.</p>
+
+<p>在未来当我们有<strong>可变变量</strong>时, 它会变得更有用.</p>
+
+<p>像往常一样, 让我们开始讨论如何设计Kaleidoscope来支持 <strong>for循环</strong>.</p>
+
+<h2 id="lexer-extensions-for-the-for-loop">Lexer Extensions for the &lsquo;for&rsquo; Loop</h2>
+
+<p>扩展词法分析器与 <strong>if/then/else</strong>相似:</p>
+
+<pre><code class="language-c">... in enum Token ...
+// control
+tok_if = -6, tok_then = -7, tok_else = -8,
+tok_for = -9, tok_in = -10
+
+... in gettok ...
+if (IdentifierStr == &quot;def&quot;)
+  return tok_def;
+if (IdentifierStr == &quot;extern&quot;)
+  return tok_extern;
+if (IdentifierStr == &quot;if&quot;)
+  return tok_if;
+if (IdentifierStr == &quot;then&quot;)
+  return tok_then;
+if (IdentifierStr == &quot;else&quot;)
+  return tok_else;
+if (IdentifierStr == &quot;for&quot;)
+  return tok_for;
+if (IdentifierStr == &quot;in&quot;)
+  return tok_in;
+return tok_identifier;
+</code></pre>
+
+<h2 id="ast-extensions-for-the-for-loop">AST Extensions for the &lsquo;for&rsquo; Loop</h2>
+
+<p>The AST node也很简单. 它基本上就是包含: <strong>节点中的变量名</strong> 和 <strong>组成它的表达式</strong>.</p>
+
+<pre><code class="language-c++">/// ForExprAST - Expression class for for/in.
+class ForExprAST : public ExprAST {
+  std::string VarName;  // 迭代器变量名称
+  std::unique_ptr&lt;ExprAST&gt; Start, End, Step, Body;
+
+public:
+  ForExprAST(const std::string &amp;VarName, std::unique_ptr&lt;ExprAST&gt; Start,
+             std::unique_ptr&lt;ExprAST&gt; End, std::unique_ptr&lt;ExprAST&gt; Step,
+             std::unique_ptr&lt;ExprAST&gt; Body)
+    : VarName(VarName), Start(std::move(Start)), End(std::move(End)),
+      Step(std::move(Step)), Body(std::move(Body)) {}
+
+  Value *codegen() override;
+};
+</code></pre>
+
+<h2 id="parser-extensions-for-the-for-loop">Parser Extensions for the &lsquo;for&rsquo; Loop</h2>
+
+<p>解析器代码也是相当标准的.</p>
+
+<p>唯一有趣的事情是这里会处理可选的<strong>步长</strong>. 解析器代码通过<code>检查第二个逗号是否存在来处理</code>. <code>如果没有发现逗号, 我们会在AST节点中将步长设置为null</code>.</p>
+
+<pre><code class="language-cpp">/// forexpr ::= 'for' identifier '=' expr ',' expr (',' expr)? 'in' expression
+static std::unique_ptr&lt;ExprAST&gt; ParseForExpr() {
+  getNextToken();  // eat the for.
+
+  if (CurTok != tok_identifier)
+    return LogError(&quot;expected identifier after for&quot;);
+
+  std::string IdName = IdentifierStr;
+  getNextToken();  // eat identifier.
+
+  if (CurTok != '=')
+    return LogError(&quot;expected '=' after for&quot;);
+  getNextToken();  // eat '='.
+
+
+  auto Start = ParseExpression();
+  if (!Start)
+    return nullptr;
+  if (CurTok != ',')
+    return LogError(&quot;expected ',' after for start value&quot;);
+  getNextToken();
+
+  auto End = ParseExpression();
+  if (!End)
+    return nullptr;
+
+  // The step value is optional.
+  std::unique_ptr&lt;ExprAST&gt; Step;
+  if (CurTok == ',') {
+    getNextToken();
+    Step = ParseExpression();
+    if (!Step)
+      return nullptr;
+  }
+
+  if (CurTok != tok_in)
+    return LogError(&quot;expected 'in' after for&quot;);
+  getNextToken();  // eat 'in'.
+
+  auto Body = ParseExpression();
+  if (!Body)
+    return nullptr;
+
+  return llvm::make_unique&lt;ForExprAST&gt;(IdName, std::move(Start),
+                                       std::move(End), std::move(Step),
+                                       std::move(Body));
+}
+</code></pre>
+
+<p>当然了, 我们会将它作为主表达式的一部分.</p>
+
+<pre><code class="language-c++">static std::unique_ptr&lt;ExprAST&gt; ParsePrimary() {
+  switch (CurTok) {
+  default:
+    return LogError(&quot;unknown token when expecting an expression&quot;);
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+  case '(':
+    return ParseParenExpr();
+  case tok_if:
+    return ParseIfExpr();
+  case tok_for:
+    return ParseForExpr();
+  }
+}
+</code></pre>
+
+<h2 id="llvm-ir-for-the-for-loop">LLVM IR for the &lsquo;for&rsquo; loop</h2>
+
+<p>下一步, 我们现在需要为For循环产生IR. 根据上面的例子, 我们可以产生下面这样的IR(注意: 为了清楚起见, 我们在产生时关闭了优化):</p>
+
+<pre><code class="language-LLVM">declare double @putchard(double)
+
+define double @printstar(double %n) {
+entry:
+  ; initial value = 1.0 (inlined into phi)
+  br label %loop
+
+loop:       ; preds = %loop, %entry
+  %i = phi double [ 1.000000e+00, %entry ], [ %nextvar, %loop ]
+  ; body
+  %calltmp = call double @putchard(double 4.200000e+01)
+  ; increment
+  %nextvar = fadd double %i, 1.000000e+00
+
+  ; termination test
+  %cmptmp = fcmp ult double %i, %n
+  %booltmp = uitofp i1 %cmptmp to double
+  %loopcond = fcmp one double %booltmp, 0.000000e+00
+  br i1 %loopcond, label %loop, label %afterloop
+
+afterloop:      ; preds = %loop
+  ; loop always returns 0.0
+  ret double 0.000000e+00
+}
+</code></pre>
+
+<p>该循环包含我们之前看到的相同的结构: <strong>a phi node</strong>, <strong>several expressions</strong>, and <strong>some basic blocks</strong>.</p>
+
+<p>CFG:</p>
+
+<p><img src="/docs-pic/llvm/loop.png" alt="" /></p>
+
+<h2 id="code-generation-for-the-for-loop">Code Generation for the &lsquo;for&rsquo; Loop</h2>
+
+<p>codegen的第一部分是简单的, 我们只是输出<strong>循环的起始表达式</strong>:</p>
+
+<pre><code class="language-cpp">Value *ForExprAST::codegen() {
+  // Emit the start code first, without 'variable' in scope.
+  Value *StartVal = Start-&gt;codegen();
+  if (!StartVal)
+    return nullptr;
+</code></pre>
+
+<p>在此之后, 下一步是为<strong>loop body</strong>的启动设置<strong>LLVM basic block</strong>. 在上面的例子中, 整个loop body是一个<strong>block</strong>. 但是记住: <code>body node 本身可以包含多个blocks</code>. (E.g: 它可以包含 if/then/else 或者 a for/in expression).</p>
+
+<pre><code class="language-cpp">// Make the new basic block for the loop header, inserting after current
+// block.
+// 为loop header make新的basic block, 在当前block之后插入
+Function *TheFunction = Builder.GetInsertBlock()-&gt;getParent();
+BasicBlock *PreheaderBB = Builder.GetInsertBlock();
+BasicBlock *LoopBB =
+    BasicBlock::Create(TheContext, &quot;loop&quot;, TheFunction);
+
+// Insert an explicit fall through from the current block to the LoopBB.
+// 从当前块插入explicit fall through to the LoopBB
+Builder.CreateBr(LoopBB);
+</code></pre>
+
+<p>代码与我们在if/then/else中看到的代码相似. 因为之后我们将会需要它来创建一个Phi node, 所以我们保存了那个刚进入循环的块.</p>
+
+<p>在做完这些之后, 我们创建<strong>Loop Block</strong>, 并且为两个块之前的连接创建一个无条件分支.</p>
+
+<pre><code class="language-cpp">// Start insertion in LoopBB.   开始插入
+Builder.SetInsertPoint(LoopBB);
+
+// Start the PHI node with an entry for Start. 
+
+PHINode *Variable = Builder.CreatePHI(Type::getDoubleTy(TheContext),
+                                      2, VarName.c_str());
+Variable-&gt;addIncoming(StartVal, PreheaderBB);
+</code></pre>
+
+<p>现在 loop 的<strong>&ldquo;preheader&rdquo;</strong>已经设置好了, 我们切换到为 loop body来emitting code.</p>
+
+<p>首先: 我们移动插入点, and <strong>为loop indunction 变量创建PHI node</strong>. 由于我们已经知道起始值的传入值, 我们将它加入到PHI node 中.</p>
+
+<p>注意到Phi之后会最终获得备份的第二个值, 但是我们现在还不能set it up yet (因为它目前还不存在!)</p>
+
+<pre><code class="language-cpp">// Within the loop, the variable is defined equal to the PHI node.  If it
+// shadows an existing variable, we have to restore it, so save it now.
+Value *OldVal = NamedValues[VarName];
+NamedValues[VarName] = Variable;
+
+// Emit the body of the loop.  This, like any other expr, can change the
+// current BB.  Note that we ignore the value computed by the body, but don't
+// allow an error.
+if (!Body-&gt;codegen())
+  return nullptr;
+</code></pre>
+
+<p>现在代码开始变得有趣了,  我在符号表中为<code>for</code> 循环引入了新的变量. 这意味着: 我们的符号表现在可以包含**函数参数 <strong>或者</strong>循环变量<strong>. 为了处理这个问题, 在我们为循环体body 进行 codegen之前, 我们在符号表中添加</strong>该循环变量的名称<strong>以及</strong>它的当前值**.</p>
+
+<p>注意: <code>外部作用域可能会有相同的变量名称</code>. 我们很容易会犯这个错误(就是如果已经存在varName, 我们会采取报错并且返回error这个措施).  <strong>但是我们选择了允许隐藏存在的变量</strong>. 为了正确的实现该目标, 我们会保存之前存在的varName的值(当然了, 如果之前没有varName的话, 我们会设置它为null).</p>
+
+<p>一旦将循环变量加入到符号表中之后,  我们就可以<strong>递归地对Body进行Codegen</strong>. 我们允许<strong>body使用循环变量</strong>: 我们可以在符号表中找到循环变量, 来实现对它的引用.</p>
+
+<pre><code class="language-cpp">// Emit the step value.
+Value *StepVal = nullptr;
+if (Step) {
+  StepVal = Step-&gt;codegen();
+  if (!StepVal)
+    return nullptr;
+} else {
+  // If not specified, use 1.0.
+  StepVal = ConstantFP::get(TheContext, APFloat(1.0));
+}
+
+Value *NextVar = Builder.CreateFAdd(Variable, StepVal, &quot;nextvar&quot;);
+</code></pre>
+
+<p>现在 the body is emitted,  我们计算迭代器的下一个值. (迭代器的下一个值= 迭代器当前的值+步长; 如果步长未被设置, 默认为 1.0)</p>
+
+<p>&lsquo;<strong>NextValue</strong>&lsquo;将会是循环的下一次迭代的迭代器值.</p>
+
+<pre><code class="language-cpp">// Compute the end condition.
+Value *EndCond = End-&gt;codegen();
+if (!EndCond)
+  return nullptr;
+
+// Convert condition to a bool by comparing non-equal to 0.0.
+EndCond = Builder.CreateFCmpONE(
+    EndCond, ConstantFP::get(TheContext, APFloat(0.0)), &quot;loopcond&quot;);
+</code></pre>
+
+<p>最后, 我们计算循环的退出值,  来决定是否退出循环. 这与 if/then/else 语句的条件值计算是一样的.</p>
+
+<pre><code class="language-cpp">// Create the &quot;after loop&quot; block and insert it.
+BasicBlock *LoopEndBB = Builder.GetInsertBlock();
+BasicBlock *AfterBB =
+    BasicBlock::Create(TheContext, &quot;afterloop&quot;, TheFunction);
+
+// Insert the conditional branch into the end of LoopEndBB.
+Builder.CreateCondBr(EndCond, LoopBB, AfterBB);
+
+// Any new code will be inserted in AfterBB.
+Builder.SetInsertPoint(AfterBB);
+</code></pre>
+
+<p>随着循环体的代码完成, 我们现在只需要为它完成控制流程. 该代码保存<strong>end block</strong>(for the phi node), 然后为Loop exit(&ldquo;afterloop&rdquo;)创建 block. 基于退出条件的值, 它创建了一个条件分支来<strong>来在再一次执行循环和退出循环之前选择</strong>. 任何之后创建的指令都会在 <strong>afterloop block</strong> 中,  所以我们设置了Builder的插入位置.</p>
+
+<pre><code class="language-cpp">  // Add a new entry to the PHI node for the backedge.
+  Variable-&gt;addIncoming(NextVar, LoopEndBB);
+
+  // Restore the unshadowed variable.
+  if (OldVal)
+    NamedValues[VarName] = OldVal;
+  else
+    NamedValues.erase(VarName);
+
+  // for expr always returns 0.0.
+  return Constant::getNullValue(Type::getDoubleTy(TheContext));
+}
+</code></pre>
+
+<p>最后的代码处理各种cleanups: 现在我们有了 <strong>&ldquo;NextVar&rdquo; 值</strong>, 我们可以将<strong>NextVar/LoopEndBB</strong>添加到 Loop PHI node中. 在这之后, 我们从符号表中移除循环变量. 所以 for 循环完成之后, 它就不在作用域中了. 最后, for 循环的代码产生总是返回 0.0, 这就是我们从 ForExprAST::codegen()中返回的内容.</p>
+
+<p>现在我们总结本教程中 &ldquo;adding control flow to Kaleidoscope&rdquo; 这章.</p>
+
+<p>在本章, 我们增加了两个控制流结构, 通过实现我们了解到了 LLVM IR 的几个方面 (这些对于编译器前端实现者来说是很重要的).</p>
+
+<p>在下一章, 我们将会变得更疯狂并且我们会为我们的Kaleidoscope添加用户自定义的运算符.</p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-04-14</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">本文翻译自 http://llvm.org/docs/tutorial/LangImpl05.html. 如需转载请注明出处.</span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/llvm/">llvm</a>
+          
+          <a href="/tags/kaleidoscope/">Kaleidoscope</a>
+          
+          <a href="/tags/control-flow/">control flow</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/">
+            <span class="next-text nav-default">Kaleidoscope: Adding JIT and Optimizer Support</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+    
+  </article>
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener" type="application/rss+xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2018 -
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">l0phtg</span></span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+<script src="/js/highlight.pack.js"></script>
+
+<script src="/js/mermaid.min.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
+
+</body>
+</html>

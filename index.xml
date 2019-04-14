@@ -29,6 +29,658 @@
     </item>
     
     <item>
+      <title>Kaleidoscope: Extending the Language Control Flow</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscope-extending-the-language-control-flow/</link>
+      <pubDate>Sun, 14 Apr 2019 14:43:17 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscope-extending-the-language-control-flow/</guid>
+      
+        <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl05.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl05.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本文为Kaleidoscope添加条件判断控制流和循环控制流.&lt;/p&gt;
+
+&lt;p&gt;注意: 本文假定你已经阅读过前面几篇文章, 所以在词法解析和AST生成就写的比较简单(当然了, 这部分内容本身阅读起来就比较轻松), 着重介绍控制流的Codegen部分.&lt;/p&gt;
+
+&lt;p&gt;因为这个系列主要是翻译, 所以基本没有涉及自己的理解. &lt;strong&gt;之后我会单独写一篇文章, 来对Kaleidoscope的前五章做一个总结&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/loop.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;chapter-5-introduction&#34;&gt;Chapter 5 Introduction&lt;/h1&gt;
+
+&lt;p&gt;Welcome to Chapter 5 of the &amp;ldquo;Implementing a language with LLVM &amp;rdquo; tutorial.&lt;/p&gt;
+
+&lt;p&gt;第一章到第四章描述了Kaleidoscope的简单的实现并且支持了LLVM IR的生成, 然后是优化和JIT编译器.&lt;/p&gt;
+
+&lt;p&gt;不幸地是, 正如你现在现在看到的, Kaleidoscope 是几乎无用的:&lt;/p&gt;
+
+&lt;p&gt;​   除了调用和返回之外, 它没有其他控制流. 这意味着你在代码中没有条件分支, 从而限制了它的功能.&lt;/p&gt;
+
+&lt;p&gt;在本期 构建编译器中, 我们将会扩展Kaleidoscope, 使它拥有 &lt;strong&gt;if/then/else表达式&lt;/strong&gt;和一个简单的 &lt;strong&gt;for 循环&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;if-then-else&#34;&gt;if/Then/Else&lt;/h1&gt;
+
+&lt;p&gt;扩展Kaleidoscope来支持if/then/else是相当直接的. 它基本上就是为&lt;strong&gt;词法分析器, 解析器, AST, LLVM Code emitter&lt;/strong&gt;增加新的概念.&lt;/p&gt;
+
+&lt;p&gt;例子是很不错的, 因为它表明了&lt;code&gt;随着时间的推移, 根据新的概念来对语言进行扩展是多么的容易&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;在我们进行扩展之前, 让我们讨论一下我们到底想要做什么.&lt;/p&gt;
+
+&lt;p&gt;基本的意思是我们想要能够写出这样的代码:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;def fib(x)
+  if x &amp;lt; 3 then
+    1
+  else
+    fib(x-1)+fib(x-2);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在Kaleidoscope中, 每个构造都是一个表达式: 没有语句. 因此, &lt;strong&gt;if/then/else&lt;/strong&gt; 表达式需要像其他表达式一样返回值. 由于我们正在使用一个普遍的功能形式, 我们会计算它的条件, 然后根据条件的解析方式返回 &lt;strong&gt;then&lt;/strong&gt;或&lt;strong&gt;else&lt;/strong&gt;值.&lt;/p&gt;
+
+&lt;p&gt;if/then/else的表达式的语义是: &lt;code&gt;它能够将条件计算为一个bool等价的值&lt;/code&gt;: 0.0被认为是false, everything else被认为是true. 如果条件为true, 则计算并返回第一个子表达式值; 如果条件为false, 则计算并返回第二个表达式值. 由于Kaleidoscope 允许产生副作用, 所以将该行为确定下来是非常重要的.&lt;/p&gt;
+
+&lt;p&gt;现在我们知道了我们想要做什么, 下面让我们一起了解它的组成部分.&lt;/p&gt;
+
+&lt;h2 id=&#34;if-then-else的lexer扩展&#34;&gt;if/then/else的Lexer扩展&lt;/h2&gt;
+
+&lt;p&gt;词法分析扩展是相当直接的. 首先我们&lt;strong&gt;为新的tokens增加新的enum值&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;// control
+tok_if = -6,
+tok_then = -7,
+tok_else = -8,
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;一旦我们有了它们 我们就意识到了在词法分析器中有了新的&lt;strong&gt;keywords(关键字)&lt;/strong&gt;. This is pretty simple stuff:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;...
+if (IdentifierStr == &amp;quot;def&amp;quot;)
+  return tok_def;
+if (IdentifierStr == &amp;quot;extern&amp;quot;)
+  return tok_extern;
+if (IdentifierStr == &amp;quot;if&amp;quot;)
+  return tok_if;
+if (IdentifierStr == &amp;quot;then&amp;quot;)
+  return tok_then;
+if (IdentifierStr == &amp;quot;else&amp;quot;)
+  return tok_else;
+return tok_identifier;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;if-then-else的ast-扩展&#34;&gt;if/then/else的AST 扩展&lt;/h2&gt;
+
+&lt;p&gt;if/then/else 属于表达式, 所以==IfExprAST==继承自==ExprAST==.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// IfExprAST - Expression class for if/then/else.
+class IfExprAST : public ExprAST {
+  std::unique_ptr&amp;lt;ExprAST&amp;gt; Cond, Then, Else;
+
+public:
+  IfExprAST(std::unique_ptr&amp;lt;ExprAST&amp;gt; Cond, std::unique_ptr&amp;lt;ExprAST&amp;gt; Then,
+            std::unique_ptr&amp;lt;ExprAST&amp;gt; Else)
+    : Cond(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {}
+
+  Value *codegen() override;
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;if-then-else的parser扩展&#34;&gt;if/then/else的parser扩展&lt;/h2&gt;
+
+&lt;p&gt;现在我们有了词法分析的tokens和AST节点, 我们现在的解析逻辑就相当直接了.&lt;/p&gt;
+
+&lt;p&gt;首先我们定义一个新的解析函数:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;/// ifexpr ::= &#39;if&#39; expression &#39;then&#39; expression &#39;else&#39; expression
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseIfExpr() {
+  getNextToken();  // eat the if.
+
+  // condition.
+  auto Cond = ParseExpression();
+  if (!Cond)
+    return nullptr;
+
+  if (CurTok != tok_then)
+    return LogError(&amp;quot;expected then&amp;quot;);
+  getNextToken();  // eat the then
+
+  auto Then = ParseExpression();
+  if (!Then)
+    return nullptr;
+
+  if (CurTok != tok_else)
+    return LogError(&amp;quot;expected else&amp;quot;);
+
+  getNextToken();
+
+  auto Else = ParseExpression();
+  if (!Else)
+    return nullptr;
+
+  return llvm::make_unique&amp;lt;IfExprAST&amp;gt;(std::move(Cond), std::move(Then),
+                                      std::move(Else));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在我们将它与primay expression连接起来:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParsePrimary() {
+  switch (CurTok) {
+  default:
+    return LogError(&amp;quot;unknown token when expecting an expression&amp;quot;);
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+  case &#39;(&#39;:
+    return ParseParenExpr();
+  case tok_if:
+    return ParseIfExpr();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;if-then-else的llvm-ir&#34;&gt;if/then/else的LLVM IR&lt;/h2&gt;
+
+&lt;p&gt;现在我们已经解析完成并且建立了抽象语法树, 最后的内容是增加==LLVM code generation support==. 这是 if/else/then的例子中最有趣的地方, &lt;strong&gt;因为它开始引入了新的概念&lt;/strong&gt;. 上面所有的代码都在以前的章节详细介绍过.&lt;/p&gt;
+
+&lt;p&gt;为了产生我们想要得到的代码. 让我们看一个简单的例子. Consider:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;extern foo();
+extern bar();
+def baz(x) if x then foo() else bar();
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果禁用优化, 你可以看到生成的IR是下面这样的:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;declare double @foo()
+
+declare double @bar()
+
+define double @baz(double %x) {
+entry:
+  %ifcond = fcmp one double %x, 0.000000e+00
+  br i1 %ifcond, label %then, label %else
+
+then:       ; preds = %entry
+  %calltmp = call double @foo()
+  br label %ifcont
+
+else:       ; preds = %entry
+  %calltmp1 = call double @bar()
+  br label %ifcont
+
+ifcont:     ; preds = %else, %then
+  %iftmp = phi double [ %calltmp, %then ], [ %calltmp1, %else ] ; 返回值
+  ret double %iftmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为了使流程图可视化:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;你能够使用LLVM &lt;strong&gt;opt&lt;/strong&gt; tool的一个漂亮的功能. 如果你将LLVM IR放到 &amp;ldquo;t.ll&amp;rdquo;中, 并且运行 &lt;code&gt;llvm-as &amp;lt; t.ll | opt -analyze -view-cfg&lt;/code&gt;, 一个window将会弹出, 并且你将会看到这幅图:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/if.png&#34; alt=&#34;if CFG&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;另一种方法: 可以通过调用 &lt;code&gt;F-&amp;gt;viewCFG()&lt;/code&gt; 或者&lt;code&gt;F-&amp;gt;viewCFGOnly()&lt;/code&gt;(where F is a &amp;ldquo;Function&amp;rdquo;)通过插入实际的调用到代码中并且重新编译, 可以得到我们想要的CFG图. 或者通过在编译器中调用他们. LLVM具有许多很友好的特性来可视化出各种各样的图形.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;回到我们的Codegen代码中, 它是相当简单地:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;The entry block&lt;/strong&gt;: 计算条件表达式 (在我们的例子中是&amp;rdquo;x&amp;rdquo; ) 并且使用==fcmp one==指令将&lt;strong&gt;result&lt;/strong&gt;与&lt;strong&gt;0.0&lt;/strong&gt;相比较 ( &lt;strong&gt;one&lt;/strong&gt; 表示有序并且不相等). 基于该表达式的结果, 代码跳转到&lt;strong&gt;then block&lt;/strong&gt; 或者 &lt;strong&gt;else block&lt;/strong&gt;, which 包含 true/false cases的表达式.&lt;/p&gt;
+
+&lt;p&gt;一旦 &lt;strong&gt;then/else block&lt;/strong&gt;执行完成了, 他们都返回到&lt;strong&gt;&amp;ldquo;ifcont&amp;rdquo; block&lt;/strong&gt;来执行 if/then/else 之后发生的代码. 在这种情况下, 唯一要做的事情就是返回到函数的调用者.&lt;/p&gt;
+
+&lt;p&gt;现在我们的问题是: &lt;code&gt;代码是如何知道哪一个表达式要返回的呢?&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;这个问题的答案涉及重要的&lt;strong&gt;SSA 操作&lt;/strong&gt;: &lt;a href=&#34;https://en.wikipedia.org/wiki/Static_single_assignment_form&#34;&gt;the Phi operation&lt;/a&gt;(或者看我之前翻译的文章: &lt;a href=&#34;https://l0phtg.github.io/post/llvm/static-single-assignment/&#34;&gt;Staitc Single Assignment&lt;/a&gt;). 如果你不熟悉SSA, &lt;a href=&#34;https://en.wikipedia.org/wiki/Static_single_assignment_form&#34;&gt;the wikipedia article&lt;/a&gt;是一个很不错的入门并且你最喜欢的搜索引擎上各种其它的介绍.&lt;/p&gt;
+
+&lt;p&gt;一个简单的对$phi$ 函数执行的介绍是: &lt;code&gt;可以确定我们是从哪一个表达式返回的&lt;/code&gt;. &lt;strong&gt;The phi operation&lt;/strong&gt;采用与输入控制块相对应的value.&lt;/p&gt;
+
+&lt;p&gt;在这个例子中, 如果控制来自 &lt;strong&gt;&amp;ldquo;then&amp;rdquo; block&lt;/strong&gt;, 则它获得&lt;strong&gt;calltmp&lt;/strong&gt;的值.&lt;/p&gt;
+
+&lt;p&gt;如果控制来自&lt;strong&gt;&amp;ldquo;else&amp;rdquo; block&lt;/strong&gt;, 它获得&lt;strong&gt;calltmp1&lt;/strong&gt;的值.&lt;/p&gt;
+
+&lt;p&gt;此刻, 你可能已经开始思考了. &amp;ldquo;Oh no!&amp;rdquo; 这意味着我的简单优雅的前端必须开始生成SSA 才能使用LLVM. 幸运地是, 我们强烈建议不要在你的前端实现SSA构造算法除非你有一个非常好的理由这样做. 实际上,  对于你的命令行式编程语言来说,出现下面这两种情况时, 这表明此刻可能需要Phi nodes:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;代码涉及用户变量: x = 1; x = x + 1;&lt;/li&gt;
+&lt;li&gt;Values可能隐式地在AST结构中, 例如在本例子中的Phi node.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;在&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl07.html&#34;&gt;第七章&lt;/a&gt;  (&amp;ldquo;多元变量&amp;rdquo;), 我们将讨论第一种情况. 现在, 请相信我你不需要SSA构造来处理这种情况.&lt;/p&gt;
+
+&lt;p&gt;对于第二种情况, 你可以选择使用我们将为 #1描述的技术. 或者你能直接插入Phi 节点(如果方便的话).&lt;/p&gt;
+
+&lt;p&gt;在我们这个例子中 产生 Phi code真的是简单的, 所以我们选择直接插入Phi节点.&lt;/p&gt;
+
+&lt;p&gt;Okay. 我们已经了解了足够多, 让我们生成代码吧.&lt;/p&gt;
+
+&lt;h2 id=&#34;if-then-else-的代码产生&#34;&gt;if/then/else 的代码产生&lt;/h2&gt;
+
+&lt;p&gt;为了产生代码, 我们需要实现&lt;strong&gt;IfExpAST&lt;/strong&gt;的codegen方法.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *IfExprAST::codegen() {
+  Value *CondV = Cond-&amp;gt;codegen();
+  if (!CondV)
+    return nullptr;
+
+  // Convert condition to a bool by comparing non-equal to 0.0.
+  // 转换条件到一个bool值. 
+  CondV = Builder.CreateFCmpONE(
+      CondV, ConstantFP::get(TheContext, APFloat(0.0)), &amp;quot;ifcond&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这段代码很直接, 和我们之前看到的类似. 我们 emit the expression for the condition, 然后将值与0进行比较, 得到bool值.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;Function *TheFunction = Builder.GetInsertBlock()-&amp;gt;getParent();
+
+// Create blocks for the then and else cases.  Insert the &#39;then&#39; block at the
+// end of the function.
+// 创建then and else case的blocks. 
+// 插入 &#39;then&#39; block在函数的最后
+
+BasicBlock *ThenBB =
+    BasicBlock::Create(TheContext, &amp;quot;then&amp;quot;, TheFunction);
+BasicBlock *ElseBB = BasicBlock::Create(TheContext, &amp;quot;else&amp;quot;);
+BasicBlock *MergeBB = BasicBlock::Create(TheContext, &amp;quot;ifcont&amp;quot;);
+
+Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个代码创建与 &lt;strong&gt;if/then/else&lt;/strong&gt;语句相关的&lt;strong&gt;basic block&lt;/strong&gt;, 并且直接对应于上例中的块.&lt;/p&gt;
+
+&lt;p&gt;第一行获取当前正在构建的&lt;strong&gt;Function&lt;/strong&gt;对象: 它通过询问&lt;strong&gt;Builder&lt;/strong&gt;当前的&lt;strong&gt;BasicBlock&lt;/strong&gt;, 并询问当前&lt;strong&gt;Block的parent&lt;/strong&gt;, 来获取此信息.&lt;/p&gt;
+
+&lt;p&gt;获得函数之后, 我们会创建三个Blocks. 注意: 它传递&amp;rdquo;TheFunction&lt;strong&gt;到&amp;rdquo;then&amp;rdquo;block的构造器中&lt;/strong&gt;. &lt;code&gt;这会导致构造函数会自动地在指定的函数中插入new block&lt;/code&gt;. &lt;strong&gt;其他的两个block被创建, 但是还没有被插入&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;一旦&lt;strong&gt;block&lt;/strong&gt;被创建, 我们就可以&lt;code&gt;emit the 在它们之间选择的条件分支&lt;/code&gt;. 注意, 创建新的&lt;strong&gt;block&lt;/strong&gt;不会隐式地影响&lt;strong&gt;IRBuilder&lt;/strong&gt;, 因此它仍然可以插入条件到进入的块中.  另外要注意, 它正在&lt;code&gt;创建到&amp;quot;then&amp;quot;block和&amp;quot;else&amp;quot;block的分支&lt;/code&gt;, 即使&amp;rdquo;else&amp;rdquo;block还未插入到函数中.&lt;/p&gt;
+
+&lt;p&gt;This is all ok. 它是LLVM支持==forward references==的标准方法.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Emit then value.       
+Builder.SetInsertPoint(ThenBB);
+
+Value *ThenV = Then-&amp;gt;codegen();
+if (!ThenV)
+  return nullptr;
+
+Builder.CreateBr(MergeBB);
+// Codegen of &#39;Then&#39; can change the current block, update ThenBB for the PHI.
+// &#39;Then&#39;的Codegen会改变目前的block, update ThenBB for the PHI.
+ThenBB = Builder.GetInsertBlock();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在条件分支被插入之后, 我们move the builder来插入&amp;rdquo;then&amp;rdquo;block. 严格上来说, this call移动插入点到指定block的end. 然而, 由于 &amp;ldquo;then&amp;rdquo; block是空的, 所以它就会从block的开始进行插入.&lt;/p&gt;
+
+&lt;p&gt;一旦插入点被设置了, 我们可以递归地从AST中codegen the &amp;ldquo;then&amp;rdquo;表达式. 为了完成&amp;rdquo;then&amp;rdquo;块, 我们为合并块创建了一个无条件分支.&lt;/p&gt;
+
+&lt;p&gt;LLVM IR一个有趣的方面是&lt;strong&gt;它要求所有的BasicBlock都用控制流指令来中止(Ex: return and branch)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;这意味着所有的控制流, including fall throughs, 必须在LLVM IR中被显示地指定. 如果违反此规则, 验证程序会报错.&lt;/p&gt;
+
+&lt;p&gt;这里的最后一行相当&lt;strong&gt;微妙&lt;/strong&gt;, 但是是非常重要的. 基本问题就是当我们在&lt;strong&gt;merge block&lt;/strong&gt;中创建 Phi node时, 我们需要设置 &lt;strong&gt;block/value pairs&lt;/strong&gt; 来表明Phi是如何工作的. 重要的 , The Phi node 期待在CFG的块中每一个前节点都有一个entry.&lt;/p&gt;
+
+&lt;p&gt;那么, 为什么在第 5 行, 我们设置ThenBB为获取当前块呢?  &amp;ldquo;Then&amp;rdquo;表达式实际上可能会改变当前的block.  例如, 它包含了一个嵌套的&amp;rdquo;if/then/else&amp;rdquo;表达式. 因为递归地调用codegen()会任意改变当前块的notion, 我们需要得到将要设置的Phi node代码的最新值.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;// Emit else block. 
+TheFunction-&amp;gt;getBasicBlockList().push_back(ElseBB);
+Builder.SetInsertPoint(ElseBB);
+
+Value *ElseV = Else-&amp;gt;codegen();
+if (!ElseV)
+  return nullptr;
+
+Builder.CreateBr(MergeBB);
+// codegen of &#39;Else&#39; can change the current block, update ElseBB for the PHI.
+ElseBB = Builder.GetInsertBlock();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;&amp;lsquo;else&amp;rsquo;&lt;/strong&gt;代码块的codegen与&lt;strong&gt;&amp;lsquo;then&amp;rsquo; block&lt;/strong&gt;的codegen基本相同. 唯一的显著差异是第一行: 它将&amp;rdquo;else&amp;rdquo;block 添加到函数中. 回想之前, 我们已经创建了&amp;rsquo;else&amp;rsquo;块, 但未添加到该函数中.&lt;/p&gt;
+
+&lt;p&gt;现在&lt;strong&gt;then&lt;/strong&gt; 和 &lt;strong&gt;else&lt;/strong&gt; 代码块的IR都已经产生了, 我们现在可以完成我们的&lt;strong&gt;Merge&lt;/strong&gt;代码了.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  // Emit merge block.
+  TheFunction-&amp;gt;getBasicBlockList().push_back(MergeBB);
+  Builder.SetInsertPoint(MergeBB);
+  PHINode *PN =
+    Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, &amp;quot;iftmp&amp;quot;);
+
+  PN-&amp;gt;addIncoming(ThenV, ThenBB);
+  PN-&amp;gt;addIncoming(ElseV, ElseBB);
+  return PN;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;开始的两行是相似的: 第一行添加 &lt;strong&gt;&amp;ldquo;merge&amp;rdquo; block&lt;/strong&gt;到&lt;strong&gt;function object&lt;/strong&gt;中(之前merge block被创建之后, 还没有插入函数中). 第二行改变插入点位置, 所以新的codegen的代码会在&lt;strong&gt;Merge Block&lt;/strong&gt;中. 一旦做完这些之后, 我们需要创建PHI node并且给phi 节点设置一组值(block/value pairs).&lt;/p&gt;
+
+&lt;p&gt;最后, CodeGen函数返回 phi nodes作为if/then/else表达式计算的值. 在我们上面的例子中, 返回值将会提供给顶级函数的代码中, 该函数将会创建返回指令.&lt;/p&gt;
+
+&lt;p&gt;总的来说, 我们现在能够在Kaleidoscope中执行条件代码. 加入这项扩展之后, Kaleidoscope是一个相当完整的语言(因为它可以计算大量的数值函数).&lt;/p&gt;
+
+&lt;p&gt;下一步我们将会添加另一个有用的表达式 that is familiar from non-functional languages.&lt;/p&gt;
+
+&lt;h1 id=&#34;for-loop-expression&#34;&gt;&amp;lsquo;for&amp;rsquo; Loop Expression&lt;/h1&gt;
+
+&lt;p&gt;现在我们知道了如何在语言中添加基本的控制流, 我们有了一些工具来添加更多强大的功能.&lt;/p&gt;
+
+&lt;p&gt;让我们来做一些更有趣的, &lt;strong&gt;&amp;lsquo;for&amp;rsquo; expression&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;extern putchard(char);
+def printstar(n)
+  for i = 1, i &amp;lt; n, 1.0 in
+    putchard(42);  # ascii 42 = &#39;*&#39;
+
+# print 100 &#39;*&#39; characters
+printstar(100);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在此例中, 这个表达式定义的一个新的变量(&amp;ldquo;i&amp;rdquo;), &lt;strong&gt;i&lt;/strong&gt; 从初始值开始迭代, 当条件( &lt;strong&gt;&amp;ldquo;i &amp;lt; n&amp;rdquo;&lt;/strong&gt; )为true时, 以步长(&lt;strong&gt;&amp;ldquo;1.0&amp;rdquo;&lt;/strong&gt;)开始增加.&lt;/p&gt;
+
+&lt;p&gt;如果&lt;strong&gt;步长&lt;/strong&gt;被省略了, 默认设置它为1.0.&lt;/p&gt;
+
+&lt;p&gt;当&lt;strong&gt;循环条件为true&lt;/strong&gt;时, 它会执行它的body expression. 因为我们没有什么要返回的, 所以我们定义&lt;strong&gt;the loop总是返回0.0&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;在未来当我们有&lt;strong&gt;可变变量&lt;/strong&gt;时, 它会变得更有用.&lt;/p&gt;
+
+&lt;p&gt;像往常一样, 让我们开始讨论如何设计Kaleidoscope来支持 &lt;strong&gt;for循环&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;lexer-extensions-for-the-for-loop&#34;&gt;Lexer Extensions for the &amp;lsquo;for&amp;rsquo; Loop&lt;/h2&gt;
+
+&lt;p&gt;扩展词法分析器与 &lt;strong&gt;if/then/else&lt;/strong&gt;相似:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;... in enum Token ...
+// control
+tok_if = -6, tok_then = -7, tok_else = -8,
+tok_for = -9, tok_in = -10
+
+... in gettok ...
+if (IdentifierStr == &amp;quot;def&amp;quot;)
+  return tok_def;
+if (IdentifierStr == &amp;quot;extern&amp;quot;)
+  return tok_extern;
+if (IdentifierStr == &amp;quot;if&amp;quot;)
+  return tok_if;
+if (IdentifierStr == &amp;quot;then&amp;quot;)
+  return tok_then;
+if (IdentifierStr == &amp;quot;else&amp;quot;)
+  return tok_else;
+if (IdentifierStr == &amp;quot;for&amp;quot;)
+  return tok_for;
+if (IdentifierStr == &amp;quot;in&amp;quot;)
+  return tok_in;
+return tok_identifier;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;ast-extensions-for-the-for-loop&#34;&gt;AST Extensions for the &amp;lsquo;for&amp;rsquo; Loop&lt;/h2&gt;
+
+&lt;p&gt;The AST node也很简单. 它基本上就是包含: &lt;strong&gt;节点中的变量名&lt;/strong&gt; 和 &lt;strong&gt;组成它的表达式&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// ForExprAST - Expression class for for/in.
+class ForExprAST : public ExprAST {
+  std::string VarName;  // 迭代器变量名称
+  std::unique_ptr&amp;lt;ExprAST&amp;gt; Start, End, Step, Body;
+
+public:
+  ForExprAST(const std::string &amp;amp;VarName, std::unique_ptr&amp;lt;ExprAST&amp;gt; Start,
+             std::unique_ptr&amp;lt;ExprAST&amp;gt; End, std::unique_ptr&amp;lt;ExprAST&amp;gt; Step,
+             std::unique_ptr&amp;lt;ExprAST&amp;gt; Body)
+    : VarName(VarName), Start(std::move(Start)), End(std::move(End)),
+      Step(std::move(Step)), Body(std::move(Body)) {}
+
+  Value *codegen() override;
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;parser-extensions-for-the-for-loop&#34;&gt;Parser Extensions for the &amp;lsquo;for&amp;rsquo; Loop&lt;/h2&gt;
+
+&lt;p&gt;解析器代码也是相当标准的.&lt;/p&gt;
+
+&lt;p&gt;唯一有趣的事情是这里会处理可选的&lt;strong&gt;步长&lt;/strong&gt;. 解析器代码通过&lt;code&gt;检查第二个逗号是否存在来处理&lt;/code&gt;. &lt;code&gt;如果没有发现逗号, 我们会在AST节点中将步长设置为null&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;/// forexpr ::= &#39;for&#39; identifier &#39;=&#39; expr &#39;,&#39; expr (&#39;,&#39; expr)? &#39;in&#39; expression
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseForExpr() {
+  getNextToken();  // eat the for.
+
+  if (CurTok != tok_identifier)
+    return LogError(&amp;quot;expected identifier after for&amp;quot;);
+
+  std::string IdName = IdentifierStr;
+  getNextToken();  // eat identifier.
+
+  if (CurTok != &#39;=&#39;)
+    return LogError(&amp;quot;expected &#39;=&#39; after for&amp;quot;);
+  getNextToken();  // eat &#39;=&#39;.
+
+
+  auto Start = ParseExpression();
+  if (!Start)
+    return nullptr;
+  if (CurTok != &#39;,&#39;)
+    return LogError(&amp;quot;expected &#39;,&#39; after for start value&amp;quot;);
+  getNextToken();
+
+  auto End = ParseExpression();
+  if (!End)
+    return nullptr;
+
+  // The step value is optional.
+  std::unique_ptr&amp;lt;ExprAST&amp;gt; Step;
+  if (CurTok == &#39;,&#39;) {
+    getNextToken();
+    Step = ParseExpression();
+    if (!Step)
+      return nullptr;
+  }
+
+  if (CurTok != tok_in)
+    return LogError(&amp;quot;expected &#39;in&#39; after for&amp;quot;);
+  getNextToken();  // eat &#39;in&#39;.
+
+  auto Body = ParseExpression();
+  if (!Body)
+    return nullptr;
+
+  return llvm::make_unique&amp;lt;ForExprAST&amp;gt;(IdName, std::move(Start),
+                                       std::move(End), std::move(Step),
+                                       std::move(Body));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当然了, 我们会将它作为主表达式的一部分.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParsePrimary() {
+  switch (CurTok) {
+  default:
+    return LogError(&amp;quot;unknown token when expecting an expression&amp;quot;);
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+  case &#39;(&#39;:
+    return ParseParenExpr();
+  case tok_if:
+    return ParseIfExpr();
+  case tok_for:
+    return ParseForExpr();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;llvm-ir-for-the-for-loop&#34;&gt;LLVM IR for the &amp;lsquo;for&amp;rsquo; loop&lt;/h2&gt;
+
+&lt;p&gt;下一步, 我们现在需要为For循环产生IR. 根据上面的例子, 我们可以产生下面这样的IR(注意: 为了清楚起见, 我们在产生时关闭了优化):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;declare double @putchard(double)
+
+define double @printstar(double %n) {
+entry:
+  ; initial value = 1.0 (inlined into phi)
+  br label %loop
+
+loop:       ; preds = %loop, %entry
+  %i = phi double [ 1.000000e+00, %entry ], [ %nextvar, %loop ]
+  ; body
+  %calltmp = call double @putchard(double 4.200000e+01)
+  ; increment
+  %nextvar = fadd double %i, 1.000000e+00
+
+  ; termination test
+  %cmptmp = fcmp ult double %i, %n
+  %booltmp = uitofp i1 %cmptmp to double
+  %loopcond = fcmp one double %booltmp, 0.000000e+00
+  br i1 %loopcond, label %loop, label %afterloop
+
+afterloop:      ; preds = %loop
+  ; loop always returns 0.0
+  ret double 0.000000e+00
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;该循环包含我们之前看到的相同的结构: &lt;strong&gt;a phi node&lt;/strong&gt;, &lt;strong&gt;several expressions&lt;/strong&gt;, and &lt;strong&gt;some basic blocks&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;CFG:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/loop.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;code-generation-for-the-for-loop&#34;&gt;Code Generation for the &amp;lsquo;for&amp;rsquo; Loop&lt;/h2&gt;
+
+&lt;p&gt;codegen的第一部分是简单的, 我们只是输出&lt;strong&gt;循环的起始表达式&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;Value *ForExprAST::codegen() {
+  // Emit the start code first, without &#39;variable&#39; in scope.
+  Value *StartVal = Start-&amp;gt;codegen();
+  if (!StartVal)
+    return nullptr;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在此之后, 下一步是为&lt;strong&gt;loop body&lt;/strong&gt;的启动设置&lt;strong&gt;LLVM basic block&lt;/strong&gt;. 在上面的例子中, 整个loop body是一个&lt;strong&gt;block&lt;/strong&gt;. 但是记住: &lt;code&gt;body node 本身可以包含多个blocks&lt;/code&gt;. (E.g: 它可以包含 if/then/else 或者 a for/in expression).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Make the new basic block for the loop header, inserting after current
+// block.
+// 为loop header make新的basic block, 在当前block之后插入
+Function *TheFunction = Builder.GetInsertBlock()-&amp;gt;getParent();
+BasicBlock *PreheaderBB = Builder.GetInsertBlock();
+BasicBlock *LoopBB =
+    BasicBlock::Create(TheContext, &amp;quot;loop&amp;quot;, TheFunction);
+
+// Insert an explicit fall through from the current block to the LoopBB.
+// 从当前块插入explicit fall through to the LoopBB
+Builder.CreateBr(LoopBB);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;代码与我们在if/then/else中看到的代码相似. 因为之后我们将会需要它来创建一个Phi node, 所以我们保存了那个刚进入循环的块.&lt;/p&gt;
+
+&lt;p&gt;在做完这些之后, 我们创建&lt;strong&gt;Loop Block&lt;/strong&gt;, 并且为两个块之前的连接创建一个无条件分支.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Start insertion in LoopBB.   开始插入
+Builder.SetInsertPoint(LoopBB);
+
+// Start the PHI node with an entry for Start. 
+
+PHINode *Variable = Builder.CreatePHI(Type::getDoubleTy(TheContext),
+                                      2, VarName.c_str());
+Variable-&amp;gt;addIncoming(StartVal, PreheaderBB);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在 loop 的&lt;strong&gt;&amp;ldquo;preheader&amp;rdquo;&lt;/strong&gt;已经设置好了, 我们切换到为 loop body来emitting code.&lt;/p&gt;
+
+&lt;p&gt;首先: 我们移动插入点, and &lt;strong&gt;为loop indunction 变量创建PHI node&lt;/strong&gt;. 由于我们已经知道起始值的传入值, 我们将它加入到PHI node 中.&lt;/p&gt;
+
+&lt;p&gt;注意到Phi之后会最终获得备份的第二个值, 但是我们现在还不能set it up yet (因为它目前还不存在!)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Within the loop, the variable is defined equal to the PHI node.  If it
+// shadows an existing variable, we have to restore it, so save it now.
+Value *OldVal = NamedValues[VarName];
+NamedValues[VarName] = Variable;
+
+// Emit the body of the loop.  This, like any other expr, can change the
+// current BB.  Note that we ignore the value computed by the body, but don&#39;t
+// allow an error.
+if (!Body-&amp;gt;codegen())
+  return nullptr;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在代码开始变得有趣了,  我在符号表中为&lt;code&gt;for&lt;/code&gt; 循环引入了新的变量. 这意味着: 我们的符号表现在可以包含**函数参数 &lt;strong&gt;或者&lt;/strong&gt;循环变量&lt;strong&gt;. 为了处理这个问题, 在我们为循环体body 进行 codegen之前, 我们在符号表中添加&lt;/strong&gt;该循环变量的名称&lt;strong&gt;以及&lt;/strong&gt;它的当前值**.&lt;/p&gt;
+
+&lt;p&gt;注意: &lt;code&gt;外部作用域可能会有相同的变量名称&lt;/code&gt;. 我们很容易会犯这个错误(就是如果已经存在varName, 我们会采取报错并且返回error这个措施).  &lt;strong&gt;但是我们选择了允许隐藏存在的变量&lt;/strong&gt;. 为了正确的实现该目标, 我们会保存之前存在的varName的值(当然了, 如果之前没有varName的话, 我们会设置它为null).&lt;/p&gt;
+
+&lt;p&gt;一旦将循环变量加入到符号表中之后,  我们就可以&lt;strong&gt;递归地对Body进行Codegen&lt;/strong&gt;. 我们允许&lt;strong&gt;body使用循环变量&lt;/strong&gt;: 我们可以在符号表中找到循环变量, 来实现对它的引用.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Emit the step value.
+Value *StepVal = nullptr;
+if (Step) {
+  StepVal = Step-&amp;gt;codegen();
+  if (!StepVal)
+    return nullptr;
+} else {
+  // If not specified, use 1.0.
+  StepVal = ConstantFP::get(TheContext, APFloat(1.0));
+}
+
+Value *NextVar = Builder.CreateFAdd(Variable, StepVal, &amp;quot;nextvar&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在 the body is emitted,  我们计算迭代器的下一个值. (迭代器的下一个值= 迭代器当前的值+步长; 如果步长未被设置, 默认为 1.0)&lt;/p&gt;
+
+&lt;p&gt;&amp;lsquo;&lt;strong&gt;NextValue&lt;/strong&gt;&amp;lsquo;将会是循环的下一次迭代的迭代器值.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Compute the end condition.
+Value *EndCond = End-&amp;gt;codegen();
+if (!EndCond)
+  return nullptr;
+
+// Convert condition to a bool by comparing non-equal to 0.0.
+EndCond = Builder.CreateFCmpONE(
+    EndCond, ConstantFP::get(TheContext, APFloat(0.0)), &amp;quot;loopcond&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后, 我们计算循环的退出值,  来决定是否退出循环. 这与 if/then/else 语句的条件值计算是一样的.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// Create the &amp;quot;after loop&amp;quot; block and insert it.
+BasicBlock *LoopEndBB = Builder.GetInsertBlock();
+BasicBlock *AfterBB =
+    BasicBlock::Create(TheContext, &amp;quot;afterloop&amp;quot;, TheFunction);
+
+// Insert the conditional branch into the end of LoopEndBB.
+Builder.CreateCondBr(EndCond, LoopBB, AfterBB);
+
+// Any new code will be inserted in AfterBB.
+Builder.SetInsertPoint(AfterBB);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;随着循环体的代码完成, 我们现在只需要为它完成控制流程. 该代码保存&lt;strong&gt;end block&lt;/strong&gt;(for the phi node), 然后为Loop exit(&amp;ldquo;afterloop&amp;rdquo;)创建 block. 基于退出条件的值, 它创建了一个条件分支来&lt;strong&gt;来在再一次执行循环和退出循环之前选择&lt;/strong&gt;. 任何之后创建的指令都会在 &lt;strong&gt;afterloop block&lt;/strong&gt; 中,  所以我们设置了Builder的插入位置.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;  // Add a new entry to the PHI node for the backedge.
+  Variable-&amp;gt;addIncoming(NextVar, LoopEndBB);
+
+  // Restore the unshadowed variable.
+  if (OldVal)
+    NamedValues[VarName] = OldVal;
+  else
+    NamedValues.erase(VarName);
+
+  // for expr always returns 0.0.
+  return Constant::getNullValue(Type::getDoubleTy(TheContext));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后的代码处理各种cleanups: 现在我们有了 &lt;strong&gt;&amp;ldquo;NextVar&amp;rdquo; 值&lt;/strong&gt;, 我们可以将&lt;strong&gt;NextVar/LoopEndBB&lt;/strong&gt;添加到 Loop PHI node中. 在这之后, 我们从符号表中移除循环变量. 所以 for 循环完成之后, 它就不在作用域中了. 最后, for 循环的代码产生总是返回 0.0, 这就是我们从 ForExprAST::codegen()中返回的内容.&lt;/p&gt;
+
+&lt;p&gt;现在我们总结本教程中 &amp;ldquo;adding control flow to Kaleidoscope&amp;rdquo; 这章.&lt;/p&gt;
+
+&lt;p&gt;在本章, 我们增加了两个控制流结构, 通过实现我们了解到了 LLVM IR 的几个方面 (这些对于编译器前端实现者来说是很重要的).&lt;/p&gt;
+
+&lt;p&gt;在下一章, 我们将会变得更疯狂并且我们会为我们的Kaleidoscope添加用户自定义的运算符.&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope: Adding JIT and Optimizer Support</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/</link>
       <pubDate>Sat, 13 Apr 2019 15:02:51 +0800</pubDate>
