@@ -29,6 +29,763 @@
     </item>
     
     <item>
+      <title>Kaleidoscope: 前五章总结</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscope-%E5%89%8D%E4%BA%94%E7%AB%A0%E6%80%BB%E7%BB%93/</link>
+      <pubDate>Mon, 15 Apr 2019 17:58:13 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscope-%E5%89%8D%E4%BA%94%E7%AB%A0%E6%80%BB%E7%BB%93/</guid>
+      
+        <description>&lt;p&gt;对前五章做了一个总结, 侧重Codegen部分.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;kaleidoscope支持的语法&#34;&gt;Kaleidoscope支持的语法&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;表达式运算&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;4+5;
+5-1;
+5*10;
+10/5;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;函数定义&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;def bar(a) foo(a, 4.0) + bar(31337);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;函数调用&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;cos(1.234);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;if/then/else&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;extern foo();
+extern bar();
+def baz(x) if x then foo() else bar();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;for&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;extern putchard(char);
+def printstar(n)
+  for i = 1, i &amp;lt; n, 1.0 in
+    putchard(42);  # ascii 42 = &#39;*&#39;
+
+# print 100 &#39;*&#39; characters
+printstar(100);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;词法分析&#34;&gt;词法分析&lt;/h1&gt;
+
+&lt;p&gt;词法分析很简单. 我这里简单画了下处理的流程图.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/Lexer And Parser.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;具体的分析请看: &lt;a href=&#34;https://l0phtg.github.io/post/kaleidoscope-tutorial-introduction-and-lexer/&#34;&gt;Lexer and Parse&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;抽象语法树&#34;&gt;抽象语法树&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/AST.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;生成抽象语法树-ast&#34;&gt;生成抽象语法树(AST)&lt;/h1&gt;
+
+&lt;p&gt;这块比较简单. 简单介绍下:&lt;/p&gt;
+
+&lt;h2 id=&#34;expr的-ast-生成&#34;&gt;Expr的(AST)生成&lt;/h2&gt;
+
+&lt;p&gt;我们对所有的表达式进行集中处理.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// expression
+///   ::= primary binoprhs
+///
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseExpression() {
+  auto LHS = ParsePrimary();
+  if (!LHS)
+    return nullptr;
+
+  return ParseBinOpRHS(0, std::move(LHS));
+}
+
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParsePrimary() {
+  switch (CurTok) {
+  default:
+    return LogError(&amp;quot;unknown token when expecting an expression&amp;quot;);
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+  case &#39;(&#39;:
+    return ParseParenExpr();
+  case tok_if:
+    return ParseIfExpr();
+  case tok_for:
+    return ParseForExpr();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;ParseIdentifierExpr&lt;/code&gt;,&lt;code&gt;ParseNumberExpr&lt;/code&gt;和&lt;code&gt;ParseParenExpr&lt;/code&gt;的实现请参考: &lt;a href=&#34;https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/&#34;&gt; Implementing a Parser and AST&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;ParseIfExpr&lt;/code&gt;和&lt;code&gt;ParseForExpr&lt;/code&gt;的实现请参考: &lt;a href=&#34;https://l0phtg.github.io/post/llvm/kaleidoscope-extending-the-language-control-flow/&#34;&gt;Extending the Language Control Flow&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;函数定义和申明的ast生成&#34;&gt;函数定义和申明的AST生成&lt;/h2&gt;
+
+&lt;p&gt;请参考:&lt;a href=&#34;https://l0phtg.github.io/post/llvm/kaleidoscope-implementing-a-parser-and-ast/&#34;&gt; Implementing a Parser and AST&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;codegen-产生llvm-ir&#34;&gt;Codegen(产生LLVM IR)&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/Codegen.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;四个基本表达式的codegen&#34;&gt;四个基本表达式的codegen&lt;/h2&gt;
+
+&lt;p&gt;请参考: &lt;a href=&#34;https://l0phtg.github.io/post/llvm/kaleidoscope-code-generation-to-llvm-ir/&#34;&gt;code generation to llvm ir&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;if-then-else&#34;&gt;if/then/else&lt;/h2&gt;
+
+&lt;h3 id=&#34;kaleidoscpe-if-then-else&#34;&gt;Kaleidoscpe: if/then/else&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;extern foo();
+extern bar();
+def baz(x) if x then foo() else bar();  // 如果 x != 0, then foo, else bar;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;未经优化的llvm-ir&#34;&gt;未经优化的LLVM IR&lt;/h3&gt;
+
+&lt;p&gt;根据我们上面编写的Kaleidoscope的代码, 可以生成下面的LLVM IR.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;declare double @foo()
+
+declare double @bar()
+
+define double @baz(double %x) {
+entry:
+  %ifcond = fcmp one double %x, 0.000000e+00
+  br i1 %ifcond, label %then, label %else
+
+then:       ; preds = %entry
+  %calltmp = call double @foo()
+  br label %ifcont
+
+else:       ; preds = %entry
+  %calltmp1 = call double @bar()
+  br label %ifcont
+
+ifcont:     ; preds = %else, %then
+  %iftmp = phi double [ %calltmp, %then ], [ %calltmp1, %else ] ; 返回值
+  ret double %iftmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;ir解析&#34;&gt;IR解析&lt;/h4&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;IR指令&lt;/th&gt;
+&lt;th&gt;例子&lt;/th&gt;
+&lt;th&gt;作用&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$\bold{fcmp}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{fcmp}$ $one$ $double$ ${x}$,   $0.0e+00$&lt;/td&gt;
+&lt;td&gt;比较指令, 相等则返回 0, 不相等返回 1&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{call}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{call}$    $double$ $@ foo()$&lt;/td&gt;
+&lt;td&gt;调用函数&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{br}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{br}$       ${label }$  ${\%ifcont}$&lt;/td&gt;
+&lt;td&gt;直接跳转&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{br}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{br}$       $i1$  $\%ifcond$,  $label$  $\%then$,   $label$   $\%else$&lt;/td&gt;
+&lt;td&gt;条件跳转&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{phi}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{phi}$     ${double [\% calltmp, \%then] }$, ${[\%calltmp1, \%else]}$&lt;/td&gt;
+&lt;td&gt;调用${phi}$ 函数&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{ret}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{ret}$     $double$ $\% 0$&lt;/td&gt;
+&lt;td&gt;函数返回&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Label&lt;/th&gt;
+&lt;th&gt;means&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$\bold{entry}$&lt;/td&gt;
+&lt;td&gt;函数入口&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{then}$&lt;/td&gt;
+&lt;td&gt;条件分支then&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{else}$&lt;/td&gt;
+&lt;td&gt;条件分支else&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{ifcont}$&lt;/td&gt;
+&lt;td&gt;结束条件分支&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;if-then-else-s-cfg&#34;&gt;if/then/else&amp;rsquo;s CFG&lt;/h3&gt;
+
+&lt;p&gt;使用&lt;code&gt;opt -analyze -view-cfg if.bc&lt;/code&gt;生成的CFG.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/if.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;if-then-else-s-dominator-判断哪里需要插入phi函数&#34;&gt;if/then/else&amp;rsquo;s dominator (判断哪里需要插入phi函数)&lt;/h4&gt;
+
+&lt;p&gt;这里只是对插入$\phi$函数时机的一个分析. (不想了解的壳跳过).&lt;/p&gt;
+
+&lt;p&gt;根据我前面翻译的文章: &lt;a href=&#34;https://l0phtg.github.io/post/dominatorgraph-theory/&#34;&gt;Dominator&lt;/a&gt;来分析我们&lt;code&gt;if/then/else&lt;/code&gt;的控制流.&lt;/p&gt;
+
+&lt;p&gt;我们将:  &lt;code&gt;entry&lt;/code&gt; 视为节点 $\bold{1}$。    &lt;code&gt;then&lt;/code&gt;视为节点 $\bold{2}$。&lt;/p&gt;
+
+&lt;p&gt;​         &lt;code&gt;else&lt;/code&gt; 视为节点 $\bold{3}$。      &lt;code&gt;ifcont&lt;/code&gt;视为节点 $\bold{4}$。&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;$\bold{1}$&lt;/th&gt;
+&lt;th&gt;$\color{black}{dom}$&lt;/th&gt;
+&lt;th&gt;$\color{Gray}{1}$&lt;/th&gt;
+&lt;th&gt;$\color{Red}{2}$&lt;/th&gt;
+&lt;th&gt;$\color{Red}{3}$&lt;/th&gt;
+&lt;th&gt;4&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$\bold{2}$&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{2}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{3}$&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{3}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{4}$&lt;/td&gt;
+&lt;td&gt;$\color{black}{dom}$&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;$\color{Gray}{4}$&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;节点&lt;/th&gt;
+&lt;th&gt;支配分析&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$\bold{1}$&lt;/td&gt;
+&lt;td&gt;支配: 1, 2, 3, 4.    严格支配: 2, 3, 4.     直接支配: 2, 3.    支配边界: set().&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{2}$&lt;/td&gt;
+&lt;td&gt;支配: 2.                 严格支配: 无.           直接支配: 无.       支配边界: set(4).&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{3}$&lt;/td&gt;
+&lt;td&gt;支配: 3.                 严格支配: 无.           直接支配: 无.       支配边界: set(4).&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{4}$&lt;/td&gt;
+&lt;td&gt;支配: 4.                 严格支配: 无.           直接支配: 无.       支配边界: set().&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;根据&lt;a href=&#34;https://l0phtg.github.io/post/llvm/static-single-assignment/&#34;&gt;SSA&lt;/a&gt;理论, 我们可以在 $\bold{4}$ 节点处插入 $\bold{\phi}$ 函数.&lt;/p&gt;
+
+&lt;h3 id=&#34;builder创建ir指令&#34;&gt;Builder创建IR指令&lt;/h3&gt;
+
+&lt;p&gt;用Builder来产生每条指令的IR.&lt;/p&gt;
+
+&lt;p&gt;下面是一些&lt;code&gt;if/then/else&lt;/code&gt;会涉及到的&lt;code&gt;Builder创建指令的操作&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h4 id=&#34;创建cmp指令&#34;&gt;创建cmp指令&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;CondV = Builder.CreateFCmpONE(
+      CondV, ConstantFP::get(TheContext, APFloat(0.0)), &amp;quot;ifcond&amp;quot;);
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;创建条件br指令&#34;&gt;创建条件br指令&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Builder.CreateCondBr(CondV, ThenBB, ElseBB);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;创建直接br指令&#34;&gt;创建直接br指令&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Builder.CreateBr(MergeBB);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;创建phi指令&#34;&gt;创建phi指令&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  PHINode *PN =
+    Builder.CreatePHI(Type::getDoubleTy(TheContext), 2, &amp;quot;iftmp&amp;quot;);
+
+  PN-&amp;gt;addIncoming(ThenV, ThenBB);
+  PN-&amp;gt;addIncoming(ElseV, ElseBB);
+  return PN;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;创建block&#34;&gt;创建Block&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;构造block时直接在&amp;rdquo;TheFunction&amp;rdquo;后面添加该block.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;BasicBlock *ThenBB =
+    BasicBlock::Create(TheContext, &amp;quot;then&amp;quot;, TheFunction);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;单纯创建Block, 当未添加到函数中.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;   BasicBlock *ElseBB = BasicBlock::Create(TheContext, &amp;quot;else&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;irbuilder中插入block&#34;&gt;IRBuilder中插入Block&lt;/h4&gt;
+
+&lt;p&gt;控制流的独特性之处在于,  它有自己的内部的作用域(block). 所以我们在编写codegen代码时, 会调用内部block的codegen. 而不会直接去处理它.(内部block的codegen是它自己处理的, 不归我们的 ifExpr.Codegen管)&lt;/p&gt;
+
+&lt;p&gt;所以我们会这样做:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Builder.SetInsertPoint(ThenBB);          // 将builder此时的插入点设置为ThenBB.
+Value *ThenV = Then-&amp;gt;codegen();          // 调用 then block的codegen
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;将未添加的block添加到函数中&#34;&gt;将未添加的Block添加到函数中&lt;/h4&gt;
+
+&lt;p&gt;在&amp;rdquo;TheFunction&amp;rdquo;后面添加&amp;rdquo;merge block&amp;rdquo;, 因为在我们创建时, 只是单纯的创建的block, 还未添加到函数中.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  TheFunction-&amp;gt;getBasicBlockList().push_back(MergeBB); // TheFunction中添加Block
+  Builder.SetInsertPoint(MergeBB); // IRBuilder中插入BB
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;builder流程图&#34;&gt;Builder流程图&lt;/h3&gt;
+
+&lt;p&gt;生成if/then/else 的IR可以分为四个部分生成:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;cond
+
+&lt;ol&gt;
+&lt;li&gt;创建cmp IR. 目的是根据条件判断返回bool值.&lt;/li&gt;
+&lt;li&gt;创建&lt;strong&gt;条件&lt;/strong&gt;跳转IR. 目的是根据返回的bool值做分支跳转.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;then
+
+&lt;ol&gt;
+&lt;li&gt;then.codegen(). 目的是进行then block的codegen.&lt;/li&gt;
+&lt;li&gt;创建&lt;strong&gt;直接&lt;/strong&gt;跳转IR.目的是跳转到ifcond处.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;else
+
+&lt;ol&gt;
+&lt;li&gt;else.codegen(). 目的是进行else block的codegen.&lt;/li&gt;
+&lt;li&gt;创建&lt;strong&gt;直接跳转&lt;/strong&gt;IR,目的是跳转到ifcond处.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;ifcond(分支合并后):
+
+&lt;ol&gt;
+&lt;li&gt;创建phi函数调用IR. 目的是判断我们是从哪个分支跳转来的.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;, 这里不会涉及&lt;code&gt;ret&lt;/code&gt;指令的&lt;strong&gt;codegen&lt;/strong&gt; ,我们在&lt;code&gt;ifExprAST&lt;/code&gt;中最后做的仅仅是将$\bold{\phi}$函数的返回值返回.  &lt;code&gt;ret&lt;/code&gt;指令的&lt;strong&gt;codegen&lt;/strong&gt;应该在&lt;code&gt;函数&lt;/code&gt;的&lt;strong&gt;codegen&lt;/strong&gt;时做.&lt;/p&gt;
+
+&lt;p&gt;(在上文例子中, &lt;code&gt;ret&lt;/code&gt;指令的&lt;strong&gt;codegen&lt;/strong&gt; 是&lt;strong&gt;baz&lt;/strong&gt;函数生成的)&lt;/p&gt;
+
+&lt;div class=&#34;mermaid&#34;&gt;
+graph TD
+    Start(&#34;If Codegen&#34;)
+    builderCreateCmp[&#34;Builder.CreateCmpOne&#34;]
+    builderCreateCond[&#34;Builder.CreateCondBr&#34;]
+    Start --&gt; builderCreateCmp
+    builderCreateCmp --&gt; builderCreateCond
+    
+    subgraph Then
+        builderSetInsertThenBB[&#34;Builder.SetInsertPoint(ThenBB);&#34;]
+        ThenCodegen[&#34;Then-&gt;codegen();&#34;]
+        builderCreateBr1[&#34;Builder.CreateBr&#34;]
+        builderSetInsertThenBB --&gt; ThenCodegen
+        ThenCodegen --&gt; builderCreateBr1
+    end
+    
+    builderCreateCond --&gt; builderSetInsertThenBB
+    
+    subgraph Else
+        builderSetInsertElseBB[&#34;Builder.SetInsertPoint(ElseBB);&#34;]
+        ElseCodegen[&#34;Else-&gt;codegen();&#34;]
+        builderCreateBr2[&#34;Builder.CreateBr&#34;]
+        builderSetInsertElseBB --&gt; ElseCodegen
+        ElseCodegen --&gt; builderCreateBr2
+    end
+    
+    builderCreateBr1 --&gt; builderSetInsertElseBB
+    
+    subgraph Merge
+        builderSetInsertIfcontBB[&#34;Builder.SetInsertPoint(MergeBB);&#34;]
+        builderCreatePHI[&#34;Builder.CreatePHI&#34;]
+        builderSetInsertIfcontBB --&gt; builderCreatePHI
+    end
+    
+    builderCreateBr2 --&gt; builderSetInsertIfcontBB
+    
+    builderCreatePHI --&gt; End(&#34;End Codegen&#34;)
+    
+    style builderSetInsertThenBB fill:#ffcc66
+    style builderSetInsertElseBB fill:#ffcc66
+    style builderSetInsertIfcontBB fill:#ffcc66
+    
+    style ThenCodegen fill:#ff66cc
+    style ElseCodegen fill:#ff66cc
+    
+    style Start fill:#ff9966
+    style End fill:#ff9966
+&lt;/div&gt;
+
+&lt;h2 id=&#34;loop&#34;&gt;Loop&lt;/h2&gt;
+
+&lt;h3 id=&#34;kaleidoscope-for&#34;&gt;Kaleidoscope: for&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;extern putchard(char);
+def printstar(n)
+  for i = 1, i &amp;lt; n, 1.0 in
+    putchard(42);  # ascii 42 = &#39;*&#39;
+
+# print 100 &#39;*&#39; characters
+printstar(100);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;未经优化的llvm-ir-1&#34;&gt;未经优化的LLVM IR&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-LLVM&#34;&gt;declare double @putchard(double)
+
+define double @printstar(double %n) {
+entry:
+  ; initial value = 1.0 (inlined into phi)
+  br label %loop
+
+loop:       ; preds = %loop, %entry
+  %i = phi double [ 1.000000e+00, %entry ], [ %nextvar, %loop ]
+  ; body
+  %calltmp = call double @putchard(double 4.200000e+01)
+  ; increment
+  %nextvar = fadd double %i, 1.000000e+00
+
+  ; termination test
+  %cmptmp = fcmp ult double %i, %n
+  %booltmp = uitofp i1 %cmptmp to double
+  %loopcond = fcmp one double %booltmp, 0.000000e+00
+  br i1 %loopcond, label %loop, label %afterloop
+
+afterloop:      ; preds = %loop
+  ; loop always returns 0.0
+  ret double 0.000000e+00
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;有三个&lt;code&gt;Label&lt;/code&gt;, 意味者三个&lt;code&gt;BasicBlock&lt;/code&gt;: &lt;strong&gt;entry&lt;/strong&gt;,  &lt;strong&gt;loop&lt;/strong&gt;,  &lt;strong&gt;afterloop&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;有四个主要的&lt;code&gt;Expression&lt;/code&gt;: &lt;strong&gt;Start&lt;/strong&gt;, &lt;strong&gt;Cond&lt;/strong&gt;, &lt;strong&gt;Body&lt;/strong&gt;, &lt;strong&gt;Increment&lt;/strong&gt; .  当然还有&lt;strong&gt;afterloop&lt;/strong&gt;, 它总是&lt;code&gt;ret 0.0&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;ir解析-1&#34;&gt;IR解析&lt;/h4&gt;
+
+&lt;p&gt;与&lt;code&gt;if/then/else&lt;/code&gt;的&lt;strong&gt;IR&lt;/strong&gt;指令相比较, 发现多了一条$\bold{uitofp}$指令.&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;IR指令&lt;/th&gt;
+&lt;th&gt;例子&lt;/th&gt;
+&lt;th&gt;作用&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$\bold{fcmp}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{fcmp}$ $one$ $double$ ${\%booltmp}$,   $0.0e+00$&lt;/td&gt;
+&lt;td&gt;比较指令, 相等则返回 0, 不相等返回 1&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{call}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{call}$    $double$ $@ putchard(double$   $ 4.2000e+01)$&lt;/td&gt;
+&lt;td&gt;调用函数&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{br}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{br}$       ${label }$  ${\%loop}$&lt;/td&gt;
+&lt;td&gt;直接跳转&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{br}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{br}$       $i1$  $\%loopcond$  $label$  $\%loop$,  $label$  $\%afterloop$&lt;/td&gt;
+&lt;td&gt;条件跳转&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{phi}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{phi}$     ${double [1.0e+0, \%entry] }$, ${[\%nextvar, \%loop]}$&lt;/td&gt;
+&lt;td&gt;调用${phi}$ 函数&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{uitofp}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{uitofp}$ $i1$    $\%cmptmp$   $to$   $double$&lt;/td&gt;
+&lt;td&gt;将bool(&lt;sup&gt;1&lt;/sup&gt;&amp;frasl;&lt;sub&gt;0&lt;/sub&gt;)转换为double(1.0/0.0)&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{ret}$&lt;/td&gt;
+&lt;td&gt;$\color{red}{ret}$     $double$ $\% 0$&lt;/td&gt;
+&lt;td&gt;函数返回&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Label&lt;/th&gt;
+&lt;th&gt;means&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;$\bold{entry}$&lt;/td&gt;
+&lt;td&gt;函数入口&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{loop}$&lt;/td&gt;
+&lt;td&gt;loop循环入口&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;$\bold{afterloop}$&lt;/td&gt;
+&lt;td&gt;loop循环结束&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&#34;for-s-cfg&#34;&gt;for&amp;rsquo;s CFG&lt;/h3&gt;
+
+&lt;p&gt;使用&lt;code&gt;opt -analyze -view-cfg loop.bc&lt;/code&gt;生成的CFG.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/llvm/loop.png&#34; alt=&#34;loop&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;builder流程图-1&#34;&gt;Builder流程图&lt;/h3&gt;
+
+&lt;div class=&#34;mermaid&#34;&gt;
+graph TB
+
+    Start(&#34;Loop Codegen&#34;) --&gt; StartCodegen[&#34;Start-&gt;codegen();&#34;]
+    StartCodegen --&gt; builderCreateBr[&#34;Builder.CreateBr&#34;]
+    subgraph Loop
+        builderSetInsertLoopBB[&#34;Builder.SetInsertPoint(LoopBB)&#34;]    
+        builderCreatePHI[&#34;Builder.CreatePHI&#34;]
+        BodyCodegen[&#34;Body-&gt;codegen();&#34;]
+
+        builderSetInsertLoopBB --&gt; builderCreatePHI
+        builderCreatePHI --&gt; BodyCodegen
+        BodyCodegen --&gt; ifStep{&#34;Step != NULL&#34;}
+        ifStep --Y--&gt; StepCodegen[&#34;Step-&gt;codegen();&#34;]
+        ifStep --N--&gt; SetStep[&#34;Set Step to 1.0&#34;]
+        StepCodegen --&gt; builderCreateFAdd[&#34;Builder.CreateFAdd&#34;]
+        SetStep --&gt; builderCreateFAdd
+
+        builderCreateFAdd --&gt; EndCodegen[&#34;End-&gt;codegen();&#34;] 
+        EndCodegen --&gt; builderCreateFCmp[&#34;Builder.CreateFCmpOne&#34;] 
+        builderCreateFCmp --&gt; builderCreateCondBr[&#34;Builder.CreateCondBr&#34;]
+    end 
+
+    builderCreateBr --&gt; builderSetInsertLoopBB
+
+    subgraph afterloop
+        builderSetInsertAfterBB[&#34;Builder.SetInsertPoint(AfterBB)&#34;]
+    end 
+    
+    builderCreateCondBr --&gt; builderSetInsertAfterBB
+    
+    builderSetInsertAfterBB --&gt; End[&#34;End Codegen&#34;]
+
+
+    style builderSetInsertLoopBB fill:#ffcc66
+    style builderSetInsertAfterBB fill:#ffcc66
+
+    
+    style StartCodegen fill:#ff66cc
+    style BodyCodegen fill:#ff66cc
+    style StepCodegen fill:#ff66cc
+    style EndCodegen fill:#ff66cc
+    
+    style Start fill:#ff9966
+    style End fill:#ff9966
+
+&lt;/div&gt;
+
+&lt;h1 id=&#34;jit和优化&#34;&gt;JIT和优化&lt;/h1&gt;
+
+&lt;p&gt;参考: &lt;a href=&#34;https://l0phtg.github.io/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/&#34;&gt;Adding JIT and Optimizer Support&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&#34;mermaid&#34;&gt;
+graph TB
+
+    subgraph call
+        funcall(&#34;foo(1);&#34;)
+    end
+
+    subgraph expr
+        nodeExpr(&#34;1+2;&#34;)
+    end
+    
+    jitAddModule[&#34;JIT中 添加此Module&#34;]
+    jitRemoveModule[&#34;JIT中 删除此Module&#34;]
+    
+    anoCodegen[&#34;执行 匿名函数Codegen&#34;]
+    AnonymousCall[&#34;匿名函数包装&#34;]
+    optimizeFunc[&#34;执行 Pass优化&#34;]
+    nodeExpr --&gt; AnonymousCall
+    funcall --&gt; AnonymousCall
+    AnonymousCall --&gt; anoCodegen
+    anoCodegen --&gt; jitAddModule
+    jitAddModule --&gt; optimizeFunc
+    optimizeFunc --&gt; exec[&#34;jit运行此表达式, 并计算值&#34;]
+    exec --&gt; jitRemoveModule
+    
+    subgraph func definition
+        nodeFoo(&#34;def foo(x) x+1;&#34;)
+        funcCodegen[&#34;执行 函数定义Codegen&#34;]
+        nodeFoo --&gt; funcCodegen
+    end
+    
+    funcCodegen --&gt; jitAddFuncModule[&#34;jit中 添加此Module&#34;]
+    jitAddFuncModule --&gt; initPassManager[&#34;执行 pass优化&#34;]
+
+
+    subgraph extern
+        nodeExtern(&#34;extern sin(x);&#34;)
+        protoCodegen[&#34;执行 函数申明Codegen&#34;]
+        nodeExtern --&gt; protoCodegen
+    end
+    
+    style jitAddModule fill:#f9f
+    style jitRemoveModule fill:#f9f
+    style jitAddFuncModule fill:#f9f
+    
+    style optimizeFunc fill:#ccff66
+    style initPassManager fill:#ccff66
+    
+    style exec fill:#ff3300
+    
+&lt;/div&gt;
+
+&lt;h1 id=&#34;driver&#34;&gt;Driver&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// top ::= definition | external | expression | &#39;;&#39;
+static void MainLoop() {
+  while (true) {
+    fprintf(stderr, &amp;quot;ready&amp;gt; &amp;quot;);
+    switch (CurTok) {
+    case tok_eof:
+      return;
+    case &#39;;&#39;: // ignore top-level semicolons.
+      getNextToken();
+      break;
+    case tok_def:
+      HandleDefinition();
+      break;
+    case tok_extern:
+      HandleExtern();
+      break;
+    default:
+      HandleTopLevelExpression();
+      break;
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;</description>
+      
+    </item>
+    
+    <item>
+      <title>书签整理</title>
+      <link>https://l0phtg.github.io/post/life/%E4%B9%A6%E7%AD%BE%E6%95%B4%E7%90%86/</link>
+      <pubDate>Mon, 15 Apr 2019 10:13:04 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/life/%E4%B9%A6%E7%AD%BE%E6%95%B4%E7%90%86/</guid>
+      
+        <description>&lt;p&gt;昨晚闲得无聊, 整理了一下自己的chrome书签.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/life/bookmark-update.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope: Extending the Language Control Flow</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscope-extending-the-language-control-flow/</link>
       <pubDate>Sun, 14 Apr 2019 14:43:17 +0800</pubDate>
@@ -6325,353 +7082,6 @@ private:
 
 
 
-&lt;/code&gt;&lt;/pre&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>分析Android的JNI编程时所使用的一些函数功能</title>
-      <link>https://l0phtg.github.io/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</link>
-      <pubDate>Thu, 16 Mar 2017 03:07:59 +0000</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/%E5%88%86%E6%9E%90android%E7%9A%84jni%E7%BC%96%E7%A8%8B%E6%97%B6%E6%89%80%E4%BD%BF%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E5%87%BD%E6%95%B0%E5%8A%9F%E8%83%BD/</guid>
-      
-        <description>&lt;p&gt;分析&lt;strong&gt;jni调用时&lt;/strong&gt;的一些函数及其函数功能.&lt;/p&gt;
-
-&lt;p&gt;如 GetEnv &amp;hellip;&lt;/p&gt;
-
-&lt;p&gt;本文已长草.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;基本类型&#34;&gt;基本类型&lt;/h2&gt;
-
-&lt;p&gt;&lt;jni.h&gt;文件存放的位置在\Android\sdk\ndk-bundle\platforms\android-24\arch-arm\usr\include\jni.h&lt;/p&gt;
-
-&lt;p&gt;现在来看一下jni.h头文件中内容:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;    class _jobject {};                                      typedef _jobject*       jobject;
-    class _jclass : public _jobject {};                     typedef _jclass*        jclass;         
-    class _jstring : public _jobject {};                    typedef _jstring*       jstring;
-    class _jarray : public _jobject {};                     typedef _jarray*        jarray;
-    class _jobjectArray : public _jarray {};                typedef _jobjectArray*  jobjectArray;
-    class _jbooleanArray : public _jarray {};               typedef _jbooleanArray* jbooleanArray;
-    class _jbyteArray : public _jarray {};                  typedef _jbyteArray*    jbyteArray;
-    class _jcharArray : public _jarray {};                  typedef _jcharArray*    jcharArray;
-    class _jshortArray : public _jarray {};                 typedef _jshortArray*   jshortArray;
-    class _jintArray : public _jarray {};                   typedef _jintArray*     jintArray;
-    class _jlongArray : public _jarray {};                  typedef _jlongArray*    jlongArray;
-    class _jfloatArray : public _jarray {};                 typedef _jfloatArray*   jfloatArray;
-    class _jdoubleArray : public _jarray {};                typedef _jdoubleArray*  jdoubleArray;
-    class _jthrowable : public _jobject {};                 typedef _jthrowable*    jthrowable;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;从右边的typedef可以看出,每一个Jni中的cpp类型都有一个Java中的类型与之相对应.&lt;/p&gt;
-
-&lt;p&gt;这里我们重点分析经常看到的_JNIEnv,_JavaVM,JNIEnv,JavaVM&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;struct _JNIEnv;
-struct _JavaVM;
-typedef const struct JNINativeInterface* C_JNIEnv;
-
-#if defined(__cplusplus)
-typedef _JNIEnv JNIEnv;
-typedef _JavaVM JavaVM;
-#else
-typedef const struct JNINativeInterface* JNIEnv;
-typedef const struct JNIInvokeInterface* JavaVM;
-#endif
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;JNINativeInterface为Native层的接口函数指针表, Jni中的本地函数通过这些接口来调用java层的函数.&lt;/p&gt;
-
-&lt;p&gt;_JNIEnv是一个object, 包含一个指向JNINativeInterface的指针变量function和一些接口函数.&lt;/p&gt;
-
-&lt;p&gt;JNIEnv在cpp中的定义为_JNIEnv, 在c中的定义为 struct JNINativeInterface*.&lt;/p&gt;
-
-&lt;p&gt;JNIEnv: 每一个线程中都有一个属于自己线程的env, 且只在创建自己的线程内有效, 不能跨线程传递.&lt;/p&gt;
-
-&lt;p&gt;下面分析JavaVM:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;struct _JavaVM {                                                               struct JNIInvokeInterface {                                                 
-    const struct JNIInvokeInterface* functions;                                 void*       reserved0;
-                                                                                void*       reserved1;
-                                                                                void*       reserved2;
-    #if defined(__cplusplus)                                                           
-    jint DestroyJavaVM()                                                       
-    { return functions-&amp;gt;DestroyJavaVM(this); }                                  jint        (*DestroyJavaVM)(JavaVM*);
-    jint AttachCurrentThread(JNIEnv** p_env, void* thr_args)                    jint        (*AttachCurrentThread)(JavaVM*, JNIEnv**, void*);
-    { return functions-&amp;gt;AttachCurrentThread(this, p_env, thr_args); }           jint        (*DetachCurrentThread)(JavaVM*);
-    jint DetachCurrentThread()                                                  jint        (*GetEnv)(JavaVM*, void**, jint);
-    { return functions-&amp;gt;DetachCurrentThread(this); }                            jint        (*AttachCurrentThreadAsDaemon)(JavaVM*, JNIEnv**, void*);
-    jint GetEnv(void** env, jint version)                                      };
-    { return functions-&amp;gt;GetEnv(this, env, version); }
-    jint AttachCurrentThreadAsDaemon(JNIEnv** p_env, void* thr_args)
-    { return functions-&amp;gt;AttachCurrentThreadAsDaemon(this, p_env, thr_args); }
-    #endif /*__cplusplus*/
-};
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;JavaVM在cpp中定义为_JavaVM, 在c中定义为指向JNIInvokeInterface的指针.
-JavaVM只有一个, 因为它是java虚拟机在Jni中的表示.&lt;/p&gt;
-
-&lt;p&gt;在用ida加载.apk中.so文件时会发现识别出来的native函数是这样的:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;    int __fastcall Java_com_njctf_mobile_easycrack_MainActivity_parseText(int a1, int a2, int a3);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;java层的函数调用是这样的:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;    public native String parseText(String arg1); 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;而这里的a1就是我们的env, a2就是jobject或者jclass, a3就是String arg1了.
-我们在导入&lt;jni.h&gt;头文件和添加了Structures之后, 就可以对ida中的参数类型和参数名字进行修改了.&lt;/p&gt;
-
-&lt;p&gt;修改之后的结果:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;int __fastcall Java_com_njctf_mobile_easycrack_MainActivity_parseText(_JNIEnv *env, jobject *obj, jstring inputString);
-&lt;/code&gt;&lt;/pre&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>第一篇博文-谈谈CVE-2014-7911</title>
-      <link>https://l0phtg.github.io/post/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</link>
-      <pubDate>Wed, 01 Mar 2017 20:20:20 +0000</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E6%96%87-%E8%B0%88%E8%B0%88cve-2014-7911/</guid>
-      
-        <description>&lt;p&gt;分析一个反序列化漏洞, 以及漏洞的产生的利用过程.&lt;/p&gt;
-
-&lt;p&gt;本文主要内容:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;漏洞成因&lt;/li&gt;
-&lt;li&gt;漏洞利用的原理&lt;/li&gt;
-&lt;li&gt;基础知识&lt;/li&gt;
-&lt;li&gt;漏洞利用流程&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;漏洞成因&#34;&gt;漏洞成因:&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code&gt;`java.io.ObjectInputStream`类没有对接受的数据进行验证, 导致可以传入一个不可序列化的对象.
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;利用的原理&#34;&gt;利用的原理:&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code&gt;android.os.binderproxy对象时不可序列化的, 并且它涉及到一个native代码可以将mObject和mOrgue当作一个指针.
-具体来说就是android.os.BinderProxy对象在gc时会调用一个native的`destory`()函数导致任意代码执行.
-`native` 调用链`destroy()--&amp;gt; decStrong() --&amp;gt; refs-&amp;gt;mBase-&amp;gt;onLastStrongRef(id)`
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;基础知识&#34;&gt;基础知识&lt;/h2&gt;
-
-&lt;h3 id=&#34;1-java反序列化分析&#34;&gt;1. Java反序列化分析&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;每个java object在序列化时都有一个序列号, 这是这种机制称为序列化的原因.
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;java.io.ObjectOutputStream可以对对象进行序列化, 它的writeObject()方法可以将序列化后写到一个目标输出流中.
-java.io.ObjectInputStream可以对对象进行反序列化, 它的readObject()方法可以从目标输入流中读入序列化的对象并将其反序列化为原对象.
-下面以实例来进行分析:
-  我们这里定义了一个Employee类(内部有三个实例域和一个构造函数)(其他内部函数已经省略)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;package hihihi;
-import java.io.*;
-import java.util.*;
-
-public class Employee implements Serializable
-{
-    private String name;
-    private double salary;
-    private Date hireDay;
-
-    public Employee(String n, double s, int year, int month, int day)
-    {
-        name = n;
-        salary = s;
-        GregorianCalendar calendar = new GregorianCalendar(year, month - 1, day);
-        hireDay = calendar.getTime();
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这里是我们的测试程序,运行后会在该程序文件目录下产生一个TestEmployee.db的文件, 这个文件内部的数据即使我们序列化Employee类后产生的序列化数据:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import hihihi.*;
-import java.io.*;
-import java.util.Date;
-
-public class Test {
-    public static void main(String[] args) throws Exception {
-        BinderProxy bT = new BinderProxy();
-        Employee bE = new Employee(&amp;quot;hi&amp;quot;, 150, 2017, 3, 9);
-        Date bD = new Date();
-        // FileOutputStream fos= new FileOutputStream(&amp;quot;TestStream.db&amp;quot;);
-        // ObjectOutputStream os = new ObjectOutputStream(fos); 
-        // os.writeObject(bT);
-        // os.close();
-
-        FileOutputStream fosr = new FileOutputStream(&amp;quot;TestEmployee.db&amp;quot;);
-        ObjectOutputStream osr = new ObjectOutputStream(fosr);
-        osr.writeObject(bE);
-        osr.close();    
-
-        ObjectInputStream fisr = new ObjectInputStream(new FileInputStream(&amp;quot;TestEmployee.db&amp;quot;));
-        Object newEmployee = fisr.readObject();
-        fisr.close();
-        System.out.println(newEmployee);    
-        // FileOutputStream fosd = new FileOutputStream(&amp;quot;TestData.db&amp;quot;);
-        // ObjectOutputStream osd = new ObjectOutputStream(fosd);
-        // osd.writeObject(bD);
-        // osd.close();
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;简单说一下序列化后的数据:(参看&lt;code&gt;&amp;lt;&amp;lt;java核心技术(卷2)&amp;gt;&amp;gt;&lt;/code&gt;)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;每个文件的Magic Number 为:  &#39;AC ED&#39;
-后面紧跟对象序列化的版本号: Ex: &#39;00 05&#39;
-字符串对象被保存为: 74  2字节表示的字符串长度 字符
-当存储一个对象时:   72  2字节的类名长度    类名   8字节长的指纹(serial ID)   1字节长的标志  2字节长的数据域描述符的数量 数据域描述符  结束标志78 超类类型(没有的话, 为70)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;2-java和android的gc机制&#34;&gt;2. Java和Android的GC机制&lt;/h3&gt;
-
-&lt;p&gt;Java对象的生命周期和垃圾回收:(从网上摘录.侵删)&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;创建对象的方式:
-
-&lt;ul&gt;
-&lt;li&gt;使用new语句创建对象;&lt;/li&gt;
-&lt;li&gt;使用反射, 调用java.lang.Class或java.lang.reflect.Constructor的newInstance()实例方法;&lt;/li&gt;
-&lt;li&gt;调用对象的clone()方法;&lt;/li&gt;
-&lt;li&gt;使用反序列化手段, 调用java.io.ObjectInputStream对象的readObject()方法.&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;垃圾回收:
-对象的可触及性:
-
-&lt;ul&gt;
-&lt;li&gt;可触及状态: 当一个对象被创建后, 只要还有引用变量引用该对象, 那么它就始终处于可触及状态;&lt;/li&gt;
-&lt;li&gt;可复活状态: 当程序不再有任何变量引用对象时, 它就进入可复活状态, 该状态的对象, 垃圾回收器会准备释放它的内存, 在释放前, 会调用它的finalize()方法, 这些finlize方法可能使对象重新转到可触及状态;&lt;/li&gt;
-&lt;li&gt;不可触及状态: 当JVM执行完所有的可复活状态的finalize()方法之后, 假设这些方法都没有使对象转到可触及状态. 那么该对象就进入了不可触及状态. 只有对象处于不可触及状态时, 垃圾回收器才会真正回收它占用的内存.&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&#34;3-android的binder机制简介-网上有很多分析binder机制的文章-这里就直接给出一个简单的定义&#34;&gt;3. Android的Binder机制简介(网上有很多分析Binder机制的文章, 这里就直接给出一个简单的定义);&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;binder是Android提供的一种IPC通信机制，方便进程之间交换数据。binder的实现包括一个公共的顶层服务接口，同时实现了这个公共顶层接口的proxy代理端和service端。binder driver充当通信媒介。
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;4-c-对象内存布局&#34;&gt;4. C++ 对象内存布局:&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;C++中, 对象的内存布局为先放父类, 然后放自己的成员, 如果有虚函数, 内存中会有一个放虚函数表的位置在最开始处.
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;5-堆喷射&#34;&gt;5. 堆喷射:&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;原因(为什么要用到堆喷射技术): 控制的rip指针指向的地址是在一个范围内随机变化的, 而我们可以对rip指向的区域进行写操作.
-方式: 通过构造特殊的内存布局, 使无论rip指向哪里, 它都会`最终`跳转到一个固定的地址处
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;6-rop&#34;&gt;6. ROP&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;在可以控制rip指针后, 我们可以在程序加载的.so中找到一些特定的gadget, 利用内存复写技术, 来控制最终执行system函数(也就是拿到了system权限)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;漏洞利用流程&#34;&gt;漏洞利用流程&lt;/h2&gt;
-
-&lt;h3 id=&#34;1-触发gc机制&#34;&gt;1. 触发GC机制&lt;/h3&gt;
-
-&lt;p&gt;BinderProxy的finalize方法调用了native的方法, 会将我们的mOruge处理为指针.&lt;/p&gt;
-
-&lt;h3 id=&#34;2-分析native方法&#34;&gt;2. 分析native方法:&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;        ------------为了我们能够正确的控制指针指针我们期望的地址，而不会让system_server crash掉
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;destory在native层的调用逻辑:
-    /Core/jni/android_util_Binder.cpp   static void android_os_BinderProxy_destroy(JNIEnv* env, jobject obj)
-        -----&amp;gt; /libs/utils/RefBase.cpp    void RefBase::decStrong(const void* id) const
-            -----&amp;gt; int32_t android_atomic_dec(volatile int32_t* addr)          /system/core/libcutils/atomic.c
-            -----&amp;gt; /libs/utils/RefBase.cpp   void RefBase::onLastStrongRef(const void* /*id*/)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;结合下面的代码分析:&lt;/p&gt;
-
-&lt;p&gt;传入的object对象即是我们恶意构造的对象, 通过GetIntField()可以获得该对象中的实例域mObject和mOrgue&lt;/p&gt;
-
-&lt;p&gt;注意到它将实例域赋值到drl后, 掉了drl-&amp;gt;decStrong() 函数&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;drl可控, 即传入的this可控, drl为指向DeathRecipientList的指针&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;  在decStrong函数中
-    * 首先 refs = mRefs,                        即让refs = *(mOruge + 4)
-    * 调用refs-&amp;gt;removeStrongRef(id)             空实现
-    * c = android_atomic_dec(&amp;amp;refs-&amp;gt;mStrong)    c = *(mOruge + 4) == 1
-    * if (c == 1): then ....    BLX r2          r2 = * (*(*(*(mOrgue + 4) + 8)) + 12)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这样就完成了对rip的控制, 通过在system_server内存空间的dalvik-heap中进行堆喷射和合理的布置gadget, 就可以完成到system权限的提升.&lt;/p&gt;
-
-&lt;p&gt;(具体代码可参照retme的&lt;a href=&#34;https://github.com/retme7/CVE-2014-7911_poc&#34;&gt;https://github.com/retme7/CVE-2014-7911_poc&lt;/a&gt;)&lt;/p&gt;
-
-&lt;p&gt;DecStrong的汇编代码&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-asm&#34;&gt;PUSH            {R4-R6,LR}
-MOV             R5, R0
-LDR             R4, [R0,#4]             r4   = *(r0 + 4)
-MOV             R6, R1
-MOV             R0, R4
-BLX             android_atomic_dec
-CMP             R0, #1
-BNE             loc_D184
-LDR             R0, [R4,#8]             r0   = *(r4 + 8)
-MOV             R1, R6
-LDR             R3, [R0]                r3   = *(r0)
-LDR             R2, [R3,#0xC]           r2   = *(r3 + 0xc)
-BLX             R2
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;native执行代码:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static void android_os_BinderProxy_destroy(JNIEnv* env, jobject obj)
-{
-    IBinder* b = (IBinder*)
-    env-&amp;gt;GetIntField(obj, gBinderProxyOffsets.mObject);
-    DeathRecipientList* drl = (DeathRecipientList*)
-    env-&amp;gt;GetIntField(obj, gBinderProxyOffsets.mOrgue);
-
-    LOGDEATH(&amp;quot;Destroying BinderProxy %p: binder=%p drl=%p\n&amp;quot;, obj, b, drl);
-    env-&amp;gt;SetIntField(obj, gBinderProxyOffsets.mObject, 0);
-    env-&amp;gt;SetIntField(obj, gBinderProxyOffsets.mOrgue, 0);
-    drl-&amp;gt;decStrong((void*)javaObjectForIBinder);
-    b-&amp;gt;decStrong((void*)javaObjectForIBinder);
-
-    IPCThreadState::self()-&amp;gt;flushCommands();
-}
-
-void RefBase::decStrong(const void* id) const
-{
-    weakref_impl* const refs = mRefs;
-    refs-&amp;gt;removeStrongRef(id);
-    const int32_t c = android_atomic_dec(&amp;amp;refs-&amp;gt;mStrong);
-    ...
-    if (c == 1) {
-        refs-&amp;gt;mBase-&amp;gt;onLastStrongRef(id);
-        if ((refs-&amp;gt;mFlags&amp;amp;OBJECT_LIFETIME_MASK) == OBJECT_LIFETIME_STRONG) {
-            delete this;
-        }
-    }
-    refs-&amp;gt;decWeak(id);
-}
-
-void RefBase::onLastWeakRef(const void* /*id*/)
-{
-}
 &lt;/code&gt;&lt;/pre&gt;</description>
       
     </item>
