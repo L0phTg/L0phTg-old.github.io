@@ -29,6 +29,72 @@
     </item>
     
     <item>
+      <title>习字 入门</title>
+      <link>https://l0phtg.github.io/post/handwriting/%E4%B9%A0%E5%AD%97-%E5%85%A5%E9%97%A8/</link>
+      <pubDate>Fri, 07 Jun 2019 18:39:03 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/handwriting/%E4%B9%A0%E5%AD%97-%E5%85%A5%E9%97%A8/</guid>
+      
+        <description>&lt;p&gt;&lt;strong&gt;本篇是水文!!!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;从小我爸就一直说我字写得不好，就这么说了二十多年，现在依然写的一般。不过经过断断续续的练字，也有了一丁点的进步。最近学校的事基本忙完了，准备每天抽出一些时间来继续练字。&lt;/p&gt;
+
+&lt;p&gt;今天看了几节田舍之老师在&lt;strong&gt;网易云课堂&lt;/strong&gt;的&amp;lt;&amp;lt;硬笔书法系列&amp;gt;&amp;gt;教程，发现了自己练字期间一直存在的问题：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;从单字来说，有些写的比较杂乱无序。这个问题在单个字时不容易暴露出来，但是从全文来看，就会很明显发现不整齐。&lt;/li&gt;
+&lt;li&gt;我硬笔字写的速度一直很慢，原因是过度注重“&lt;strong&gt;提按顿挫&lt;/strong&gt;”。&lt;strong&gt;提按顿挫&lt;/strong&gt;在写毛笔时比较容易实现，应该笔头是软的，但是写硬笔字时，虽然这样写出来比较好看，但日常应用中写起来速度很慢，没有实用性。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;插一句，近两个月积攒了十几篇文章。今天起，定期更新。&lt;/strong&gt;
+&lt;/p&gt;
+
+&lt;h1 id=&#34;握笔姿势&#34;&gt;握笔姿势&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;笔杆靠在食指指根上。目的是因为我们书写的动作是要靠食指来完成的。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/handwriting/posture.jpg&#34; alt=&#34;posture&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;两个支点。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/handwriting/pivotPoint.jpg&#34; alt=&#34;pivotPoint&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;横与竖&#34;&gt;横与竖&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;横摆手。&lt;/li&gt;
+&lt;li&gt;竖点头。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;单字与篇章&#34;&gt;单字与篇章&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;每个字上下要齐，全部字都在一个圆内；（字写的一般，理解就行）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/handwriting/upDown.jpg&#34; alt=&#34;upDown&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;开合。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/docs-pic/handwriting/openMerge.jpg&#34; alt=&#34;open&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;每个字都应该横平竖直，不能杂乱无序。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;单字与日常应用&#34;&gt;单字与日常应用&lt;/h1&gt;
+
+&lt;p&gt;硬笔注重实用性，不要过度关注&lt;strong&gt;提按顿挫&lt;/strong&gt;。&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope: 前五章总结</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscope-%E5%89%8D%E4%BA%94%E7%AB%A0%E6%80%BB%E7%BB%93/</link>
       <pubDate>Mon, 15 Apr 2019 17:58:13 +0800</pubDate>
@@ -6669,418 +6735,6 @@ the following sections:
 &lt;p&gt;我们在此分析的是&lt;strong&gt;16-bit T32 instruction&lt;/strong&gt;, 再次定位到&lt;code&gt;F3-2435&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/thumb-vmp/thumb16.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>elf文件格式和AndroidLinker加载.so的源码分析</title>
-      <link>https://l0phtg.github.io/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</link>
-      <pubDate>Sun, 19 Mar 2017 00:00:00 +0000</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/elf%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%92%8Candroidlinker%E5%8A%A0%E8%BD%BD-so%E7%9A%84%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</guid>
-      
-        <description>&lt;p&gt;最近在学习android应用的加壳和混淆方法, 所以遇到了一些有关.so是如何加载到android中去的问题, 看了一些视频和文章, 所以想在此总结一下.&lt;/p&gt;
-
-&lt;p&gt;本文主要内容:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;elf的文件格式&lt;/li&gt;
-&lt;li&gt;分析linker的源码, 主要dlopen流程.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;elf文件格式&#34;&gt;elf文件格式&lt;/h2&gt;
-
-&lt;p&gt;本文只对elf文件格式进行简单的分析, 如果要进行深入的了解, 推荐&lt;code&gt;&amp;lt;&amp;lt;程序员的自我修养&amp;gt;&amp;gt;&lt;/code&gt;中第3章.&lt;/p&gt;
-
-&lt;p&gt;/usr/includ/elf.h中定义了elf文件头结构和相关的常数.&lt;/p&gt;
-
-&lt;p&gt;分析elf文件时, 建议使用&lt;code&gt;010 editor&lt;/code&gt;这款十六进制编辑软件, 运行elf模板后可以清晰的将文件格式显示出来, 大致的显示是(坑, 此处应该用图片的)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;                NAME                           Value            Start       Size        Color       Comment
-    struct file                                                 0h          109Ch
-        struct elf_header                                       0h          34h
-        struct program_header_table                             34h         120h
-        struct section_header_table                             1B274h      460h
-        struct dynamic_symbol_table                             18Ch        F10h
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以看到, 一个elf文件中包含一个header, 3个table, 我们一个一个的来分析一下.
-首先分析&lt;code&gt;Elf header&lt;/code&gt;, 它位于每一个elf文件开始的地方:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;typedef struct                                                            typedef struct
-{                                                                         {
-    unsigned char e_ident[EI_NIDENT]; /* Magic number and other info */     unsigned char e_ident[EI_NIDENT];
-    Elf32_Half    e_type;         /* Object file type */                    Elf64_Half    e_type;     
-    Elf32_Half    e_machine;      /* Architecture */                        Elf64_Half    e_machine;  
-    Elf32_Word    e_version;      /* Object file version */                 Elf64_Word    e_version;  
-    Elf32_Addr    e_entry;        /* Entry point virtual address */         Elf64_Addr    e_entry;    
-    Elf32_Off e_phoff;        /* Program header table file offset */        Elf64_Off e_phoff;        
-    Elf32_Off e_shoff;        /* Section header table file offset */        Elf64_Off e_shoff;        
-    Elf32_Word    e_flags;        /* Processor-specific flags */            Elf64_Word    e_flags;    
-    Elf32_Half    e_ehsize;       /* ELF header size in bytes */            Elf64_Half    e_ehsize;   
-    Elf32_Half    e_phentsize;        /* Program header table entry size */ Elf64_Half    e_phentsize;
-    Elf32_Half    e_phnum;        /* Program header table entry count */    Elf64_Half    e_phnum;    
-    Elf32_Half    e_shentsize;        /* Section header table entry size */ Elf64_Half    e_shentsize;
-    Elf32_Half    e_shnum;        /* Section header table entry count */    Elf64_Half    e_shnum;    
-    Elf32_Half    e_shstrndx;     /* Section header string table index */   Elf64_Half    e_shstrndx; 
-} Elf32_Ehdr;                                                              } Elf64_Ehdr;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以看到, header中包含了magic number, 文件类型, 目标文件版本, 入口地址(如果为0, 说明此文件为可重定位文件), program header的开始地址(即为在so文件中的offset), section header的开始地址, 标志位, elf头本身的大小, program header和section header的size和数量, 最后是section header中string section在section中的下标.(用010 editor可以看到清楚的看到一个.so文件包含众多的program header 和 section header, 这两个段在做.so混淆时会经常分析)&lt;/p&gt;
-
-&lt;p&gt;现在分析&lt;code&gt;program header&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;/* Program segment header.  */
-
-typedef struct                                                      typedef struct
-{                                                                   {
-    Elf32_Word    p_type;         /* Segment type */                    Elf64_Word    p_type;   
-    Elf32_Off p_offset;       /* Segment file offset */                 Elf64_Off p_offset;     
-    Elf32_Addr    p_vaddr;        /* Segment virtual address */         Elf64_Addr    p_vaddr;  
-    Elf32_Addr    p_paddr;        /* Segment physical address */        Elf64_Addr    p_paddr;  
-    Elf32_Word    p_filesz;       /* Segment size in file */            Elf64_Word    p_filesz; 
-    Elf32_Word    p_memsz;        /* Segment size in memory */          Elf64_Word    p_memsz;  
-    Elf32_Word    p_flags;        /* Segment flags */                   Elf64_Word    p_flags;  
-    Elf32_Word    p_align;        /* Segment alignment */               Elf64_Word    p_align;  
-} Elf32_Phdr;                                                       } Elf64_Phdr;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;接下来分析&lt;code&gt;section header&lt;/code&gt;, section相信了解过汇编的同学都非常熟悉了, 这个section header里面就存放了我们elf中各个段的信息.
-看一下section header段描述符的结构:(64位的与32位的结构体大致相同, 只是把类型改为了Elf64的类型)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;typedef struct
-{
-    Elf32_Word    sh_name;        /* Section name (string tbl index) 段名*/
-    Elf32_Word    sh_type;        /* Section type 段类型*/
-    Elf32_Word    sh_flags;       /* Section flags 标志位*/
-    Elf32_Addr    sh_addr;        /* Section virtual addr at execution 段虚拟地址*/
-    Elf32_Off sh_offset;          /* Section file offset 段偏移*/
-    Elf32_Word    sh_size;        /* Section size in bytes 段的长度*/
-    Elf32_Word    sh_link;        /* Link to another section 段的链接信息*/
-    Elf32_Word    sh_info;        /* Additional section information 段链接的相关信息*/
-    Elf32_Word    sh_addralign;   /* Section alignment 段地址对齐*/
-    Elf32_Word    sh_entsize;     /* Entry size if section holds table 项的长度*/
-} Elf32_Shdr;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;最后分析动态符号表(&lt;code&gt;symbol table&lt;/code&gt;):&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;typedef struct
-{
-    Elf32_Word    st_name;        /* Symbol name (string tbl index) */
-    Elf32_Addr    st_value;       /* Symbol value */
-    Elf32_Word    st_size;        /* Symbol size */
-    unsigned char st_info;        /* Symbol type and binding */
-    unsigned char st_other;       /* Symbol visibility */
-    Elf32_Section st_shndx;       /* Section index */
-} Elf32_Sym;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;包含的信息有符号名, 符号相对应的值, 符号大小, 符号类型和绑定信息, 符号所在的段.&lt;/p&gt;
-
-&lt;h2 id=&#34;android-linker加载-so的源码分析&#34;&gt;Android Linker加载.so的源码分析&lt;/h2&gt;
-
-&lt;p&gt;Android中的本地文件.so是通过Linker加载到内存中去并且执行的.(本文分析的源码为Android4.4.4)
-                &amp;mdash;- 推荐一款好用的源码阅读工具 source Insight&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;java层:  System.LoadLibrary(&amp;quot;function&amp;quot;);
-native:         ---&amp;gt;  Dalvik/vm/native/java_lang_Runtime.cpp: Dalvik_java_lang_Runtime_nativeLoad 
-                        ---&amp;gt;Dalvik/vm/Native.cpp: dvmLoadNativeCode(const char* fileName, Object* ClassLoader, char** reason)
-                                ---&amp;gt;bionic/linker/dlfcn.c: dlopen(const char* pathName, RTLD_LAZY)
-                                        ---&amp;gt;bionic/linker/linker.cpp: do_dlopen(const char* name, int flags)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;核心函数为&lt;code&gt;do_dlopen&lt;/code&gt;:&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;soinfo* do_dlopen(const char* name, int flags) {  // 函数的参数为
-    if ((flags &amp;amp; ~(RTLD_NOW|RTLD_LAZY|RTLD_LOCAL|RTLD_GLOBAL)) != 0) {
-        DL_ERR(&amp;quot;invalid flags to dlopen: %x&amp;quot;, flags);
-        return NULL;
-    }
-    set_soinfo_pool_protection(PROT_READ | PROT_WRITE); // 设置so信息池的访问权限为可读可写
-    soinfo* si = find_library(name);                    // 找到name函数, 装载so, 并返回指向.soinfo的指针
-    if (si != NULL) {
-                      si-&amp;gt;CallConstructors();           // 初始化so库
-    }
-    set_soinfo_pool_protection(PROT_READ);              // 设置so信息池的访问权限为只读
-    return si;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;查看&lt;code&gt;find_library&lt;/code&gt;函数可以发现它调用了&lt;code&gt;find_library_internal&lt;/code&gt;函数,&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static soinfo* find_library(const char* name) {
-    soinfo* si = find_library_internal(name);
-    if (si != NULL) {
-        si-&amp;gt;ref_count++;
-    }
-    return si;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;分析&lt;code&gt;find_library_internal&lt;/code&gt;函数, 发现其主要调用了&lt;code&gt;load_library()&lt;/code&gt;函数和 &lt;code&gt;soinfo_link_image()&lt;/code&gt; 函数.
-_&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static soinfo* find_library_internal(const char* name) {
-    if (name == NULL) {
-        return somain;
-    }
-    soinfo* si = find_loaded_library(name);         // 判断.so是否完全加载, 如果加载: 返回有效的指针;如果没有加载, 返回null;
-    if (si != NULL) {                               // 如果已经加载，返回
-        if (si-&amp;gt;flags &amp;amp; FLAG_LINKED) {
-            return si;
-        }
-        DL_ERR(&amp;quot;OOPS: recursive link to \&amp;quot;%s\&amp;quot;&amp;quot;, si-&amp;gt;name);
-        return NULL;
-    }
-
-    TRACE(&amp;quot;[ &#39;%s&#39; has not been loaded yet.  Locating...]&amp;quot;, name);  // 打印so还没有加载
-    si = load_library(name);        // 加载.so
-    if (si == NULL) {
-        return NULL;
-    }
-    // At this point we know that whatever is loaded @ base is a valid ELF
-    // shared library whose segments are properly mapped in.
-    TRACE(&amp;quot;[ init_library base=0x%08x sz=0x%08x name=&#39;%s&#39; ]&amp;quot;,
-            si-&amp;gt;base, si-&amp;gt;size, si-&amp;gt;name);
-
-    if (!soinfo_link_image(si)) {       // 完成.so的重定位
-        munmap(reinterpret_cast&amp;lt;void*&amp;gt;(si-&amp;gt;base), si-&amp;gt;size);
-        soinfo_free(si);
-        return NULL;
-    }
-    return si;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;分析&lt;code&gt;load_library&lt;/code&gt;函数, 会找到elf_read.&lt;code&gt;Load()&lt;/code&gt;方法, 这个方法就是load&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static soinfo* load_library(const char* name) {
-// Open the file.
-    int fd = open_library(name);                        // 打开文件, 获取fd
-    if (fd == -1) {
-        DL_ERR(&amp;quot;library \&amp;quot;%s\&amp;quot; not found&amp;quot;, name);
-        return NULL;
-    }
-
-    // Read the ELF header and load the segments.
-    ElfReader elf_reader(name, fd);                     // 初始化elfReader对象
-    if (!elf_reader.Load()) {                           // 通过elfReader对象的Load()方法, 将so文件装载到内存
-        return NULL;
-    }
-
-    const char* bname = strrchr(name, &#39;/&#39;);
-    soinfo* si = soinfo_alloc(bname ? bname + 1 : name);    // 分配so_info结构, 并按照装载结果更新相应的成员变量
-    if (si == NULL) {
-        return NULL;
-    }
-    si-&amp;gt;base = elf_reader.load_start();
-    si-&amp;gt;size = elf_reader.load_size();
-    si-&amp;gt;load_bias = elf_reader.load_bias();
-    si-&amp;gt;flags = 0;
-    si-&amp;gt;entry = 0;
-    si-&amp;gt;dynamic = NULL;
-    si-&amp;gt;phnum = elf_reader.phdr_count();
-    si-&amp;gt;phdr = elf_reader.loaded_phdr();
-
-    return si;
-}
-
-这里放一个ElfReader结构:
-class ElfReader {
-public:
-    ElfReader(const char* name, int fd);
-    ~ElfReader();
-
-    bool Load();
-
-    size_t phdr_count() { return phdr_num_; }
-    Elf32_Addr load_start() { return reinterpret_cast&amp;lt;Elf32_Addr&amp;gt;(load_start_); }
-    Elf32_Addr load_size() { return load_size_; }
-    Elf32_Addr load_bias() { return load_bias_; }
-    const Elf32_Phdr* loaded_phdr() { return loaded_phdr_; }
-
-private:
-    bool ReadElfHeader();
-    bool VerifyElfHeader();
-    bool ReadProgramHeader();
-    bool ReserveAddressSpace();
-    bool LoadSegments();
-    bool FindPhdr();
-    bool CheckPhdr(Elf32_Addr); 
-
-    const char* name_;
-    int fd_;    
-
-    Elf32_Ehdr header_;
-    size_t phdr_num_;   
-
-    void* phdr_mmap_;
-    Elf32_Phdr* phdr_table_;
-    Elf32_Addr phdr_size_;  
-
-    // First page of reserved address space.
-    void* load_start_;
-    // Size in bytes of reserved address space.
-    Elf32_Addr load_size_;
-    // Load bias.
-    Elf32_Addr load_bias_;
-
-    // Loaded phdr.
-    const Elf32_Phdr* loaded_phdr_;
-};
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这里是&lt;code&gt;Load()&lt;/code&gt;函数&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool ElfReader::Load() {
-    return ReadElfHeader() &amp;amp;&amp;amp;                   // 读取
-        VerifyElfHeader() &amp;amp;&amp;amp;                // 验证
-        ReadProgramHeader() &amp;amp;&amp;amp;              // 读取Program header
-        ReserveAddressSpace() &amp;amp;&amp;amp;            // 根据Program header计算so需要的内存size并分配相应的空间
-        LoadSegments() &amp;amp;&amp;amp;                   // 将so按照segment为单位装载到内存
-        FindPhdr();                     // on 装载到内存的so中找到program header, 方便以后链接过程use
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;首先是&lt;code&gt;ReadElfHeader&lt;/code&gt;()函数, 发现其是直接调用&lt;code&gt;read&lt;/code&gt;函数读取到header中的.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool ElfReader::ReadElfHeader() {
-    ssize_t rc = TEMP_FAILURE_RETRY(read(fd_, &amp;amp;header_, sizeof(header_)));  // use read() function 直接将elfheader读取到header中
-    ```//////////////////////////////
-    return true;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;然后是&lt;code&gt;VerifyElfread&lt;/code&gt;()函数, 对Elfheader进行验证识别: 是否为32位，大小端，类型和版本.&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;之后&lt;code&gt;ReadProgramHeader&lt;/code&gt;()函数(加载program header table从elf文件到一个只读的私有匿名的mmap-ed block中):&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool ElfReader::ReadProgramHeader() {
-    phdr_num_ = header_.e_phnum;                                        
-    //  将program header on内存中中单独映射一份, use于解析时临时use, on so装载到内存后, 便会释放这块内存, 转而使use装载后的so中的program header
-
-    // Like the kernel, we only accept program header tables that
-    // are smaller than 64KiB.
-    if (phdr_num_ &amp;lt; 1 || phdr_num_ &amp;gt; 65536/sizeof(Elf32_Phdr)) {
-        DL_ERR(&amp;quot;\&amp;quot;%s\&amp;quot; has invalid e_phnum: %d&amp;quot;, name_, phdr_num_);
-        return false;
-    }
-
-    Elf32_Addr page_min = PAGE_START(header_.e_phoff);
-    Elf32_Addr page_max = PAGE_END(header_.e_phoff + (phdr_num_ * sizeof(Elf32_Phdr)));
-    Elf32_Addr page_offset = PAGE_OFFSET(header_.e_phoff);  
-
-    phdr_size_ = page_max - page_min;
-
-    void* mmap_result = mmap(NULL, phdr_size_, PROT_READ, MAP_PRIVATE, fd_, page_min);
-        if (mmap_result == MAP_FAILED) {
-        DL_ERR(&amp;quot;\&amp;quot;%s\&amp;quot; phdr mmap failed: %s&amp;quot;, name_, strerror(errno));
-        return false;
-    }
-
-    phdr_mmap_ = mmap_result;
-    phdr_table_ = reinterpret_cast&amp;lt;Elf32_Phdr*&amp;gt;(reinterpret_cast&amp;lt;char*&amp;gt;(mmap_result) + page_offset);
-    return true;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;ReverveAddressSpace&lt;/code&gt;()函数(准备虚拟内存足够的大来存放Program header中的&lt;code&gt;Load&lt;/code&gt;段(两个Load段～～) 通过&lt;code&gt;mmap with PROT_NONE&lt;/code&gt; 实现&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool ElfReader::ReserveAddressSpace() {
-    Elf32_Addr min_vaddr;
-    load_size_ = phdr_table_get_load_size(phdr_table_, phdr_num_, &amp;amp;min_vaddr);  // 获取so on 内存中需要的空间load_size
-    if (load_size_ == 0) {
-          DL_ERR(&amp;quot;\&amp;quot;%s\&amp;quot; has no loadable segments&amp;quot;, name_);
-              return false;
-    }
-
-    uint8_t* addr = reinterpret_cast&amp;lt;uint8_t*&amp;gt;(min_vaddr);
-    void* start = mmap(addr, load_size_, PROT_NONE, mmap_flags, -1, 0);         // use mmap匿名映射, 预留出相应的空间
-    int mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
-    if (start == MAP_FAILED) {
-        DL_ERR(&amp;quot;couldn&#39;t reserve %d bytes of address space for \&amp;quot;%s\&amp;quot;&amp;quot;, load_size_, name_);
-        return false;
-    }
-
-    load_start_ = start;
-    load_bias_ = reinterpret_cast&amp;lt;uint8_t*&amp;gt;(start) - addr;              // so可以指定加载的基址, 但是so指定的加载基址可能不是页对齐的, 这种情况
-    return true;                                                            // 会导致实际映射地址和指定的加载地址有一个偏差, 这个偏差便是load_bias
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;LoadSegments&lt;/code&gt;()函数(在进程地址空间中加载所有可加载的段(假设你已经预留了空间为这个library)):&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool ElfReader::LoadSegments() {    
-    for (size_t i = 0; i &amp;lt; phdr_num_; ++i) {
-    const Elf32_Phdr* phdr = &amp;amp;phdr_table_[i];   // 遍历program header table
-
-    if (phdr-&amp;gt;p_type != PT_LOAD) {          // 加载所有p_type == PT_LOAD的段
-        continue;
-    }
-
-    ``` 之后就是一些设置段地址，段偏移, 之后mmap的一些操作
-
-    return true;
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;FindPhdr&lt;/code&gt;()(返回program header table加载到内存中的地址, 因为之后还要执行.so的重定位).
-现在回到我们&lt;code&gt;find_library_internal&lt;/code&gt;()这里，在执行完load_library()之后, 还有一个重要的函数为 &lt;code&gt;soinfo_link_image&lt;/code&gt;(soinfo* si):&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;这个函数会完成.so的动态链接，其中包含我们加载的.so库的重定位过程:
- 1. 定位动态section,将动态section的虚拟地址和项数和读写权限存在dynamic, dynamic_count, dynamic_flags中.
-    size_t dynamic_count;
-    Elf32_Word dynamic_flags;
-    phdr_table_get_dynamic_section(phdr, phnum, base, &amp;amp;si-&amp;gt;dynamic,     // 定位dynamic section
-                                       &amp;amp;dynamic_count, &amp;amp;dynamic_flags);     // 
-
- 2. 解析Dynamic section
- 3. 调用find_library, 返回所有依赖的.so的soinfo指针并存放在数组中.
- 4. 重定位(处理plt_rel(延迟绑定)和rel):
-    可以看到, 处理两个重定位表的函数都是soinfo_relocate函数.
-    if (si-&amp;gt;plt_rel != NULL) {
-        DEBUG(&amp;quot;[ relocating %s plt ]&amp;quot;, si-&amp;gt;name );
-        if (soinfo_relocate(si, si-&amp;gt;plt_rel, si-&amp;gt;plt_rel_count, needed)) {
-            return false;
-        }
-    }
-    if (si-&amp;gt;rel != NULL) {
-        DEBUG(&amp;quot;[ relocating %s ]&amp;quot;, si-&amp;gt;name );
-        if (soinfo_relocate(si, si-&amp;gt;rel, si-&amp;gt;rel_count, needed)) {       
-            return false;
-        }
-    }       
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;现在分析soinfo_relocate函数&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;
-
-
-
-
-
-
-
-&lt;/code&gt;&lt;/pre&gt;</description>
       
     </item>
     
