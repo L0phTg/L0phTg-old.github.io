@@ -226,7 +226,40 @@
     
       <article class="post bg-white">
   <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/handwriting/%E4%B9%A0%E5%AD%97-%E5%85%A5%E9%97%A8/">习字 入门</a></h1>
+    <h1 class="post-title"><a class="post-link" href="/post/c&#43;&#43;/c&#43;&#43;%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">C&#43;&#43;：设计一个抽象数据类型</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2019-06-08 </span>
+      <div class="post-category">
+          
+            <a href="/categories/c&#43;&#43;/"> C&#43;&#43; </a>
+          
+        </div>
+      <span class="more-meta"> 约 5698 字 </span>
+      <span class="more-meta"> 预计阅读 12 分钟 </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p>初次接触c++是在15年，还蛮早的，但之后的学习中由于使用c++的地方比较少，所以没怎么使用c++开发过项目。然而随着最近学习Art和LLVM的时候，用到了很多c++知识，逐渐发现了自己基础知识的薄弱。遂决定写一个c++系列的语法和编程入门总结。（主要参考 c++ primer 和 effective c++, effective系列没有涉及细节，详细内容可以看书来获得）</p>
+
+<p><strong>本文不断更新中。</strong></p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/post/c&#43;&#43;/c&#43;&#43;%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/">习字 入门</a></h1>
     
     <div class="post-meta">
       <span class="post-time"> 2019-06-07 </span>
@@ -251,14 +284,14 @@
 
 <ul>
 <li>从单字来说，有些写的比较杂乱无序。这个问题在单个字时不容易暴露出来，但是从全文来看，就会很明显发现不整齐。</li>
-<li>我硬笔字写的速度一直很慢，原因是过度注重“<strong>提按顿挫</strong>”。<strong>提按顿挫</strong>在写毛笔时比较容易实现，应该笔头是软的，但是写硬笔字时，虽然这样写出来比较好看，但日常应用中写起来速度很慢，没有实用性。</li>
+<li>我硬笔字写的速度一直很慢，原因是过度注重“<strong>提按顿挫</strong>”。<strong>提按顿挫</strong>在写毛笔时比较容易实现，因为笔头是软的，但是写硬笔字时，虽然这样写出来比较好看，但日常应用中写起来速度很慢，没有实用性。</li>
 </ul>
 
 <p><strong>插一句，近两个月积攒了十几篇文章。今天起，定期更新。</strong>
 </p>
     </div>
     <div class="read-more">
-      <a href="/post/handwriting/%E4%B9%A0%E5%AD%97-%E5%85%A5%E9%97%A8/" class="read-more-link">阅读全文</a>
+      <a href="/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/" class="read-more-link">阅读全文</a>
     </div>
     
   </div>
@@ -321,45 +354,6 @@
     </div>
     <div class="read-more">
       <a href="/post/life/%E4%B9%A6%E7%AD%BE%E6%95%B4%E7%90%86/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscope-extending-the-language-control-flow/">Kaleidoscope: Extending the Language Control Flow</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2019-04-14 </span>
-      <div class="post-category">
-          
-            <a href="/categories/llvm/"> llvm </a>
-          
-        </div>
-      <span class="more-meta"> 约 7113 字 </span>
-      <span class="more-meta"> 预计阅读 15 分钟 </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl05.html">http://llvm.org/docs/tutorial/LangImpl05.html</a></p>
-
-<p>本文为Kaleidoscope添加条件判断控制流和循环控制流.</p>
-
-<p>注意: 本文假定你已经阅读过前面几篇文章, 所以在词法解析和AST生成就写的比较简单(当然了, 这部分内容本身阅读起来就比较轻松), 着重介绍控制流的Codegen部分.</p>
-
-<p>因为这个系列主要是翻译, 所以基本没有涉及自己的理解. <strong>之后我会单独写一篇文章, 来对Kaleidoscope的前五章做一个总结</strong>.</p>
-
-<p><img src="/docs-pic/llvm/loop.png" alt="" /></p>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/llvm/kaleidoscope-extending-the-language-control-flow/" class="read-more-link">阅读全文</a>
     </div>
     
   </div>

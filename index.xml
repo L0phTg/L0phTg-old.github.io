@@ -29,11 +29,498 @@
     </item>
     
     <item>
+      <title>C&#43;&#43;：设计一个抽象数据类型</title>
+      <link>https://l0phtg.github.io/post/c&#43;&#43;/c&#43;&#43;%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</link>
+      <pubDate>Sat, 08 Jun 2019 22:22:06 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/c&#43;&#43;/c&#43;&#43;%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</guid>
+      
+        <description>&lt;p&gt;初次接触c++是在15年，还蛮早的，但之后的学习中由于使用c++的地方比较少，所以没怎么使用c++开发过项目。然而随着最近学习Art和LLVM的时候，用到了很多c++知识，逐渐发现了自己基础知识的薄弱。遂决定写一个c++系列的语法和编程入门总结。（主要参考 c++ primer 和 effective c++, effective系列没有涉及细节，详细内容可以看书来获得）&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;本文不断更新中。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;p&gt;设计class犹如设计type。&lt;em&gt;&amp;mdash;- effective c++ 19&lt;/em&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;定义&#34;&gt;定义&lt;/h1&gt;
+
+&lt;h2 id=&#34;struct&#34;&gt;struct&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;struct Screen{
+    
+    
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;class&#34;&gt;class&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;class Screen{
+    
+    
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;struct和class的区别&#34;&gt;struct和class的区别&lt;/h2&gt;
+
+&lt;p&gt;struct: 第一个访问控制说明符之前的成员全部是public的。&lt;/p&gt;
+
+&lt;p&gt;class: 第一个访问控制说明符之前的成员全部是private的。&lt;/p&gt;
+
+&lt;h1 id=&#34;组成&#34;&gt;组成&lt;/h1&gt;
+
+&lt;p&gt;当定义一个类时，如果自己没有申明拷贝构造函数，拷贝赋值运算符和析构函数，编译器会为我们默认生成。如果没有构造函数，编译器也会为我们合成默认构造函数。&amp;mdash;- &lt;em&gt;effective c++ 05&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;我们可以通过=default来表明根据编译器默认合成。&lt;/p&gt;
+
+&lt;p&gt;同样地，如果不使用编译器自动生成的拷贝构造函数和拷贝赋值运算符，应该明确拒绝。 &amp;mdash;- &lt;em&gt;effective c++ 06&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;我们可以通过在函数第一次声明时添加=delete来阻止编译器合成拷贝构造函数和拷贝赋值运算符。&lt;/p&gt;
+
+&lt;h2 id=&#34;类型成员&#34;&gt;类型成员&lt;/h2&gt;
+
+&lt;p&gt;我们可以定义一个类型成员，有两种方式来定义：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;typedef;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;   class Screen {
+   public:
+   	typedef std::string::size_type pos;
+   private:
+   	pos cursor = 0;
+   	pos height = 0, width = 0;
+   };
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;using;类型别名&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;   class Screen {
+   public:
+   	using pos = std::string::size_type;
+   }; 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;: &lt;strong&gt;类型成员定义在类开始的地方，因为之后的成员函数或成员变量会使用到&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;数据成员&#34;&gt;数据成员&lt;/h2&gt;
+
+&lt;p&gt;成员变量应该被声明是private的。&lt;em&gt;&amp;mdash;- effective c++ 22&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;可变变量-mutable&#34;&gt;可变变量（mutable)&lt;/h3&gt;
+
+&lt;p&gt;如果我们希望修改类的某个类型成员，即使在const成员函数内。可以通过在变量的申明中加入 &lt;strong&gt;mutable&lt;/strong&gt; 关键字。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;一个可变数据成员永远不会是const的，即使它是const对象的成员&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;class Screen {
+public:
+    void some_member() const;
+private:
+	mutable size_t access_str;
+};
+
+void  Screen::some_member() const 
+{
+	++access_ctr;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;静态变量-static&#34;&gt;静态变量（static）&lt;/h3&gt;
+
+&lt;p&gt;我们可以在成员的申明之前添加关键字“static”使得其与类关联在一起。&lt;/p&gt;
+
+&lt;p&gt;类的静态成员存在于任何对象之外，对象中不包含任何与静态数据成员有关的数据。&lt;/p&gt;
+
+&lt;h2 id=&#34;构造函数和析构函数&#34;&gt;构造函数和析构函数&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;构造函数定义&lt;/strong&gt;：类通过一个或几个特殊的成员函数来控制其对象的初始化过程，这些函数叫做&lt;strong&gt;构造函数&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;构造函数的组成&lt;/strong&gt;：没有返回值、构造函数名字与类名相同、包含参数列表和函数体。（多个构造函数的参数数量或参数类型上必须有所区别）&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;一些限制&lt;/strong&gt;：构造函数不能被申明为const的。（因为常量属性是在对象初始化之后才有的）&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;析构函数定义&lt;/strong&gt;：析构函数执行与构造函数相反的操作：构造函数初始化对象的非static数据成员，还可能做一些其他操作；析构函数释放对象的资源，并销毁对象的非static数据成员。&lt;/p&gt;
+
+&lt;p&gt;注意：由于析构函数不能接受参数，因此它不能被重载。对于一个给定类，只会有一个析构函数。&lt;/p&gt;
+
+&lt;p&gt;隐式销毁一个内置指针类型的成员不会delete它所指向的对象。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;什么时候执行析构函数&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;变量在离开其作用域时被销毁。&lt;/li&gt;
+&lt;li&gt;当一个对象被销毁时，其成员被销毁。&lt;/li&gt;
+&lt;li&gt;容器（无论是标准库容器还是数组）被销毁时，其元素被销毁。&lt;/li&gt;
+&lt;li&gt;对于动态分配的对象，当对指向它的指针应用delete运算符被销毁时。&lt;/li&gt;
+&lt;li&gt;对于临时对象，当创建它的完整表达式结束时被销毁。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;注意：绝对不要再构造和析构过程中调用virtual函数。&lt;em&gt;&amp;mdash;- effective c++ 09&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;构造函数分类&#34;&gt;构造函数分类&lt;/h3&gt;
+
+&lt;h4 id=&#34;默认构造函数&#34;&gt;默认构造函数&lt;/h4&gt;
+
+&lt;p&gt;在用户&lt;strong&gt;未定义任何构造函数&lt;/strong&gt;时，编译器会&lt;strong&gt;合成&lt;/strong&gt;默认构造函数。&lt;/p&gt;
+
+&lt;p&gt;当然也可以明确申明使用编译器合成的默认构造函数：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Sales_data() = default;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果我们不使用默认构造函数的话，要明确指定删除：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Sales_data() = delete;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果类包含有内置类型或者复合类型的成员，则只有当这些成员全部都被赋予了类内初始值时，这个类才适合于使用合成的默认构造函数。&lt;/p&gt;
+
+&lt;h4 id=&#34;拷贝构造函数&#34;&gt;拷贝构造函数&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;定义&lt;/strong&gt;：如果一个构造函数的第一个参数是自身类型的引用，且任何额外参数都有默认值，则此构造函数是&lt;strong&gt;拷贝构造函数&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;如果我们没有为一个类定义拷贝构造函数，编译器会为我们定义一个，与合成默认构造函数不同，&lt;strong&gt;即使我们定义了其他构造函数，编译器也会为我们合成一个拷贝构造函数&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Sales_data(const Sales_data&amp;amp;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;发生的时机&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;将一个对象作为实参传递给一个非引用类型的形参；&lt;/li&gt;
+&lt;li&gt;从一个返回类型为非引用类型的函数返回一个对象；&lt;/li&gt;
+&lt;li&gt;用花括号列表初始化一个数组中的元素或一个聚合类中的成员；&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;拷贝语义&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;类的行为像一个值；（如标准库容器和string类的行为）&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;即它应该有自己的状态。当我们拷贝一个像值的对象时，副本和原对象是完全独立的。改变副本不会对原对象有任何影响，反之亦然。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;类的行为像一个指针；（如shared_ptr类提供类似指针的行为）&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;行为像指针的类则共享状态。当我们拷贝一个这种类的对象时，副本和原对象使用相同的底层数据。改变副本也会改变原对象，反之亦然。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;类的行为既不像值也不像指针；（如 IO 类型 和 unique_ptr 不允许拷贝和赋值。）&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;实现&lt;/strong&gt;: 如果我们要实现自己的拷贝构造函数，注意要拷贝它的每一个成员。（如果我们添加了类成员，相应地，我们也要改变拷贝构造函数）。&lt;em&gt;&amp;mdash;- effective c++ 12&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;实现派生类的拷贝构造函数&lt;/strong&gt;: 我们不仅要赋值派生类的成员，还要复制基类的成员（可以通过调用基类的拷贝构造函数来完成）。&amp;mdash;- effective c++ 12&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;PriorityCustomer::PriorityCustomer(const PriorityCustomer&amp;amp; rhs)
+	: Customer(rhs), 				// 调用基类的拷贝构造函数
+	  priority(rhs.priority)
+{
+	LogCall(&amp;quot;PriorityCustomer copy constructor&amp;quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;移动构造函数&#34;&gt;移动构造函数&lt;/h4&gt;
+
+&lt;p&gt;在某些情况下，对象拷贝后就立即被销毁了。这这些情况下，移动而非拷贝对象会大幅度提升性能。&lt;/p&gt;
+
+&lt;p&gt;为了让我们的类型支持移动操作，需要为其定义移动构造函数和移动赋值运算符。这两个成员类似对应的拷贝操作，但它们从给定对象“窃取”资源而不是拷贝资源。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;移动构造函数&lt;/strong&gt;： 第一个参数是该类类型的一个右值引用。任何额外的参数都必须有默认实参。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;注意&lt;/strong&gt;：移动构造函数必须确保移后源对象处于这样一个状态&amp;mdash;-销毁它是无害的。特别是，一旦资源完成移动，源对象必须不再指向被移动的资源&amp;mdash;-这些资源的所有权已经归属新创建的对象。&lt;/p&gt;
+
+&lt;p&gt;移动构造函数不应该抛出异常，且不分配任何新内存。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;StrVec::StrVec(StrVec &amp;amp;&amp;amp;s) noexcept
+	: elements(s.elements), first_free(s.first_free), cap(s.cap)
+{
+	s.elements = s.first_free = s.cap = nullptr;        
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;委托构造函数&#34;&gt;委托构造函数&lt;/h4&gt;
+
+&lt;p&gt;很好理解，就是一个委托构造函数使用&lt;strong&gt;它所属类的其他构造函数&lt;/strong&gt;执行它自己的初始化过程。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;class Sales_data {
+public:
+	Sales_data(std::string s, unsigned cnt, double price) :
+			bookNo(s), units_sold(cnt), revenue(cnt*price) {}
+	Sales_data() : Sales_data(&amp;quot;&amp;quot;, 0, 0) {}
+private:
+	...
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;构造函数组成&#34;&gt;构造函数组成&lt;/h3&gt;
+
+&lt;h4 id=&#34;explicit属性&#34;&gt;explicit属性&lt;/h4&gt;
+
+&lt;p&gt;在要求隐式转换的程序上下文中，我们可以通过将构造函数申明为 &lt;strong&gt;explict&lt;/strong&gt; 加以阻止。&lt;/p&gt;
+
+&lt;p&gt;explicit构造函数只能用于直接初始化。&lt;/p&gt;
+
+&lt;h4 id=&#34;构造函数初始值列表&#34;&gt;构造函数初始值列表&lt;/h4&gt;
+
+&lt;p&gt;就对象的数据成员而言，初始化和赋值也有类似的区别。如果没有在构造函数的初始值列表中显式地初始化成员，则该成员将在构造函数体之前执行默认初始化。&lt;/p&gt;
+
+&lt;p&gt;如果成员是const、引用，或者属于某种未提供默认构造函数的类类型，我们必须通过构造函数初始值列表为这些成员提供初值。&lt;/p&gt;
+
+&lt;p&gt;最好令构造函数初始值的顺序与成员声明的顺序保持一致。而且如果可能的话，尽量避免使用某些成员初始化其他成员。&lt;/p&gt;
+
+&lt;h3 id=&#34;虚析构函数&#34;&gt;虚析构函数&lt;/h3&gt;
+
+&lt;p&gt;析构函数添加了virtual属性。所有的基类的析构函数都应该为虚析构函数。&amp;mdash;- &lt;em&gt;effective c++ 07&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;析构函数决定不应该吐出异常。如果一个被析构函数调用的函数可能抛出异常，析构函数应该捕捉任何异常，然后吞下他们（不传播）或结束程序。&lt;em&gt;&amp;mdash;- effective c++ 08&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;成员函数&#34;&gt;成员函数&lt;/h2&gt;
+
+&lt;p&gt;公有的成员函数即是&lt;strong&gt;接口&lt;/strong&gt;。好的接口设计应该很容易被正确使用，不容易被误用。&lt;em&gt;&amp;mdash;- effective c++ 18&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;宁可拿 non-member non-friend 函数替换 member 函数，这样做可以增加封装性、包裹弹性（packaging flexibility）和机能扩充性。&lt;em&gt;&amp;mdash;- effective c++ 23&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;virtual属性&#34;&gt;virtual属性&lt;/h3&gt;
+
+&lt;p&gt;一个某个函数被声明为virtual属性，那么在所有派生类中它都是虚函数。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;作用&lt;/strong&gt;: 实现c++中的多态性，提高代码复用。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;多态&lt;/strong&gt;: 即多种形式。我们把具有继承关系的多个类型称为多态类型，因为我们能使用这些类型的“多种形式”而无须在意它们的差异。&lt;strong&gt;引用或指针的静态类型与动态类型不同这一事实正是C++语言支持多态性的根本所在&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;虚函数调用和非虚函数调用的区别&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;对&lt;strong&gt;非虚函数&lt;/strong&gt;的调用在编译时进行绑定。类似的，通过&lt;strong&gt;对象&lt;/strong&gt;进行的函数（虚函数或非虚函数）调用也在编译时绑定。（对象的类型是确定不变的，我们无论如何都不可能令对象的动态类型与静态类型不一致）&lt;/li&gt;
+&lt;li&gt;当且仅当对通过指针或引用调用虚函数时，才会在运行时解析该调用，也只有在这种情况下对象的动态类型才有可能与静态类型不同。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;inline属性&#34;&gt;inline属性&lt;/h3&gt;
+
+&lt;p&gt;声明inline函数的两种方式：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;函数的返回类型前面添加关键字&lt;strong&gt;inline&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;类内定义的函数默认都是&lt;strong&gt;inline&lt;/strong&gt;函数；&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;注意：内联说明只是向编译器发出一个请求，编译器可以选择忽略这个请求。&lt;/p&gt;
+
+&lt;h3 id=&#34;static成员函数&#34;&gt;static成员函数&lt;/h3&gt;
+
+&lt;p&gt;与静态数据成员类似，静态成员函数也不与任何对象绑定在一起，它们&lt;strong&gt;不包含 this 指针&lt;/strong&gt;，作为结果，静态成员函数不能申明为const的，而且我们也不能在static函数中使用this指针。&lt;/p&gt;
+
+&lt;h3 id=&#34;const成员函数&#34;&gt;const成员函数&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;形式&lt;/strong&gt;：在成员函数的参数列表后紧跟const关键字。这里，const的作用是修改隐式this指针的类型。&lt;/p&gt;
+
+&lt;p&gt;默认情况下，this的类型是指向类类型非常量版本的常量指针。&lt;/p&gt;
+
+&lt;p&gt;一个const成员函数如果以引用的形式返回*this，那么它的返回类型将是常量引用。&lt;/p&gt;
+
+&lt;h3 id=&#34;组成-1&#34;&gt;组成&lt;/h3&gt;
+
+&lt;p&gt;返回类型、函数名称、参数、函数体。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;返回类型的设计&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;必须返回对象时，别妄想返回其reference。&lt;em&gt;&amp;mdash;- effective c++ 21&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;避免返回handles指向对象内部成分。&lt;em&gt;&amp;mdash;- effective c++ 28&lt;/em&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;参数的设计&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;p&gt;​   1. 默认情况下 c++ 以 by value 方式传递对象至函数。尽量以 pass-by-reference-to-const 替换 pass-by-value。前者通常比较高效，并可避免切割问题。（当然，以上规则不适用于内置类型，以及STL的迭代器和函数对象。对它们而言，pass-by-value往往比较适当）&lt;em&gt;&amp;mdash;- effective c++ 20&lt;/em&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;若所有的参数都需要类型转换，请为此采用 non-member 函数。&lt;em&gt;&amp;mdash;- effective c++ 24&lt;/em&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;函数体的设计&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;只要定义了一个变量而其类型带有一个构造函数或析构函数，那么当程序的控制流到达这个变量定义式时，你便得承受构造成本；当这个变量离开其作用域时，你便得承受析构成本。所以，&lt;strong&gt;尽可能延后变量定义式的出现时间&lt;/strong&gt;。&lt;em&gt;&amp;mdash;- effective c++ 26&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;尽量少做转型动作。&lt;em&gt;&amp;mdash;- effective c++ 27&lt;/em&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;友元&#34;&gt;友元&lt;/h2&gt;
+
+&lt;p&gt;类可以允许其它类访问它的&lt;strong&gt;非公有成员&lt;/strong&gt;，方法是令其它类或函数称为它的友元。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;class Sales_data {
+friend: Sales_data add(const Sales_data&amp;amp;, const Sales_data&amp;amp;);
+public:
+	...
+private:
+	...
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意：友元的声明仅仅指定了访问的权限，函数的声明需要在类外声明。&lt;/p&gt;
+
+&lt;p&gt;如果一个类想把一组重载函数声明成它的友元，它需要对这组函数中的每一个分别声明：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;extern std::ostream&amp;amp; storeOn(std::ostream &amp;amp;, Screen &amp;amp;);
+extern BitMap&amp;amp; storeOn(BitMap &amp;amp;, Screen &amp;amp;);
+class Screen {
+	friend std::ostream&amp;amp; storeOn(std::ostream &amp;amp;, Screen &amp;amp;);
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;声明位置&lt;/strong&gt;：一般来说，最好在类的最开始处集中声明友元。&lt;/p&gt;
+
+&lt;h2 id=&#34;运算符&#34;&gt;运算符&lt;/h2&gt;
+
+&lt;h3 id=&#34;拷贝赋值运算符&#34;&gt;拷贝赋值运算符&lt;/h3&gt;
+
+&lt;p&gt;如果一个类未定义自己的拷贝赋值运算符，编译器会为它生成一个 &lt;strong&gt;合成拷贝赋值运算符&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Sales_data&amp;amp;
+Sales_data::operator=(const Sales_data &amp;amp;rhs)
+{
+...
+    return *this;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;一定要返回reference to *this。并且要正确处理自赋值。&lt;em&gt;&amp;mdash;- effective c++ 10 11&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;移动赋值运算符&#34;&gt;移动赋值运算符&lt;/h3&gt;
+
+&lt;p&gt;移动赋值运算符执行与析构函数和移动构造函数相同的工作。另外，移动赋值运算符必须正确处理自赋值：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;StrVec &amp;amp;StrVec::operator=(StrVec &amp;amp;&amp;amp;rhs) noexcept
+{
+	if (this != rhs)
+    {
+    	free(); 		// 释放已有元素   
+        elements = rhs.elements;
+        first_free = rhs.first_free;
+        cap = rhs.cap;
+        rhs.elements = rhs.first_free = rhs.cap = nullptr;
+    }
+    return *this;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;一定要返回reference to *this。并且要正确处理自赋值。&lt;em&gt;&amp;mdash;- effective c++ 10 11&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;函数调用运算符&#34;&gt;函数调用运算符&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;作用&lt;/strong&gt;：如果类重载了函数调用运算符，则我们可以像使用函数一样使用该类的对象。（因为这样的类同时也能存储状态，所以与普通函数相比它们更加灵活）&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;struct absInt {
+	int operator()(int val) const {
+		return val &amp;lt; 0? -val : val;
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;函数调用运算符必须是成员函数。一个类可以定义多个不同版本的调用运算符，相互之间应该在参数数量或类型上有所区别。&lt;/p&gt;
+
+&lt;h2 id=&#34;this-指针&#34;&gt;this 指针&lt;/h2&gt;
+
+&lt;p&gt;this总是指向该类实例化出来的对象。另外，this还是一个&lt;strong&gt;常量指针&lt;/strong&gt;，我们&lt;strong&gt;不允许改变this中保存的地址&lt;/strong&gt;。（Type*const this;）&lt;/p&gt;
+
+&lt;p&gt;this作为非静态成员函数的隐式参数。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;total.isbn(); 
+== 
+Sales_data::isbn(&amp;amp;total);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;作用域&#34;&gt;作用域&lt;/h2&gt;
+
+&lt;h1 id=&#34;类的层次结构&#34;&gt;类的层次结构&lt;/h1&gt;
+
+&lt;p&gt;基类和派生类。&lt;/p&gt;
+
+&lt;h1 id=&#34;类的性质&#34;&gt;类的性质&lt;/h1&gt;
+
+&lt;h2 id=&#34;访问控制属性-封装性&#34;&gt;访问控制属性（封装性）&lt;/h2&gt;
+
+&lt;h2 id=&#34;继承属性&#34;&gt;继承属性&lt;/h2&gt;
+
+&lt;h3 id=&#34;基类和派生类&#34;&gt;基类和派生类&lt;/h3&gt;
+
+&lt;p&gt;通过&lt;strong&gt;继承&lt;/strong&gt;（inheritance)联系在一起的类构成一种层次关系。通常在层次关系的根部有一个&lt;strong&gt;基类&lt;/strong&gt;（base class），其他类则直接或间接地从基类继承而来，这些继承得到的类称为&lt;strong&gt;派生类&lt;/strong&gt;（derived class）。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;动态绑定&lt;/strong&gt;: 在 C++ 语言中，当我们使用&lt;strong&gt;基类的引用（或指针）调用一个虚函数&lt;/strong&gt;时将发生动态绑定。&lt;/p&gt;
+
+&lt;h4 id=&#34;基类&#34;&gt;基类&lt;/h4&gt;
+
+&lt;p&gt;&lt;strong&gt;虚函数&lt;/strong&gt;: 所有的子类要覆盖的函数（子类有特定行为）都申明为virtual函数。&amp;mdash;- &lt;em&gt;effective c++&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;基类通常都应该定义一个&lt;strong&gt;虚析构函数&lt;/strong&gt;，即使该函数不执行任何实际操作也是如此。&lt;/p&gt;
+
+&lt;h4 id=&#34;派生类&#34;&gt;派生类&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;定义&lt;/strong&gt;：派生类必须通过使用&lt;strong&gt;派生类列表&lt;/strong&gt;明确指出它是从哪个（或哪些）基类继承而来的。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;派生类列表的形式&lt;/strong&gt;: 首先是一个冒号，后面紧跟以逗号分隔的基类列表，其中每个基类前面可以有以下三种&lt;strong&gt;访问说明符&lt;/strong&gt;中的一个：public、protected和private。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;派生类中的虚函数&lt;/strong&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;派生类可以在它覆盖的函数前使用virtual关键字。也可以在形参列表后面添加override关键字来表明覆盖了基类的虚函数。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;派生类对象及派生类向基类的类型转换&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;一个派生类对象包含多个组成部分：一个含有派生类自己定义的（非静态）成员的子对象，以及一个与该派生类继承的基类对应的子对象，如果有多个基类，那么这样的子对象也有多个。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;派生类到基类的类型转换&lt;/strong&gt;: 因为在派生类对象中含有与基类对应的组成部分，所以我们能把派生类的对象当成基类对象来使用，而且我们也能将基类的指针或引用绑定到派生类对象中的基类部分上。&lt;/p&gt;
+
+&lt;h3 id=&#34;单继承&#34;&gt;单继承&lt;/h3&gt;
+
+&lt;h4 id=&#34;公有继承-is-a关系&#34;&gt;公有继承（is-a关系）&lt;/h4&gt;
+
+&lt;p&gt;public inheritance意味着 is-a 的关系。&lt;/p&gt;
+
+&lt;p&gt;即：如果class D(&amp;ldquo;Derived&amp;rdquo;) 以 public形式继承 class B(&amp;ldquo;Base&amp;rdquo;)，便意味着每一个类型为D的对象同时也是一个类型为B的对象。使用于 base classes 身上的每一件事一定也适用于derived classes身上，因为每一个derived class对象也都是一个base class对象。&lt;em&gt;&amp;mdash;- effective c++ 32&lt;/em&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;继承时，应该避免遮掩继承而来的名称，在public继承下从来没有人希望如此。&lt;em&gt;&amp;mdash;- effective c++ 33&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;关于接口和实现的继承详解：&lt;em&gt;&amp;mdash;- effective c++ 34&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;pure virtual函数只具体指定接口继承。&lt;/li&gt;
+&lt;li&gt;impure virtual函数具体指定接口继承及其默认实现继承。&lt;/li&gt;
+&lt;li&gt;no virtual函数具体指定接口继承以及强制性实现继承。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;绝不重新定义继承而来的默认参数值。&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;因为虚函数动态绑定，而默认参数值是静态绑定的。 &lt;em&gt;&amp;mdash;- effective c++ 37&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;私有继承&#34;&gt;私有继承&lt;/h4&gt;
+
+&lt;h3 id=&#34;多重继承&#34;&gt;多重继承&lt;/h3&gt;
+
+&lt;h2 id=&#34;多态属性&#34;&gt;多态属性&lt;/h2&gt;
+
+&lt;h1 id=&#34;总结&#34;&gt;总结&lt;/h1&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>习字 入门</title>
-      <link>https://l0phtg.github.io/post/handwriting/%E4%B9%A0%E5%AD%97-%E5%85%A5%E9%97%A8/</link>
+      <link>https://l0phtg.github.io/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/</link>
       <pubDate>Fri, 07 Jun 2019 18:39:03 +0800</pubDate>
       
-      <guid>https://l0phtg.github.io/post/handwriting/%E4%B9%A0%E5%AD%97-%E5%85%A5%E9%97%A8/</guid>
+      <guid>https://l0phtg.github.io/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/</guid>
       
         <description>&lt;p&gt;&lt;strong&gt;本篇是水文!!!&lt;/strong&gt;&lt;/p&gt;
 
@@ -43,7 +530,7 @@
 
 &lt;ul&gt;
 &lt;li&gt;从单字来说，有些写的比较杂乱无序。这个问题在单个字时不容易暴露出来，但是从全文来看，就会很明显发现不整齐。&lt;/li&gt;
-&lt;li&gt;我硬笔字写的速度一直很慢，原因是过度注重“&lt;strong&gt;提按顿挫&lt;/strong&gt;”。&lt;strong&gt;提按顿挫&lt;/strong&gt;在写毛笔时比较容易实现，应该笔头是软的，但是写硬笔字时，虽然这样写出来比较好看，但日常应用中写起来速度很慢，没有实用性。&lt;/li&gt;
+&lt;li&gt;我硬笔字写的速度一直很慢，原因是过度注重“&lt;strong&gt;提按顿挫&lt;/strong&gt;”。&lt;strong&gt;提按顿挫&lt;/strong&gt;在写毛笔时比较容易实现，因为笔头是软的，但是写硬笔字时，虽然这样写出来比较好看，但日常应用中写起来速度很慢，没有实用性。&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;strong&gt;插一句，近两个月积攒了十几篇文章。今天起，定期更新。&lt;/strong&gt;
@@ -6201,540 +6688,6 @@ imap &amp;lt;silent&amp;gt; &amp;lt;F4&amp;gt; &amp;lt;Plug&amp;gt;MarkdownPrevi
 &lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
 
 &lt;p&gt;总之, &lt;code&gt;deepin&lt;/code&gt;还是带给我很大的惊喜的.  &lt;code&gt;deepin终端&lt;/code&gt;, &lt;code&gt;深度截图&lt;/code&gt;, 还可以愉快的使用网络, 开心的在linux下办公hahahahaha.&lt;/p&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>thumb指令虚拟化学习(一)</title>
-      <link>https://l0phtg.github.io/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
-      <pubDate>Tue, 24 Oct 2017 20:23:30 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
-      
-        <description>&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/thumb-vmp/thumb16.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;上半年接触过一些 &lt;strong&gt;app加固&lt;/strong&gt; 的知识, 对 &lt;strong&gt;vm&lt;/strong&gt; 这块一直空有兴趣而没有了解过;  最近, 阅读了几篇文章, &lt;code&gt;有所启发&lt;/code&gt;, 所以决定学习一下 &lt;strong&gt;vm&lt;/strong&gt; 这块的一些操作.&lt;/p&gt;
-
-&lt;p&gt;主要内容分为:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;环境搭建&lt;/li&gt;
-&lt;li&gt;提取指令&lt;/li&gt;
-&lt;li&gt;capstone处理&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;阅读资料&#34;&gt;阅读资料&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/knownsec/KCon/blob/master/2017/%5BKCon%202017%5D0827_3_%E9%99%88%E6%84%89%E9%91%AB_%E7%AC%AC%E4%BA%94%E4%BB%A3%E5%8A%A0%E5%9B%BA%E6%8A%80%E6%9C%AFARM%20VMP%E5%8E%9F%E7%90%86%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%BA%94%E7%94%A8.pdf&#34;&gt;Kcon2017 第五代加固技术ARM VMP原理与应用&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://www.cnblogs.com/2014asm/p/6534897.html&#34;&gt;ARM平台指令虚拟化探索&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;环境搭建&#34;&gt;环境搭建:&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;需要安装python的capstone模块, 可以直接使用pip安装. (另外: &lt;strong&gt;强烈建议下载capstone源码, 以便随时阅读&lt;/strong&gt;.)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;
-    sudo apt install libcapstone3
-    sudo apt install libcapstone-dev
-    pip install capstone
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;ida/radare2 &lt;code&gt;在本节中, 提取指令的时候会用到&lt;/code&gt;.&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;arm官方文档(&lt;a href=&#34;https://yurichev.com/mirrors/ARMv8-A_Architecture_Reference_Manual_(Issue_A.a).pdf&#34;&gt;https://yurichev.com/mirrors/ARMv8-A_Architecture_Reference_Manual_(Issue_A.a).pdf&lt;/a&gt;)&lt;/p&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&#34;本篇文章大致分为如下几个部分&#34;&gt;本篇文章大致分为如下几个部分:&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;手动提取编译好的可执行文件中的 &lt;strong&gt;你想要加密的函数&lt;/strong&gt;, 并转换为 &lt;strong&gt;16进制的格式&lt;/strong&gt;.&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;初步了解 &lt;strong&gt;capstone&lt;/strong&gt; 中的 &lt;strong&gt;对Arm指令进行处理的操作函数&lt;/strong&gt;.&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;了解 &lt;strong&gt;thumb指令编码&lt;/strong&gt; , &lt;code&gt;此处研究thumb的原因是: 在提出函数的bytes时, 发现自定义的函数, 都被转换成了thumb指令的格式, 所以笔者先研究thumb;  当然, 要知道, thumb并不是独立于arm存在的, thumb的存在是为了提高效率&lt;/code&gt;.&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;设计自己的一套 &lt;strong&gt;指令集&lt;/strong&gt; , &lt;code&gt;很简单的一套指令集, 能模拟常见的thumb指令, 例如 push, pop, str, ldr, add, sub, mov, cmp, blx ...&lt;/code&gt;.&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;写代码, &lt;code&gt;此处参考了capstone源码中的/bindings/python/capstone/* 中的有关代码, 初学py, 代码写的差, 有什么建议还请多多交流)&lt;/code&gt;.&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&#34;提取指令&#34;&gt;提取指令.&lt;/h3&gt;
-
-&lt;p&gt;我们提取的是下面程序中的 &lt;strong&gt;judge&lt;/strong&gt; 函数.&lt;/p&gt;
-
-&lt;h4 id=&#34;用ida提取&#34;&gt;用ida提取:&lt;/h4&gt;
-
-&lt;p&gt;我们将会在这篇文章中用到的程序:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;#include &amp;lt;stdio.h&amp;gt;
-
-char key[16] = {&#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;1&#39;, &#39;1&#39;, &#39;1&#39;, &#39;1&#39;, &#39;q&#39;, &#39;r&#39;, &#39;c&#39;, &#39;o&#39;, &#39;b&#39;, &#39;g&#39;, &#39;s&#39;, &#39;k&#39;};
-
-int judge(const char *s)
-{
-    int ret = 1;
-    char c[16] = {&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;, &#39;q&#39;, &#39;s&#39;, &#39;e&#39;, &#39;r&#39;, &#39;b&#39;, &#39;h&#39;, &#39;u&#39;, &#39;n&#39;};
-    int i;
-    for (i = 0; i &amp;lt; 16; i++)
-    {
-        switch(i % 4)   
-        {
-        case 0: 
-            if (s[i]  == c[i])
-                continue;
-            break;  
-        case 1:
-            if (s[i] + 1 == c[i])
-                continue;
-            break;
-        case 2:
-            if (s[i] + 2 == c[i])
-                continue;
-            break;
-        case 3:
-            if (s[i] + 3 == c[i])
-                continue; 
-            break;
-        } 
-        ret = 0; 
-    }
-    return ret;
-}
-
-int main(int argc, char *argv[])
-{
-    printf(&amp;quot;hello World\n&amp;quot;);
-    char a[16];
-    scanf(&amp;quot;%s&amp;quot;, a);
-
-    if (judge(a) == 1)
-        printf(&amp;quot;ok&amp;quot;);
-    else
-        printf(&amp;quot;error&amp;quot;);
-
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;用ndk-build编译成armv7a可执行程序后, 放入ida中, 用idc脚本提::&lt;/p&gt;
-
-&lt;p&gt;idc脚本, start为judge函数的起始地址, end为judge函数的结束地址.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;#include &amp;lt;idc.idc&amp;gt;
-
-static main() {
-    auto start, end, fd, i, inst;
-    fd = fopen(&amp;quot;D:\\idaResult\\armOpcodeByte.txt&amp;quot;, &amp;quot;wt+&amp;quot;);
-    start = 0x863c;
-    end = 0x86BA;
-    
-    for(i = start; i &amp;lt; end; i++) {
-        inst = Byte(i);
-        fprintf(fd, &amp;quot;\\x%02x&amp;quot;, inst);
-    }
-    fclose(fd);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;提取出来后的结果:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;\x1f\x49\xf0\xb5\x79\x44\x09\x68\x87\xb0\x07\x46\x0b\x68\x01\xaa\x0d\x46\x16\x46\x05\x93\x1b\x4b\x7b\x44\x03\xf1\x10\x0e\x18\x68\x08\x33\x53\xf8\x04\x1c\x73\x45\x14\x46\x03\xc4\x22\x46\xf6\xd1\x3a\x46\x00\x23\x01\x20\x03\xf0\x03\x01\x02\x29\x09\xd0\x03\x29\x0a\xd0\x01\x29\x02\xd0\x14\x78\xf1\x5c\x08\xe0\x11\x78\x01\x31\x04\xe0\x11\x78\x02\x31\x01\xe0\x11\x78\x03\x31\xf4\x5c\x01\x33\xa1\x42\x18\xbf\x00\x20\x10\x2b\x02\xf1\x01\x02\xe3\xd1\x05\x9a\x2b\x68\x9a\x42\x01\xd0\xff\xf7\x0a\xef\x07\xb0\xf0\xbd
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;用radare2提取&#34;&gt;用radare2提取&lt;/h4&gt;
-
-&lt;p&gt;(才发现原来radare2 v2.0都已经发布了)&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;对r2语法不做讲解了, 网上也有了一些文章, 大家可以去看&lt;/code&gt;.  笔者本身也不是很熟悉~&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;username-l0phtg@L0phTg:armeabi-v7a$ r2 test
- -- Interpret radare2 scripts with &#39;. &amp;lt;path-to-script&amp;gt;&#39;. Similar to the bash source alias command.
-[0x000085a0]&amp;gt; aa
-[x] Analyze all flags starting with sym. and entry0 (aa)
-[0x000085a0]&amp;gt; afl~judge
-0x0000863c   17 126          sym.judge
-[0x000085a0]&amp;gt; 0x863c
-[0x0000863c]&amp;gt; pcp 126
-import struct
-buf = struct.pack (&amp;quot;126B&amp;quot;, *[
-0x1f,0x49,0xf0,0xb5,0x79,0x44,0x09,0x68,0x87,0xb0,0x07,
-0x46,0x0b,0x68,0x01,0xaa,0x0d,0x46,0x16,0x46,0x05,0x93,
-0x1b,0x4b,0x7b,0x44,0x03,0xf1,0x10,0x0e,0x18,0x68,0x08,
-0x33,0x53,0xf8,0x04,0x1c,0x73,0x45,0x14,0x46,0x03,0xc4,
-0x22,0x46,0xf6,0xd1,0x3a,0x46,0x00,0x23,0x01,0x20,0x03,
-0xf0,0x03,0x01,0x02,0x29,0x09,0xd0,0x03,0x29,0x0a,0xd0,
-0x01,0x29,0x02,0xd0,0x14,0x78,0xf1,0x5c,0x08,0xe0,0x11,
-0x78,0x01,0x31,0x04,0xe0,0x11,0x78,0x02,0x31,0x01,0xe0,
-0x11,0x78,0x03,0x31,0xf4,0x5c,0x01,0x33,0xa1,0x42,0x18,
-0xbf,0x00,0x20,0x10,0x2b,0x02,0xf1,0x01,0x02,0xe3,0xd1,
-0x05,0x9a,0x2b,0x68,0x9a,0x42,0x01,0xd0,0xff,0xf7,0x0a,
-0xef,0x07,0xb0,0xf0,0xbd])
-[0x0000863c]&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;了解capstone中对arm指令进行操作的函数-接口&#34;&gt;了解capstone中对arm指令进行操作的函数 &lt;code&gt;接口&lt;/code&gt;&lt;/h3&gt;
-
-&lt;h4 id=&#34;从源代码中提供的-example-来初步了解capstone提供给我们的可用的-接口-的使用&#34;&gt;从源代码中提供的&lt;code&gt;example&lt;/code&gt;, 来初步了解capstone提供给我们的可用的&lt;code&gt;接口&lt;/code&gt;的使用&lt;/h4&gt;
-
-&lt;p&gt;我们参考的主要是 &lt;code&gt;/bindings/python/test_arm.py&lt;/code&gt; 和 &lt;code&gt;/bindings/python/test_detail.py&lt;/code&gt;这两个文件:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;test_arm.py   &lt;code&gt;源代码过多, 这里就不全部都放上来了&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#!/usr/bin/env python
-
-# Capstone Python bindings, by Nguyen Anh Quynnh &amp;lt;aquynh@gmail.com&amp;gt;
-
-from __future__ import print_function
-from capstone import *
-from capstone.arm import *
-from xprint import to_hex, to_x, to_x_32
-
-ARM_CODE = b&amp;quot;\xED\xFF\xFF\xEB\x04\xe0\x2d\xe5\x00\x00\x00\x00\xe0\x83\x22\xe5\xf1\x02\x03\x0e\x00\x00\xa0\xe3\x02\x30\xc1\xe7\x00\x00\x53\xe3\x00\x02\x01\xf1\x05\x40\xd0\xe8\xf4\x80\x00\x00&amp;quot;
-THUMB_CODE = b&amp;quot;\x70\x47\x00\xf0\x10\xe8\xeb\x46\x83\xb0\xc9\x68\x1f\xb1\x30\xbf\xaf\xf3\x20\x84&amp;quot;
-
-all_tests = (
-        (CS_ARCH_ARM, CS_MODE_ARM, ARM_CODE, &amp;quot;ARM&amp;quot;, None),
-        (CS_ARCH_ARM, CS_MODE_THUMB, THUMB_CODE, &amp;quot;Thumb&amp;quot;, None),
-        )
-
-def print_insn_detail(insn):
-    # print address, mnemonic and operands
-    print(&amp;quot;0x%x:\t%s\t%s&amp;quot; % (insn.address, insn.mnemonic, insn.op_str))
-
-    # &amp;quot;data&amp;quot; instruction generated by SKIPDATA option has no detail
-    if insn.id == 0:
-        return
-
-    if len(insn.operands) &amp;gt; 0:
-        print(&amp;quot;\top_count: %u&amp;quot; % len(insn.operands))
-        c = 0
-        for i in insn.operands:
-            if i.type == ARM_OP_REG:
-                print(&amp;quot;\t\toperands[%u].type: REG = %s&amp;quot; % (c, insn.reg_name(i.reg)))
-            if i.type == ARM_OP_IMM:
-                print(&amp;quot;\t\toperands[%u].type: IMM = 0x%s&amp;quot; % (c, to_x_32(i.imm)))
-...............................
-            if i.type == ARM_OP_MEM:
-                print(&amp;quot;\t\toperands[%u].type: MEM&amp;quot; % c)
-                if i.mem.base != 0:
-                    print(&amp;quot;\t\t\toperands[%u].mem.base: REG = %s&amp;quot; \
-                        % (c, insn.reg_name(i.mem.base)))
-                if i.mem.index != 0:
-                    print(&amp;quot;\t\t\toperands[%u].mem.index: REG = %s&amp;quot; \
-                        % (c, insn.reg_name(i.mem.index)))
-                if i.mem.scale != 1:
-                    print(&amp;quot;\t\t\toperands[%u].mem.scale: %u&amp;quot; \
-                        % (c, i.mem.scale))
-                if i.mem.disp != 0:
-                    print(&amp;quot;\t\t\toperands[%u].mem.disp: 0x%s&amp;quot; \
-                        % (c, to_x_32(i.mem.disp)))
-...............................
-            c += 1
-
-    if insn.update_flags:
-        print(&amp;quot;\tUpdate-flags: True&amp;quot;)
-    if insn.writeback:
-        print(&amp;quot;\tWrite-back: True&amp;quot;)
-    if not insn.cc in [ARM_CC_AL, ARM_CC_INVALID]:
-        print(&amp;quot;\tCode condition: %u&amp;quot; % insn.cc)
-...............................
-
-### Test class Cs
-def test_class():
-
-    for (arch, mode, code, comment, syntax) in all_tests:
-        print(&amp;quot;*&amp;quot; * 16)
-        print(&amp;quot;Platform: %s&amp;quot; % comment)
-        print(&amp;quot;Code: %s&amp;quot; % to_hex(code))
-        print(&amp;quot;Disasm:&amp;quot;)
-
-        try:
-            md = Cs(arch, mode)
-            if syntax:
-                md.syntax = syntax
-            md.detail = True
-            for insn in md.disasm(code, 0x80001000):
-                print_insn_detail(insn)
-                print ()
-            print (&amp;quot;0x%x:\n&amp;quot; % (insn.address + insn.size))
-        except CsError as e:
-            print(&amp;quot;ERROR: %s&amp;quot; % e)
-
-
-if __name__ == &#39;__main__&#39;:
-    test_class()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;观察&lt;code&gt;test_arm.py&lt;/code&gt;, 我们可以看到的重要的一些操作有:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;md = Cs(arch, mode)
-for insn in md.disasm(code, 0x80001000):
-    print_insn_detail(insn)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;首先通过&lt;code&gt;md = Cs(arch, mode)&lt;/code&gt;来选择我们的架构, 然后调用&lt;code&gt;md.disasm&lt;/code&gt;返回 指令(insn) (这里Cs.disasm就是一个生成器, 参看py语法)
-然后打印&lt;code&gt;insn&lt;/code&gt;的细节(助记符, 操作数, 以及每个操作数的类型等)&lt;/p&gt;
-
-&lt;p&gt;打印的时候(这里我只列举了部分操作):
-- 我们可以发现 &lt;strong&gt;针对指令&lt;/strong&gt; 调用了 &lt;strong&gt;insn.address&lt;/strong&gt;, &lt;strong&gt;insn.mnemonic&lt;/strong&gt;,  &lt;strong&gt;insn.op_str&lt;/strong&gt;, &lt;strong&gt;insn.operands&lt;/strong&gt;, &lt;strong&gt;insn.update_flags&lt;/strong&gt;, &lt;strong&gt;insn.cc&lt;/strong&gt;&amp;hellip;..
-- 针对 &lt;strong&gt;操作数&lt;/strong&gt; 调用了 &lt;strong&gt;i.type&lt;/strong&gt;, &lt;strong&gt;i.reg&lt;/strong&gt;, &lt;strong&gt;i.mem&lt;/strong&gt;&amp;hellip;.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;test_detail.py (省略了一些和上面test_arm.py相似的代码)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;..........
-def print_detail(insn):
-    print(&amp;quot;0x%x:\t%s\t%s  // insn-ID: %u, insn-mnem: %s&amp;quot; \
-        % (insn.address, insn.mnemonic, insn.op_str, insn.id, \
-        insn.insn_name()))
-
-    # &amp;quot;data&amp;quot; instruction generated by SKIPDATA option has no detail
-    if insn.id == 0:
-        return
-
-    if len(insn.regs_read) &amp;gt; 0:
-        print(&amp;quot;\tImplicit registers read: &amp;quot;, end=&#39;&#39;),
-        for m in insn.regs_read:
-            print(&amp;quot;%s &amp;quot; % insn.reg_name(m), end=&#39;&#39;),
-        print()
-
-    if len(insn.regs_write) &amp;gt; 0:
-        print(&amp;quot;\tImplicit registers modified: &amp;quot;, end=&#39;&#39;),
-        for m in insn.regs_write:
-            print(&amp;quot;%s &amp;quot; % insn.reg_name(m), end=&#39;&#39;),
-        print()
-
-    if len(insn.groups) &amp;gt; 0:
-        print(&amp;quot;\tThis instruction belongs to groups: &amp;quot;, end=&#39;&#39;),
-        for m in insn.groups:
-            print(&amp;quot;%s &amp;quot; % insn.group_name(m), end=&#39;&#39;),
-        print()``
-        ....................................
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;操作很明显:
-&lt;strong&gt;insn.regs_read&lt;/strong&gt;, &lt;strong&gt;insn.regs_write&lt;/strong&gt;, &lt;strong&gt;insn.groups&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h4 id=&#34;观察源代码中的-bindings-python-capstone-init-py-来了解-cs-和-csinsn-的实现&#34;&gt;观察源代码中的&lt;code&gt;/bindings/python/capstone/__init__.py&lt;/code&gt;来了解&lt;strong&gt;CS&lt;/strong&gt; 和 &lt;strong&gt;CsInsn&lt;/strong&gt; 的实现:&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;class Cs(object):
-    def __init__(self, arch, mode):
-        ....
-        ....省略
-
-
-    # Disassemble binary &amp;amp; return disassembled instructions in CsInsn objects   反汇编二进制代码&amp;amp;&amp;amp; 返回反汇编的指令in CsInsn对象中
-    def disasm(self, code, offset, count=0):
-        all_insn = ctypes.POINTER(_cs_insn)()
-        &#39;&#39;&#39;if not _python2:
-            print(code)
-            code = code.encode()
-            print(code)&#39;&#39;&#39;
-        # Hack, unicorn&#39;s memory accessors give you back bytearrays, but they
-        # cause TypeErrors when you hand them into Capstone.
-        if isinstance(code, bytearray):
-            code = bytes(code)
-        res = _cs.cs_disasm(self.csh, code, len(code), offset, count, ctypes.byref(all_insn))*************
-        if res &amp;gt; 0:
-            try:
-                for i in range(res):
-                    yield CsInsn(self, all_insn[i])         ## all_info*********************************** 重点操作
-            finally:
-                _cs.cs_free(all_insn, res)
-        else:
-            status = _cs.cs_errno(self.csh)
-            if status != CS_ERR_OK:
-                raise CsError(status)
-            return
-            yield
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;通过观察&lt;strong&gt;Cs&lt;/strong&gt;这个类的实现, 我们发现了它是一个生成器, 一直返回&lt;strong&gt;CsInsn&lt;/strong&gt; 这个类的对象, 现在我们来看一下CsInsn 这个类的实现(从名字可以就可以看出来, 它保存了我们每条指令的性质)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;▼ CsInsn : class
-   +__init__ : function
-   +id : function           @property
-   +address : function      @property // 返回 指令的地址
-   +size : function         @property // 返回 大小
-   +bytes : function        @property // 返回 字节码 []
-   +mnemonic : function     @property // 返回 指令名称(助记符)
-   +op_str : function       @property // 返回 操作string
-   +regs_read : function    @property // 返回 会被*隐式*读的寄存器[]
-   +regs_write : function   @property // 返回 会被*隐式*写的寄存器[]
-   +groups : function       @property // 指令的group
-   -__gen_detail : function
-   -__getattr__ : function
-   +errno : function
-   +reg_name : function   (self, reg_id)  // 返回寄存器的名称
-   +insn_name : function                  // 返回指令名称, 不同于mnemonic
-   +group_name : function
-   +group : function
-   +reg_read : function   (self, reg_id)  // 识别该寄存器会被隐式read
-   +reg_write : function  (self, reg_id)  // 识别该寄存器是否会被隐式 write
-   +op_count : function
-   +op_find : function
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这里我罗列了一下它的所有操作,  我们下面写代码的时候会用到.&lt;/p&gt;
-
-&lt;h4 id=&#34;这里我们先简单写一个-py-来对上面的部分函数进行应用&#34;&gt;这里我们先简单写一个.py, 来对上面的部分函数进行应用&lt;/h4&gt;
-
-&lt;p&gt;我们可以先看一下输出结果:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;l0phtg@l0phtg-PC:~/blogTest$ python test.py 
-0x1000: push    {r4, r6, r7, lr}
-id:426  groups:[150, 151]   size:2  
-bytes:  0xd0 0xb5 
-    op_count: 4
-        operands[0].type: REG = r4
-        operands[1].type: REG = r6
-        operands[2].type: REG = r7
-        operands[3].type: REG = lr
-
-0x1002: pop {r4, r6, r7, pc}
-id:425  groups:[150, 151]   size:2  
-bytes:  0xd0 0xbd 
-    op_count: 4
-        operands[0].type: REG = r4
-        operands[1].type: REG = r6
-        operands[2].type: REG = r7
-        operands[3].type: REG = pc
-
-0x1004: beq #0x100e
-id:17   groups:[150, 151, 1]    size:2  
-bytes:  0x3 0xd0 
-    op_count: 1
-        operands[0].type: IMM = 0x100e
-
-0x1006: movs    r0, #0
-id:80   groups:[150, 151]   size:2  
-bytes:  0x0 0x20 
-    op_count: 2
-        operands[0].type: REG = r0
-        operands[1].type: IMM = 0x0
-    Update-flags: True
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;每条指令的指令名称, 指令操作数, 操作数类型, 该指令是否更新flag都显示了出来.&lt;/p&gt;
-
-&lt;p&gt;下面的代码(参考test_arm.py的实现)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#!/usr/bin/env python2
-#-*- coding:utf-8 -*-
-
-import sys
-from capstone import *
-from capstone.arm import *
-from xprint import to_hex, to_x, to_x_32
-
-my_thumb_code = b&amp;quot;\xd0\xb5\xd0\xbd\x03\xd0\x00\x20&amp;quot;
-
-
-def print_insn_detail(insn):
-    print(&amp;quot;0x%x:\t%s\t%s&amp;quot; % (insn.address, insn.mnemonic, insn.op_str))
-    print(&amp;quot;id:%d\tgroups:%s\tsize:%x\t&amp;quot; % (insn.id, insn.groups, insn.size))
-    sys.stdout.write(&#39;bytes:\t&#39;)
-    for i in insn.bytes:
-        sys.stdout.write(&amp;quot;%s &amp;quot; % hex(i))
-    sys.stdout.write(&#39;\n&#39;)
-
-    if len(insn.operands) &amp;gt; 0:
-        print(&amp;quot;\top_count: %u&amp;quot; % len(insn.operands))
-        c = 0
-        for i in insn.operands:
-            if i.type == ARM_OP_REG:
-                print(&amp;quot;\t\toperands[%u].type: REG = %s&amp;quot; % (c, insn.reg_name(i.reg)))
-            if i.type == ARM_OP_IMM:
-                print(&amp;quot;\t\toperands[%u].type: IMM = 0x%s&amp;quot; % (c, to_x_32(i.imm)))
-            if i.type == ARM_OP_PIMM:
-                print(&amp;quot;\t\toperands[%u].type: P-IMM = %u&amp;quot; % (c, i.imm))
-            if i.type == ARM_OP_CIMM:
-                print(&amp;quot;\t\toperands[%u].type: C-IMM = %u&amp;quot; % (c, i.imm))
-            if i.type == ARM_OP_FP:
-                print(&amp;quot;\t\toperands[%u].type: FP = %f&amp;quot; % (c, i.fp))
-            if i.type == ARM_OP_SYSREG:
-                print(&amp;quot;\t\toperands[%u].type: SYSREG = %u&amp;quot; % (c, i.reg))
-            if i.type == ARM_OP_SETEND:
-                if i.setend == ARM_SETEND_BE:
-                    print(&amp;quot;\t\toperands[%u].type: SETEND = be&amp;quot; % c)
-                else:
-                    print(&amp;quot;\t\toperands[%u].type: SETEND = le&amp;quot; % c)
-            if i.type == ARM_OP_MEM:
-                print(&amp;quot;\t\toperands[%u].type: MEM&amp;quot; % c)
-                if i.mem.base != 0:
-                    print(&amp;quot;\t\t\toperands[%u].mem.base: REG = %s&amp;quot; \
-                        % (c, insn.reg_name(i.mem.base)))
-                if i.mem.index != 0:
-                    print(&amp;quot;\t\t\toperands[%u].mem.index: REG = %s&amp;quot; \
-                        % (c, insn.reg_name(i.mem.index)))
-                if i.mem.scale != 1:
-                    print(&amp;quot;\t\t\toperands[%u].mem.scale: %u&amp;quot; \
-                        % (c, i.mem.scale))
-                if i.mem.disp != 0:
-                    print(&amp;quot;\t\t\toperands[%u].mem.disp: 0x%s&amp;quot; \
-                        % (c, to_x_32(i.mem.disp)))
-
-            if i.shift.type != ARM_SFT_INVALID and i.shift.value:
-                print(&amp;quot;\t\t\tShift: %u = %u&amp;quot; \
-                    % (i.shift.type, i.shift.value))
-            if i.vector_index != -1:
-                print(&amp;quot;\t\t\toperands[%u].vector_index = %u&amp;quot; %(c, i.vector_index))
-            if i.subtracted:
-                print(&amp;quot;\t\t\toperands[%u].subtracted = True&amp;quot; %c)
-
-            c += 1
-
-    if insn.update_flags:
-        print(&amp;quot;\tUpdate-flags: True&amp;quot;)
-
-def test_class():
-
-    md = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
-    md.detail=True
-    for insn in md.disasm(my_thumb_code, 0x1000):
-        print_insn_detail(insn)
-        sys.stdout.write(&#39;\n&#39;)
-
-if __name__ == &#39;__main__&#39;:
-    test_class()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;了解-thumb-的指令编码&#34;&gt;了解 thumb 的指令编码:&lt;/h3&gt;
-
-&lt;p&gt;在前面环境搭建的时候, 我向大家推荐了arm的一个文档, 本节主要针对该文档进行分析.&lt;/p&gt;
-
-&lt;p&gt;首先定位到第&lt;code&gt;F3&lt;/code&gt;章节, 观看目录:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Chapter F3
-
-T32 Base Instruction Set Encoding
-
-This chapter introduces the T32 instruction set and describes how it uses the ARM programmers’ model. It contains
-
-the following sections:
-
-
-• T32 instruction set encoding on page F3-2432.
-
-• 16-bit T32 instruction encoding on page F3-2435.
-
-• 32-bit T32 instruction encoding on page F3-2442.
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;我们在此分析的是&lt;strong&gt;16-bit T32 instruction&lt;/strong&gt;, 再次定位到&lt;code&gt;F3-2435&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/thumb-vmp/thumb16.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;</description>
       
     </item>
     
