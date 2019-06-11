@@ -7,10 +7,25 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Tue, 11 Jun 2019 16:32:00 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 11 Jun 2019 21:53:54 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Kaleidoscope：Extending the Language：User Defined Operators</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</link>
+      <pubDate>Tue, 11 Jun 2019 21:53:54 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</guid>
+      <description>&lt;p&gt;发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。&lt;/p&gt;
+
+&lt;p&gt;扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。&lt;/p&gt;
+
+&lt;p&gt;本文继续完善中&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>信号与系统-学习笔记</title>
@@ -358,21 +373,6 @@ https://developers.google.com/android/drivers
       
       <guid>https://l0phtg.github.io/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/</guid>
       <description>&lt;p&gt;分析开源的inlineHook代码, 总结inlineHook的原理与实现.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>装机日志-deepin</title>
-      <link>https://l0phtg.github.io/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</link>
-      <pubDate>Thu, 28 Dec 2017 11:47:58 +0000</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/%E8%A3%85%E6%9C%BA%E6%97%A5%E5%BF%97-deepin/</guid>
-      <description>&lt;p&gt;17年使用了一段时间deepin系统, 这里简单记录一些使用心得(现在已转ubuntu.&lt;/p&gt;
-
-&lt;p&gt;主要就是&lt;strong&gt;装机的过程&lt;/strong&gt;, 以及&lt;strong&gt;装机后的效果展示&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/deepin/desktop.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>

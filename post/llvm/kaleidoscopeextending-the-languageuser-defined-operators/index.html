@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Kaleidoscope：Extending the Language：User Defined Operators - L0phTg&#39;s Blog</title>
+  <link rel="alternate" hreflang="zh-cn" href="https://l0phtg.github.io/" />
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
+本文继续完善中&amp;hellip;
+
+" />
+
+  <meta name="keywords" content="Hugo, theme, jane" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
+<link rel="stylesheet" href="/css/mermaid.css">
+
+
+<meta property="og:title" content="Kaleidoscope：Extending the Language：User Defined Operators" />
+<meta property="og:description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+
+扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
+
+本文继续完善中&hellip;
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/" /><meta property="article:published_time" content="2019-06-11T21:53:54&#43;08:00"/>
+<meta property="article:modified_time" content="2019-06-11T22:02:03&#43;08:00"/>
+<meta itemprop="name" content="Kaleidoscope：Extending the Language：User Defined Operators">
+<meta itemprop="description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+
+扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
+
+本文继续完善中&hellip;
+
+">
+
+
+<meta itemprop="datePublished" content="2019-06-11T21:53:54&#43;08:00" />
+<meta itemprop="dateModified" content="2019-06-11T21:53:54&#43;08:00" />
+<meta itemprop="wordCount" content="4900">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kaleidoscope：Extending the Language：User Defined Operators"/>
+<meta name="twitter:description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+
+扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
+
+本文继续完善中&hellip;
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a><a href="https://gohugo.io">
+        <li class="mobile-menu-item">external-link</li>
+      </a>
+  </ul>
+</nav>
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg&#39;s Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+  </ul>
+</nav>
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Kaleidoscope：Extending the Language：User Defined Operators</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-06-11 </span>
+        <div class="post-category">
+            
+              <a href="/categories/llvm/"> llvm </a>
+            
+          </div>
+        <span class="more-meta"> 约 4900 字 </span>
+        <span class="more-meta"> 预计阅读 10 分钟 </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#6-1-第六章介绍">6.1 第六章介绍</a></li>
+<li><a href="#6-2-用户定义运算符-思路">6.2 用户定义运算符： 思路</a></li>
+<li><a href="#6-3-用户定义的二元运算符">6.3 用户定义的二元运算符</a></li>
+<li><a href="#6-4-用户定义的一元运算符">6.4 用户定义的一元运算符</a></li>
+<li><a href="#6-5-kicking-the-tires">6.5 Kicking the Tires</a></li>
+<li><a href="#6-6-full-code-listing">6.6 Full Code Listing</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。</p>
+
+<p>扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。</p>
+
+<p>本文继续完善中&hellip;</p>
+
+<p></p>
+
+<h1 id="6-1-第六章介绍">6.1 第六章介绍</h1>
+
+<p>欢迎来到第六章。在我们的教程中，我们现在拥有一个功能完备的语言，它非常简单，但也非常有用。然而，它仍然存在一个大问题。我们的语言没有很多有用的运算符（例如除法，逻辑否定，甚至除了小于以外的任何比较运算符）。</p>
+
+<p>本章对简单而漂亮的Kaleidoscope语言添加用户定义的运算符，但是我们会稍微偏离主题。这种偏题会导致我们的语言变得有些丑陋，但是会让我们的语言很强大。创建自己语言的好处是：你可以决定什么是好的或者坏的。在本教程中，我们假设可以使用它作为一种展示一些有趣的解析技术的方式。</p>
+
+<p>在本教程的最后，我们将会运行一个Kaleidoscope 应用 that <a href="http://llvm.org/docs/tutorial/LangImpl06.html#kicking-the-tires">renders the Mandelbrot set</a>（渲染Mandelbrot集合）。我们将会通过Kaleidoscope来构建该例子，并且来展示Kaleidoscope的特性，</p>
+
+<h1 id="6-2-用户定义运算符-思路">6.2 用户定义运算符： 思路</h1>
+
+<p>我们将会添加“<strong>运算符重载</strong>”功能到Kaleidoscope语言中，它的设计将比C++中的设计更加通用。在C++中，你只能重新定义已经存在的运算符：你不能人工改变语法，并引入新的运算符，改变优先级等。在本章，我们将在Kaleidoscope语言中添加此功能，这可以用户就可以使用更多自定义的运算符。</p>
+
+<p>我们现在介绍用于定义运算符的目的是<strong>展示使用手写解析器的强大功能和灵活性</strong>。到目前为止，我们实现的解析器在大部分对于表达式的语法和操作符优先级解析中都使用到了递归下降。可以阅读<a href="http://llvm.org/docs/tutorial/LangImpl02.html">第二章</a>了解更多相关的内容。通过使用运算符优先级解析，允许程序员在语法中引入新的运算符是相当容易的：程序在JIT运行时，语法是动态可扩展的。</p>
+
+<p>我们将会添加两个功能：可以编程的一元运算符(unary operators)（现在，Kaleidoscope还没有一元运算符）以及二元运算符(binary operators)。</p>
+
+<p>一个例子：</p>
+
+<pre><code class="language-python"># Logical unary not.
+def unary!(v)
+  if v then
+    0
+  else
+    1;
+
+# Define &gt; with the same precedence as &lt;.
+def binary&gt; 10 (LHS RHS)
+  RHS &lt; LHS;
+
+# Binary &quot;logical or&quot;, (note that it does not &quot;short circuit&quot;)
+def binary| 5 (LHS RHS)
+  if LHS then
+    1
+  else if RHS then
+    1
+  else
+    0;
+
+# Define = with slightly lower precedence than relationals.
+def binary= 9 (LHS RHS)
+  !(LHS &lt; RHS | LHS &gt; RHS);
+</code></pre>
+
+<p>许多语言都希望能够<strong>使用该语言本身来实现其标准库</strong>。在Kaleidoscope中，我们可以在库中实现该语言的重要部分！</p>
+
+<p>我们将这些功能的实现分解为两个部分：实现对<strong>用户定义的二元运算符的支持</strong>和<strong>添加一元运算符</strong>。</p>
+
+<h1 id="6-3-用户定义的二元运算符">6.3 用户定义的二元运算符</h1>
+
+<p>使用我们目前的框架来添加对用户定义的二元运算符的支持非常简单。我们将首先添加对一元/二元关键字：</p>
+
+<pre><code class="language-c++">enum Token {
+  ...
+  // operators
+  tok_binary = -11,
+  tok_unary = -12
+};
+...
+static int gettok() {
+...
+    if (IdentifierStr == &quot;for&quot;)
+      return tok_for;
+    if (IdentifierStr == &quot;in&quot;)
+      return tok_in;
+    if (IdentifierStr == &quot;binary&quot;)
+      return tok_binary;
+    if (IdentifierStr == &quot;unary&quot;)
+      return tok_unary;
+    return tok_identifier;
+</code></pre>
+
+<p>这只是添加了对一元和二元关键字的<strong>词法支持</strong>。当前的AST的优点是：我们通过使用该二元运算符操作码的ASCI码来表示具有范型的二元运算符。对于我们扩展的操作符来说，我们将使用相同的表示，所以我们不需要任何新的AST或者解析器支持。</p>
+
+<p>在另一方面，我们必须保证在函数定义时，可以正确解析和表示这些新的运算符的定义，例如&rdquo;def binary | 5&rdquo;。到目前为止，我们的语法中，<strong>函数定义时的名字被解析作为申明</strong>，并且会进入到<strong>PrototypeAST</strong> AST 节点。为了将我们新定义的运算符表示为申明，我们必须扩展<strong>Prototype</strong> AST 节点：</p>
+
+<pre><code class="language-c++">/// PrototypeAST - This class represents the &quot;prototype&quot; for a function,
+/// which captures its argument names as well as if it is an operator.
+class PrototypeAST {
+  std::string Name;
+  std::vector&lt;std::string&gt; Args;
+  bool IsOperator;      // 是否是运算符
+  unsigned Precedence;  // Precedence if a binary op. 运算符优先级
+
+public:
+  PrototypeAST(const std::string &amp;name, std::vector&lt;std::string&gt; Args,
+               bool IsOperator = false, unsigned Prec = 0)
+  : Name(name), Args(std::move(Args)), IsOperator(IsOperator),
+    Precedence(Prec) {}
+
+  Function *codegen();
+  const std::string &amp;getName() const { return Name; }
+
+  bool isUnaryOp() const { return IsOperator &amp;&amp; Args.size() == 1; }
+  bool isBinaryOp() const { return IsOperator &amp;&amp; Args.size() == 2; }
+
+  char getOperatorName() const {
+    assert(isUnaryOp() || isBinaryOp());
+    return Name[Name.size() - 1];
+  }
+
+  unsigned getBinaryPrecedence() const { return Precedence; }
+};
+</code></pre>
+
+<p>基本上，除了要知道一个申明的名字之外，我们现在还要跟踪<strong>它是否为一个运算符</strong>，并且如果它是的话，<strong>运算符的优先级别是什么</strong>。优先级仅仅被用于二元运算符（正如你将在下面看到的，它对一元运算符不适用）。现在我们有了一种方法来表示对用户定义运算符的声明，我们现在来解析它：</p>
+
+<pre><code class="language-c++">/// prototype
+///   ::= id '(' id* ')'
+///   ::= binary LETTER number? (id, id)
+static std::unique_ptr&lt;PrototypeAST&gt; ParsePrototype() {
+  std::string FnName;
+
+  unsigned Kind = 0;  // 0 = identifier, 1 = unary, 2 = binary.
+  unsigned BinaryPrecedence = 30;
+
+  switch (CurTok) {
+  default:
+    return LogErrorP(&quot;Expected function name in prototype&quot;);
+  case tok_identifier:
+    FnName = IdentifierStr;
+    Kind = 0;
+    getNextToken();
+    break;
+  case tok_binary:
+    getNextToken();
+    if (!isascii(CurTok))
+      return LogErrorP(&quot;Expected binary operator&quot;);
+    FnName = &quot;binary&quot;;			// 为二元运算符设置FnName = &quot;binary&quot;+CurTok
+    FnName += (char)CurTok;
+    Kind = 2;
+    getNextToken();
+
+    // Read the precedence if present.
+    if (CurTok == tok_number) {
+      if (NumVal &lt; 1 || NumVal &gt; 100)
+        return LogErrorP(&quot;Invalid precedence: must be 1..100&quot;);
+      BinaryPrecedence = (unsigned)NumVal;
+      getNextToken();
+    }
+    break;
+  }
+
+  if (CurTok != '(')
+    return LogErrorP(&quot;Expected '(' in prototype&quot;);
+
+  std::vector&lt;std::string&gt; ArgNames;
+  while (getNextToken() == tok_identifier)
+    ArgNames.push_back(IdentifierStr);
+  if (CurTok != ')')
+    return LogErrorP(&quot;Expected ')' in prototype&quot;);
+
+  // success.
+  getNextToken();  // eat ')'.
+
+  // Verify right number of names for operator.
+  if (Kind &amp;&amp; ArgNames.size() != Kind)
+    return LogErrorP(&quot;Invalid number of operands for operator&quot;);
+
+  return llvm::make_unique&lt;PrototypeAST&gt;(FnName, std::move(ArgNames), Kind != 0,
+                                         BinaryPrecedence);
+}
+</code></pre>
+
+<p>上面的代码都非常简单，我们之前已经看到了很多类似的代码。关于上面的代码一个有趣的部分是为二元运算符设计FnName的那几行。这位新定义的“@”运算符构建了像“binary@”这样的名称。它利用了LLVM符号表中的符号表可以被允许包含任何字符的事实，甚至可以包括嵌入的nul字符。</p>
+
+<p>下一个有趣的事情是为这些二元运算符<strong>添加Codegen支持</strong>（产生LLVM IR的代码）。通过使用我们目前的代码框架，在已经有了二元操作符节点后，实现Codegen只需要简单添加一个case。</p>
+
+<pre><code class="language-c++">Value *BinaryExprAST::codegen() {
+  Value *L = LHS-&gt;codegen();
+  Value *R = RHS-&gt;codegen();
+  if (!L || !R)
+    return nullptr;
+
+  switch (Op) {
+  case '+':
+    return Builder.CreateFAdd(L, R, &quot;addtmp&quot;);
+  case '-':
+    return Builder.CreateFSub(L, R, &quot;subtmp&quot;);
+  case '*':
+    return Builder.CreateFMul(L, R, &quot;multmp&quot;);
+  case '&lt;':
+    L = Builder.CreateFCmpULT(L, R, &quot;cmptmp&quot;);
+    // Convert bool 0/1 to double 0.0 or 1.0
+    return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext),
+                                &quot;booltmp&quot;);
+  default:
+    break;
+  }
+
+  // If it wasn't a builtin binary operator, it must be a user defined one. Emit
+  // a call to it.
+  // 如果它不是一个内建的二元操作符，它一定是用户定义的二元操作符。Emit a call to it.
+  Function *F = getFunction(std::string(&quot;binary&quot;) + Op);
+  assert(F &amp;&amp; &quot;binary operator not found!&quot;);
+
+  Value *Ops[2] = { L, R };
+  return Builder.CreateCall(F, Ops, &quot;binop&quot;);
+}
+</code></pre>
+
+<p>正如上面看到的，添加的代码实际上非常简单。它只是<strong>在符号表中查找合适的运算符并且生成对它的函数调用</strong>。由于用户定义的运算符只是被作为普通函数构建（因为“申明”就是有正确名称的函数）。</p>
+
+<p>我们最好还需要添加的一段代码，是<strong>一段顶级膜法</strong>（hhhh）：</p>
+
+<pre><code class="language-c++">Function *FunctionAST::codegen() {
+  // Transfer ownership of the prototype to the FunctionProtos map, but keep a
+  // reference to it for use below.
+  // 将申明的所有权转移到了FunctionProtos映射中，但是会保留一个引用以便于之后调用。
+  auto &amp;P = *Proto;
+  FunctionProtos[Proto-&gt;getName()] = std::move(Proto);
+  Function *TheFunction = getFunction(P.getName());
+  if (!TheFunction)
+    return nullptr;
+
+  // If this is an operator, install it.、
+  // 如果当前正在解析的函数是一个运算符函数，install it.
+  if (P.isBinaryOp())
+    BinopPrecedence[P.getOperatorName()] = P.getBinaryPrecedence(); // 赋予它优先级
+
+  // Create a new basic block to start insertion into.
+  BasicBlock *BB = BasicBlock::Create(TheContext, &quot;entry&quot;, TheFunction);
+  ...
+</code></pre>
+
+<p>基本上，在一个函数codegen之前，如果它是一个用户定义的运算符，我们会在优先级表中注册它。这会允许我们使用已经有的二元运算符解析逻辑来处理它。由于我们正在研究一个完全通用的运算符优先级解析器，所以我们需要做的就是“扩展语法”。</p>
+
+<p>现在我们有了有用的用户定义的二元运算符。我们在之前的框架上添加了一些逻辑来支持这个功能。</p>
+
+<p>添加一元运算符是更具有挑战性的，因为我们还没有任何框架 &ndash; let&rsquo;s see what it takes.</p>
+
+<h1 id="6-4-用户定义的一元运算符">6.4 用户定义的一元运算符</h1>
+
+<p>由于目前我们的Kaleidoscope语言中还不支持一元运算符，所以为了支持该功能，我们必须要从头开始做。在之前的介绍中，我们已经在词法分析器中为一元运算符添加了&rdquo;unary&rdquo;关键字支持。除此之外，我们还需要<strong>创建AST节点</strong>：</p>
+
+<pre><code class="language-c++">/// UnaryExprAST - Expression class for a unary operator.
+class UnaryExprAST : public ExprAST {
+  char Opcode;
+  std::unique_ptr&lt;ExprAST&gt; Operand;
+
+public:
+  UnaryExprAST(char Opcode, std::unique_ptr&lt;ExprAST&gt; Operand)
+    : Opcode(Opcode), Operand(std::move(Operand)) {}
+
+  Value *codegen() override;
+};
+</code></pre>
+
+<p>到现在为止，AST节点的意义是非常简单明了的。除了一元运算符只有一个子节点之外（二元运算符有两个子节点），它与二元运算符的AST节点基本相同。有了AST节点之后，我们需要<strong>添加解析逻辑</strong>。解析一元运算符实现起来是非常简单的：<strong>我们将添加一个新的函数来支持该功能</strong>：</p>
+
+<pre><code class="language-c++">/// unary
+///   ::= primary
+///   ::= '!' unary
+static std::unique_ptr&lt;ExprAST&gt; ParseUnary() {
+  // If the current token is not an operator, it must be a primary expr.
+  // 如果当前处理的token不是运算符，那它就一定是一个主表达式。
+  if (!isascii(CurTok) || CurTok == '(' || CurTok == ',')
+    return ParsePrimary();
+
+  // If this is a unary operator, read it.
+  // 如果它是一个一元运算符，read it。
+  int Opc = CurTok;
+  getNextToken();
+  if (auto Operand = ParseUnary())
+    return llvm::make_unique&lt;UnaryExprAST&gt;(Opc, std::move(Operand));
+  return nullptr;
+}
+</code></pre>
+
+<p>在这里我们添加的语法是非常简单的。当解析主运算符时，如果我们看到了一个一元运算符，我们将会将运算符作为前缀使用，并且将剩余的部分解析为另一个一元运算符。这允许我们处理多个一元运算符（例如“!!x”）。请注意，一元运算符不能像二元运算符那样具有模糊的解析，所以不需要优先级信息。</p>
+
+<p>这个函数的问题是：我们需要在某个地方调用<strong>ParseUnary</strong>。为了做这个，我们改变以前的 <strong>ParsePrimay</strong> 调用者来调用 <strong>ParseUnary</strong> ：</p>
+
+<pre><code class="language-c++">/// binoprhs
+///   ::= ('+' unary)*
+static std::unique_ptr&lt;ExprAST&gt; ParseBinOpRHS(int ExprPrec,
+                                              std::unique_ptr&lt;ExprAST&gt; LHS) {
+  ...
+    // Parse the unary expression after the binary operator.
+    // 在解析二元操作符后解析一元表达式
+    auto RHS = ParseUnary();
+    if (!RHS)
+      return nullptr;
+  ...
+}
+/// expression
+///   ::= unary binoprhs
+///
+static std::unique_ptr&lt;ExprAST&gt; ParseExpression() {
+  auto LHS = ParseUnary();
+  if (!LHS)
+    return nullptr;
+
+  return ParseBinOpRHS(0, std::move(LHS));
+}
+</code></pre>
+
+<p>有了这两个改变之后，我们现在能够解析一元运算符并为他们构建AST。下一步，我们需要为申明添加解析器支持，来解析一元运算符的申明。我们对上面的二元运算符代码进行扩展：</p>
+
+<pre><code class="language-c++">/// prototype
+///   ::= id '(' id* ')'
+///   ::= binary LETTER number? (id, id)
+///   ::= unary LETTER (id)
+static std::unique_ptr&lt;PrototypeAST&gt; ParsePrototype() {
+  std::string FnName;
+
+  unsigned Kind = 0;  // 0 = identifier, 1 = unary, 2 = binary.
+  unsigned BinaryPrecedence = 30;
+
+  switch (CurTok) {
+  default:
+    return LogErrorP(&quot;Expected function name in prototype&quot;);
+  case tok_identifier:
+    FnName = IdentifierStr;
+    Kind = 0;
+    getNextToken();
+    break;
+  case tok_unary:
+    getNextToken();
+    if (!isascii(CurTok))
+      return LogErrorP(&quot;Expected unary operator&quot;);
+    FnName = &quot;unary&quot;;
+    FnName += (char)CurTok;
+    Kind = 1;
+    getNextToken();
+    break;
+  case tok_binary:
+    ...
+</code></pre>
+
+<p>和二元运算符一样，我们将一元运算符命名为包含operator+字符的名称。这有助于我们进行代码产生。Speaking of，我们需要添加的最后一部分是<strong>对一元运算符添加codegen支持</strong>。它像下面这样：</p>
+
+<pre><code class="language-c++">Value *UnaryExprAST::codegen() {
+  Value *OperandV = Operand-&gt;codegen();
+  if (!OperandV)
+    return nullptr;
+
+  Function *F = getFunction(std::string(&quot;unary&quot;) + Opcode);
+  if (!F)
+    return LogErrorV(&quot;Unknown unary operator&quot;);
+
+  return Builder.CreateCall(F, OperandV, &quot;unop&quot;);
+}
+</code></pre>
+
+<p>此代码与二进制运算符的代码类似，但是更简单。它更简单，主要是因为它不需要处理任何预定义的运算符。</p>
+
+<h1 id="6-5-kicking-the-tires">6.5 Kicking the Tires</h1>
+
+<p>听起来是难以置信的，但是在有了最后几章中介绍的简单的扩展之后，Kaleidoscope就会成长为一个真正的语言。之后，我们可以使用Kaleidoscope做大量有趣的事情，包括I/O，数学，和一堆其它的东西。例如，我们现在可以添加一个排序运算符（printd 被定义为打印出指定的值和换行符）：</p>
+
+<pre><code class="language-c++">ready&gt; extern printd(x);
+Read extern:
+declare double @printd(double)
+
+ready&gt; def binary : 1 (x y) 0;  # Low-precedence operator that ignores operands.
+...
+ready&gt; printd(123) : printd(456) : printd(789);
+123.000000
+456.000000
+789.000000
+Evaluated to 0.000000
+</code></pre>
+
+<p>我们可以定义一堆其它的“primitive”的操作，例如：</p>
+
+<pre><code class="language-python"># Logical unary not.
+def unary!(v)
+  if v then
+    0
+  else
+    1;
+
+# Unary negate.
+def unary-(v)
+  0-v;
+
+# Define &gt; with the same precedence as &lt;.
+def binary&gt; 10 (LHS RHS)
+  RHS &lt; LHS;
+
+# Binary logical or, which does not short circuit.
+def binary| 5 (LHS RHS)
+  if LHS then
+    1
+  else if RHS then
+    1
+  else
+    0;
+
+# Binary logical and, which does not short circuit.
+def binary&amp; 6 (LHS RHS)
+  if !LHS then
+    0
+  else
+    !!RHS;
+
+# Define = with slightly lower precedence than relationals.
+def binary = 9 (LHS RHS)
+  !(LHS &lt; RHS | LHS &gt; RHS);
+
+# Define ':' for sequencing: as a low-precedence operator that ignores operands
+# and just returns the RHS.
+def binary : 1 (x y) y;
+</code></pre>
+
+<p>有了之前的 if/then/else 支持，我们也可以为 I/O 定义一些有趣的函数。例如，下面打印出一个字符 whose &ldquo;density&rdquo; 反映了传入的值： 值越低，字符越密集。</p>
+
+<pre><code class="language-bash">ready&gt; extern putchard(char);
+...
+ready&gt; def printdensity(d)
+  if d &gt; 8 then
+    putchard(32)  # ' '
+  else if d &gt; 4 then
+    putchard(46)  # '.'
+  else if d &gt; 2 then
+    putchard(43)  # '+'
+  else
+    putchard(42); # '*'
+...
+ready&gt; printdensity(1): printdensity(2): printdensity(3):
+       printdensity(4): printdensity(5): printdensity(9):
+       putchard(10);
+**++.
+Evaluated to 0.000000
+</code></pre>
+
+<p>基于这些简单的操作，我们可以开始定义一些有趣的东西。例如，这儿有一个函数，它确定复平面中某个函数发散所需的迭代次数：</p>
+
+<pre><code class="language-python"># Determine whether the specific location diverges.
+# Solve for z = z^2 + c in the complex plane.
+def mandelconverger(real imag iters creal cimag)
+  if iters &gt; 255 | (real*real + imag*imag &gt; 4) then
+    iters
+  else
+    mandelconverger(real*real - imag*imag + creal,
+                    2*real*imag + cimag,
+                    iters+1, creal, cimag);
+
+# Return the number of iterations required for the iteration to escape
+def mandelconverge(real imag)
+  mandelconverger(real, imag, 0, real, imag);
+</code></pre>
+
+<p>这个“z = z2 + c”函数是一个漂亮的little creature that 是计算 Mandelbrot 集的基础。我们的 mandelconverge 函数返回迭代次数 that 它需要一个复杂的 orbit to escape，saturating to 255。这本身不是一个有用的函数，但是如果你在二维平面上绘制它的值，你能够看到 Mandelbrot set。由于我们仅限于使用 putchard，我们惊人的图形输出是有限的，但是我们可以 whip together something 使用上面的密度 plotter：</p>
+
+<pre><code class="language-python"># Compute and plot the mandelbrot set with the specified 2 dimensional range
+# info.
+def mandelhelp(xmin xmax xstep   ymin ymax ystep)
+  for y = ymin, y &lt; ymax, ystep in (
+    (for x = xmin, x &lt; xmax, xstep in
+       printdensity(mandelconverge(x,y)))
+    : putchard(10)
+  )
+
+# mandel - This is a convenient helper function for plotting the mandelbrot set
+# from the specified position with the specified Magnification.
+def mandel(realstart imagstart realmag imagmag)
+  mandelhelp(realstart, realstart+realmag*78, realmag,
+             imagstart, imagstart+imagmag*40, imagmag);
+</code></pre>
+
+<p>有了这个，我们可以尝试 plotting out the mandelbrot set! Lets try it out:</p>
+
+<pre><code>
+</code></pre>
+
+<p>在此刻，你可能开始意识到 Kaleidoscope 是一个真实的并且强大的语言。It may not be self-similar：），但是它可以被用来绘制那些东西！</p>
+
+<p>我们现在总结本章。我们已经成功的扩充了我们的语言，在库中增加了扩展语言的能力，并且我们已经展示了如何在Kaleidoscope中构建一个简单有趣的 end-user 应用 in Kaleidoscope。在此刻，Kaleidoscope 可以构建各种功能性的应用并且能够调用具有 side-effects 的函数，但是它实际上无法定义和改变变量本身。</p>
+
+<p>引人注目的是，variable mutation 在许多语言中是一个重要的特性，并且如何添加对mutable variables且没有添加一个“SSA construction” phase 在你的前端，是不明显的。在下一章节，我们将会描述如何在你的前端，在不构建SSA的情况下添加 variable mutation。</p>
+
+<h1 id="6-6-full-code-listing">6.6 Full Code Listing</h1>
+
+<p><a href="http://llvm.org/docs/tutorial/LangImpl06.html#full-code-listing">http://llvm.org/docs/tutorial/LangImpl06.html#full-code-listing</a></p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-06-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">原创文章，如需转载请注明文章作者和出处。谢谢！</span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/class/%E4%BF%A1%E5%8F%B7%E4%B8%8E%E7%B3%BB%E7%BB%9F-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">信号与系统-学习笔记</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+    
+  </article>
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener" type="application/rss+xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2018 -
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">l0phtg</span></span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+<script src="/js/highlight.pack.js"></script>
+
+<script src="/js/mermaid.min.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
+
+</body>
+</html>

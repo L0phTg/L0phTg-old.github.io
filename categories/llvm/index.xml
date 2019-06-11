@@ -7,10 +7,25 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Mon, 15 Apr 2019 17:58:13 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 11 Jun 2019 21:53:54 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/categories/llvm/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Kaleidoscope：Extending the Language：User Defined Operators</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</link>
+      <pubDate>Tue, 11 Jun 2019 21:53:54 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</guid>
+      <description>&lt;p&gt;发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。&lt;/p&gt;
+
+&lt;p&gt;扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。&lt;/p&gt;
+
+&lt;p&gt;本文继续完善中&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Kaleidoscope: 前五章总结</title>

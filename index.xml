@@ -29,6 +29,499 @@
     </item>
     
     <item>
+      <title>Kaleidoscope：Extending the Language：User Defined Operators</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</link>
+      <pubDate>Tue, 11 Jun 2019 21:53:54 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</guid>
+      
+        <description>&lt;p&gt;发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。&lt;/p&gt;
+
+&lt;p&gt;扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。&lt;/p&gt;
+
+&lt;p&gt;本文继续完善中&amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;6-1-第六章介绍&#34;&gt;6.1 第六章介绍&lt;/h1&gt;
+
+&lt;p&gt;欢迎来到第六章。在我们的教程中，我们现在拥有一个功能完备的语言，它非常简单，但也非常有用。然而，它仍然存在一个大问题。我们的语言没有很多有用的运算符（例如除法，逻辑否定，甚至除了小于以外的任何比较运算符）。&lt;/p&gt;
+
+&lt;p&gt;本章对简单而漂亮的Kaleidoscope语言添加用户定义的运算符，但是我们会稍微偏离主题。这种偏题会导致我们的语言变得有些丑陋，但是会让我们的语言很强大。创建自己语言的好处是：你可以决定什么是好的或者坏的。在本教程中，我们假设可以使用它作为一种展示一些有趣的解析技术的方式。&lt;/p&gt;
+
+&lt;p&gt;在本教程的最后，我们将会运行一个Kaleidoscope 应用 that &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl06.html#kicking-the-tires&#34;&gt;renders the Mandelbrot set&lt;/a&gt;（渲染Mandelbrot集合）。我们将会通过Kaleidoscope来构建该例子，并且来展示Kaleidoscope的特性，&lt;/p&gt;
+
+&lt;h1 id=&#34;6-2-用户定义运算符-思路&#34;&gt;6.2 用户定义运算符： 思路&lt;/h1&gt;
+
+&lt;p&gt;我们将会添加“&lt;strong&gt;运算符重载&lt;/strong&gt;”功能到Kaleidoscope语言中，它的设计将比C++中的设计更加通用。在C++中，你只能重新定义已经存在的运算符：你不能人工改变语法，并引入新的运算符，改变优先级等。在本章，我们将在Kaleidoscope语言中添加此功能，这可以用户就可以使用更多自定义的运算符。&lt;/p&gt;
+
+&lt;p&gt;我们现在介绍用于定义运算符的目的是&lt;strong&gt;展示使用手写解析器的强大功能和灵活性&lt;/strong&gt;。到目前为止，我们实现的解析器在大部分对于表达式的语法和操作符优先级解析中都使用到了递归下降。可以阅读&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl02.html&#34;&gt;第二章&lt;/a&gt;了解更多相关的内容。通过使用运算符优先级解析，允许程序员在语法中引入新的运算符是相当容易的：程序在JIT运行时，语法是动态可扩展的。&lt;/p&gt;
+
+&lt;p&gt;我们将会添加两个功能：可以编程的一元运算符(unary operators)（现在，Kaleidoscope还没有一元运算符）以及二元运算符(binary operators)。&lt;/p&gt;
+
+&lt;p&gt;一个例子：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# Logical unary not.
+def unary!(v)
+  if v then
+    0
+  else
+    1;
+
+# Define &amp;gt; with the same precedence as &amp;lt;.
+def binary&amp;gt; 10 (LHS RHS)
+  RHS &amp;lt; LHS;
+
+# Binary &amp;quot;logical or&amp;quot;, (note that it does not &amp;quot;short circuit&amp;quot;)
+def binary| 5 (LHS RHS)
+  if LHS then
+    1
+  else if RHS then
+    1
+  else
+    0;
+
+# Define = with slightly lower precedence than relationals.
+def binary= 9 (LHS RHS)
+  !(LHS &amp;lt; RHS | LHS &amp;gt; RHS);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;许多语言都希望能够&lt;strong&gt;使用该语言本身来实现其标准库&lt;/strong&gt;。在Kaleidoscope中，我们可以在库中实现该语言的重要部分！&lt;/p&gt;
+
+&lt;p&gt;我们将这些功能的实现分解为两个部分：实现对&lt;strong&gt;用户定义的二元运算符的支持&lt;/strong&gt;和&lt;strong&gt;添加一元运算符&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;h1 id=&#34;6-3-用户定义的二元运算符&#34;&gt;6.3 用户定义的二元运算符&lt;/h1&gt;
+
+&lt;p&gt;使用我们目前的框架来添加对用户定义的二元运算符的支持非常简单。我们将首先添加对一元/二元关键字：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;enum Token {
+  ...
+  // operators
+  tok_binary = -11,
+  tok_unary = -12
+};
+...
+static int gettok() {
+...
+    if (IdentifierStr == &amp;quot;for&amp;quot;)
+      return tok_for;
+    if (IdentifierStr == &amp;quot;in&amp;quot;)
+      return tok_in;
+    if (IdentifierStr == &amp;quot;binary&amp;quot;)
+      return tok_binary;
+    if (IdentifierStr == &amp;quot;unary&amp;quot;)
+      return tok_unary;
+    return tok_identifier;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这只是添加了对一元和二元关键字的&lt;strong&gt;词法支持&lt;/strong&gt;。当前的AST的优点是：我们通过使用该二元运算符操作码的ASCI码来表示具有范型的二元运算符。对于我们扩展的操作符来说，我们将使用相同的表示，所以我们不需要任何新的AST或者解析器支持。&lt;/p&gt;
+
+&lt;p&gt;在另一方面，我们必须保证在函数定义时，可以正确解析和表示这些新的运算符的定义，例如&amp;rdquo;def binary | 5&amp;rdquo;。到目前为止，我们的语法中，&lt;strong&gt;函数定义时的名字被解析作为申明&lt;/strong&gt;，并且会进入到&lt;strong&gt;PrototypeAST&lt;/strong&gt; AST 节点。为了将我们新定义的运算符表示为申明，我们必须扩展&lt;strong&gt;Prototype&lt;/strong&gt; AST 节点：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// PrototypeAST - This class represents the &amp;quot;prototype&amp;quot; for a function,
+/// which captures its argument names as well as if it is an operator.
+class PrototypeAST {
+  std::string Name;
+  std::vector&amp;lt;std::string&amp;gt; Args;
+  bool IsOperator;      // 是否是运算符
+  unsigned Precedence;  // Precedence if a binary op. 运算符优先级
+
+public:
+  PrototypeAST(const std::string &amp;amp;name, std::vector&amp;lt;std::string&amp;gt; Args,
+               bool IsOperator = false, unsigned Prec = 0)
+  : Name(name), Args(std::move(Args)), IsOperator(IsOperator),
+    Precedence(Prec) {}
+
+  Function *codegen();
+  const std::string &amp;amp;getName() const { return Name; }
+
+  bool isUnaryOp() const { return IsOperator &amp;amp;&amp;amp; Args.size() == 1; }
+  bool isBinaryOp() const { return IsOperator &amp;amp;&amp;amp; Args.size() == 2; }
+
+  char getOperatorName() const {
+    assert(isUnaryOp() || isBinaryOp());
+    return Name[Name.size() - 1];
+  }
+
+  unsigned getBinaryPrecedence() const { return Precedence; }
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本上，除了要知道一个申明的名字之外，我们现在还要跟踪&lt;strong&gt;它是否为一个运算符&lt;/strong&gt;，并且如果它是的话，&lt;strong&gt;运算符的优先级别是什么&lt;/strong&gt;。优先级仅仅被用于二元运算符（正如你将在下面看到的，它对一元运算符不适用）。现在我们有了一种方法来表示对用户定义运算符的声明，我们现在来解析它：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// prototype
+///   ::= id &#39;(&#39; id* &#39;)&#39;
+///   ::= binary LETTER number? (id, id)
+static std::unique_ptr&amp;lt;PrototypeAST&amp;gt; ParsePrototype() {
+  std::string FnName;
+
+  unsigned Kind = 0;  // 0 = identifier, 1 = unary, 2 = binary.
+  unsigned BinaryPrecedence = 30;
+
+  switch (CurTok) {
+  default:
+    return LogErrorP(&amp;quot;Expected function name in prototype&amp;quot;);
+  case tok_identifier:
+    FnName = IdentifierStr;
+    Kind = 0;
+    getNextToken();
+    break;
+  case tok_binary:
+    getNextToken();
+    if (!isascii(CurTok))
+      return LogErrorP(&amp;quot;Expected binary operator&amp;quot;);
+    FnName = &amp;quot;binary&amp;quot;;			// 为二元运算符设置FnName = &amp;quot;binary&amp;quot;+CurTok
+    FnName += (char)CurTok;
+    Kind = 2;
+    getNextToken();
+
+    // Read the precedence if present.
+    if (CurTok == tok_number) {
+      if (NumVal &amp;lt; 1 || NumVal &amp;gt; 100)
+        return LogErrorP(&amp;quot;Invalid precedence: must be 1..100&amp;quot;);
+      BinaryPrecedence = (unsigned)NumVal;
+      getNextToken();
+    }
+    break;
+  }
+
+  if (CurTok != &#39;(&#39;)
+    return LogErrorP(&amp;quot;Expected &#39;(&#39; in prototype&amp;quot;);
+
+  std::vector&amp;lt;std::string&amp;gt; ArgNames;
+  while (getNextToken() == tok_identifier)
+    ArgNames.push_back(IdentifierStr);
+  if (CurTok != &#39;)&#39;)
+    return LogErrorP(&amp;quot;Expected &#39;)&#39; in prototype&amp;quot;);
+
+  // success.
+  getNextToken();  // eat &#39;)&#39;.
+
+  // Verify right number of names for operator.
+  if (Kind &amp;amp;&amp;amp; ArgNames.size() != Kind)
+    return LogErrorP(&amp;quot;Invalid number of operands for operator&amp;quot;);
+
+  return llvm::make_unique&amp;lt;PrototypeAST&amp;gt;(FnName, std::move(ArgNames), Kind != 0,
+                                         BinaryPrecedence);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面的代码都非常简单，我们之前已经看到了很多类似的代码。关于上面的代码一个有趣的部分是为二元运算符设计FnName的那几行。这位新定义的“@”运算符构建了像“binary@”这样的名称。它利用了LLVM符号表中的符号表可以被允许包含任何字符的事实，甚至可以包括嵌入的nul字符。&lt;/p&gt;
+
+&lt;p&gt;下一个有趣的事情是为这些二元运算符&lt;strong&gt;添加Codegen支持&lt;/strong&gt;（产生LLVM IR的代码）。通过使用我们目前的代码框架，在已经有了二元操作符节点后，实现Codegen只需要简单添加一个case。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *BinaryExprAST::codegen() {
+  Value *L = LHS-&amp;gt;codegen();
+  Value *R = RHS-&amp;gt;codegen();
+  if (!L || !R)
+    return nullptr;
+
+  switch (Op) {
+  case &#39;+&#39;:
+    return Builder.CreateFAdd(L, R, &amp;quot;addtmp&amp;quot;);
+  case &#39;-&#39;:
+    return Builder.CreateFSub(L, R, &amp;quot;subtmp&amp;quot;);
+  case &#39;*&#39;:
+    return Builder.CreateFMul(L, R, &amp;quot;multmp&amp;quot;);
+  case &#39;&amp;lt;&#39;:
+    L = Builder.CreateFCmpULT(L, R, &amp;quot;cmptmp&amp;quot;);
+    // Convert bool 0/1 to double 0.0 or 1.0
+    return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext),
+                                &amp;quot;booltmp&amp;quot;);
+  default:
+    break;
+  }
+
+  // If it wasn&#39;t a builtin binary operator, it must be a user defined one. Emit
+  // a call to it.
+  // 如果它不是一个内建的二元操作符，它一定是用户定义的二元操作符。Emit a call to it.
+  Function *F = getFunction(std::string(&amp;quot;binary&amp;quot;) + Op);
+  assert(F &amp;amp;&amp;amp; &amp;quot;binary operator not found!&amp;quot;);
+
+  Value *Ops[2] = { L, R };
+  return Builder.CreateCall(F, Ops, &amp;quot;binop&amp;quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;正如上面看到的，添加的代码实际上非常简单。它只是&lt;strong&gt;在符号表中查找合适的运算符并且生成对它的函数调用&lt;/strong&gt;。由于用户定义的运算符只是被作为普通函数构建（因为“申明”就是有正确名称的函数）。&lt;/p&gt;
+
+&lt;p&gt;我们最好还需要添加的一段代码，是&lt;strong&gt;一段顶级膜法&lt;/strong&gt;（hhhh）：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Function *FunctionAST::codegen() {
+  // Transfer ownership of the prototype to the FunctionProtos map, but keep a
+  // reference to it for use below.
+  // 将申明的所有权转移到了FunctionProtos映射中，但是会保留一个引用以便于之后调用。
+  auto &amp;amp;P = *Proto;
+  FunctionProtos[Proto-&amp;gt;getName()] = std::move(Proto);
+  Function *TheFunction = getFunction(P.getName());
+  if (!TheFunction)
+    return nullptr;
+
+  // If this is an operator, install it.、
+  // 如果当前正在解析的函数是一个运算符函数，install it.
+  if (P.isBinaryOp())
+    BinopPrecedence[P.getOperatorName()] = P.getBinaryPrecedence(); // 赋予它优先级
+
+  // Create a new basic block to start insertion into.
+  BasicBlock *BB = BasicBlock::Create(TheContext, &amp;quot;entry&amp;quot;, TheFunction);
+  ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本上，在一个函数codegen之前，如果它是一个用户定义的运算符，我们会在优先级表中注册它。这会允许我们使用已经有的二元运算符解析逻辑来处理它。由于我们正在研究一个完全通用的运算符优先级解析器，所以我们需要做的就是“扩展语法”。&lt;/p&gt;
+
+&lt;p&gt;现在我们有了有用的用户定义的二元运算符。我们在之前的框架上添加了一些逻辑来支持这个功能。&lt;/p&gt;
+
+&lt;p&gt;添加一元运算符是更具有挑战性的，因为我们还没有任何框架 &amp;ndash; let&amp;rsquo;s see what it takes.&lt;/p&gt;
+
+&lt;h1 id=&#34;6-4-用户定义的一元运算符&#34;&gt;6.4 用户定义的一元运算符&lt;/h1&gt;
+
+&lt;p&gt;由于目前我们的Kaleidoscope语言中还不支持一元运算符，所以为了支持该功能，我们必须要从头开始做。在之前的介绍中，我们已经在词法分析器中为一元运算符添加了&amp;rdquo;unary&amp;rdquo;关键字支持。除此之外，我们还需要&lt;strong&gt;创建AST节点&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// UnaryExprAST - Expression class for a unary operator.
+class UnaryExprAST : public ExprAST {
+  char Opcode;
+  std::unique_ptr&amp;lt;ExprAST&amp;gt; Operand;
+
+public:
+  UnaryExprAST(char Opcode, std::unique_ptr&amp;lt;ExprAST&amp;gt; Operand)
+    : Opcode(Opcode), Operand(std::move(Operand)) {}
+
+  Value *codegen() override;
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;到现在为止，AST节点的意义是非常简单明了的。除了一元运算符只有一个子节点之外（二元运算符有两个子节点），它与二元运算符的AST节点基本相同。有了AST节点之后，我们需要&lt;strong&gt;添加解析逻辑&lt;/strong&gt;。解析一元运算符实现起来是非常简单的：&lt;strong&gt;我们将添加一个新的函数来支持该功能&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// unary
+///   ::= primary
+///   ::= &#39;!&#39; unary
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseUnary() {
+  // If the current token is not an operator, it must be a primary expr.
+  // 如果当前处理的token不是运算符，那它就一定是一个主表达式。
+  if (!isascii(CurTok) || CurTok == &#39;(&#39; || CurTok == &#39;,&#39;)
+    return ParsePrimary();
+
+  // If this is a unary operator, read it.
+  // 如果它是一个一元运算符，read it。
+  int Opc = CurTok;
+  getNextToken();
+  if (auto Operand = ParseUnary())
+    return llvm::make_unique&amp;lt;UnaryExprAST&amp;gt;(Opc, std::move(Operand));
+  return nullptr;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在这里我们添加的语法是非常简单的。当解析主运算符时，如果我们看到了一个一元运算符，我们将会将运算符作为前缀使用，并且将剩余的部分解析为另一个一元运算符。这允许我们处理多个一元运算符（例如“!!x”）。请注意，一元运算符不能像二元运算符那样具有模糊的解析，所以不需要优先级信息。&lt;/p&gt;
+
+&lt;p&gt;这个函数的问题是：我们需要在某个地方调用&lt;strong&gt;ParseUnary&lt;/strong&gt;。为了做这个，我们改变以前的 &lt;strong&gt;ParsePrimay&lt;/strong&gt; 调用者来调用 &lt;strong&gt;ParseUnary&lt;/strong&gt; ：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// binoprhs
+///   ::= (&#39;+&#39; unary)*
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseBinOpRHS(int ExprPrec,
+                                              std::unique_ptr&amp;lt;ExprAST&amp;gt; LHS) {
+  ...
+    // Parse the unary expression after the binary operator.
+    // 在解析二元操作符后解析一元表达式
+    auto RHS = ParseUnary();
+    if (!RHS)
+      return nullptr;
+  ...
+}
+/// expression
+///   ::= unary binoprhs
+///
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseExpression() {
+  auto LHS = ParseUnary();
+  if (!LHS)
+    return nullptr;
+
+  return ParseBinOpRHS(0, std::move(LHS));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;有了这两个改变之后，我们现在能够解析一元运算符并为他们构建AST。下一步，我们需要为申明添加解析器支持，来解析一元运算符的申明。我们对上面的二元运算符代码进行扩展：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// prototype
+///   ::= id &#39;(&#39; id* &#39;)&#39;
+///   ::= binary LETTER number? (id, id)
+///   ::= unary LETTER (id)
+static std::unique_ptr&amp;lt;PrototypeAST&amp;gt; ParsePrototype() {
+  std::string FnName;
+
+  unsigned Kind = 0;  // 0 = identifier, 1 = unary, 2 = binary.
+  unsigned BinaryPrecedence = 30;
+
+  switch (CurTok) {
+  default:
+    return LogErrorP(&amp;quot;Expected function name in prototype&amp;quot;);
+  case tok_identifier:
+    FnName = IdentifierStr;
+    Kind = 0;
+    getNextToken();
+    break;
+  case tok_unary:
+    getNextToken();
+    if (!isascii(CurTok))
+      return LogErrorP(&amp;quot;Expected unary operator&amp;quot;);
+    FnName = &amp;quot;unary&amp;quot;;
+    FnName += (char)CurTok;
+    Kind = 1;
+    getNextToken();
+    break;
+  case tok_binary:
+    ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;和二元运算符一样，我们将一元运算符命名为包含operator+字符的名称。这有助于我们进行代码产生。Speaking of，我们需要添加的最后一部分是&lt;strong&gt;对一元运算符添加codegen支持&lt;/strong&gt;。它像下面这样：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *UnaryExprAST::codegen() {
+  Value *OperandV = Operand-&amp;gt;codegen();
+  if (!OperandV)
+    return nullptr;
+
+  Function *F = getFunction(std::string(&amp;quot;unary&amp;quot;) + Opcode);
+  if (!F)
+    return LogErrorV(&amp;quot;Unknown unary operator&amp;quot;);
+
+  return Builder.CreateCall(F, OperandV, &amp;quot;unop&amp;quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;此代码与二进制运算符的代码类似，但是更简单。它更简单，主要是因为它不需要处理任何预定义的运算符。&lt;/p&gt;
+
+&lt;h1 id=&#34;6-5-kicking-the-tires&#34;&gt;6.5 Kicking the Tires&lt;/h1&gt;
+
+&lt;p&gt;听起来是难以置信的，但是在有了最后几章中介绍的简单的扩展之后，Kaleidoscope就会成长为一个真正的语言。之后，我们可以使用Kaleidoscope做大量有趣的事情，包括I/O，数学，和一堆其它的东西。例如，我们现在可以添加一个排序运算符（printd 被定义为打印出指定的值和换行符）：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;ready&amp;gt; extern printd(x);
+Read extern:
+declare double @printd(double)
+
+ready&amp;gt; def binary : 1 (x y) 0;  # Low-precedence operator that ignores operands.
+...
+ready&amp;gt; printd(123) : printd(456) : printd(789);
+123.000000
+456.000000
+789.000000
+Evaluated to 0.000000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们可以定义一堆其它的“primitive”的操作，例如：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# Logical unary not.
+def unary!(v)
+  if v then
+    0
+  else
+    1;
+
+# Unary negate.
+def unary-(v)
+  0-v;
+
+# Define &amp;gt; with the same precedence as &amp;lt;.
+def binary&amp;gt; 10 (LHS RHS)
+  RHS &amp;lt; LHS;
+
+# Binary logical or, which does not short circuit.
+def binary| 5 (LHS RHS)
+  if LHS then
+    1
+  else if RHS then
+    1
+  else
+    0;
+
+# Binary logical and, which does not short circuit.
+def binary&amp;amp; 6 (LHS RHS)
+  if !LHS then
+    0
+  else
+    !!RHS;
+
+# Define = with slightly lower precedence than relationals.
+def binary = 9 (LHS RHS)
+  !(LHS &amp;lt; RHS | LHS &amp;gt; RHS);
+
+# Define &#39;:&#39; for sequencing: as a low-precedence operator that ignores operands
+# and just returns the RHS.
+def binary : 1 (x y) y;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;有了之前的 if/then/else 支持，我们也可以为 I/O 定义一些有趣的函数。例如，下面打印出一个字符 whose &amp;ldquo;density&amp;rdquo; 反映了传入的值： 值越低，字符越密集。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ready&amp;gt; extern putchard(char);
+...
+ready&amp;gt; def printdensity(d)
+  if d &amp;gt; 8 then
+    putchard(32)  # &#39; &#39;
+  else if d &amp;gt; 4 then
+    putchard(46)  # &#39;.&#39;
+  else if d &amp;gt; 2 then
+    putchard(43)  # &#39;+&#39;
+  else
+    putchard(42); # &#39;*&#39;
+...
+ready&amp;gt; printdensity(1): printdensity(2): printdensity(3):
+       printdensity(4): printdensity(5): printdensity(9):
+       putchard(10);
+**++.
+Evaluated to 0.000000
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基于这些简单的操作，我们可以开始定义一些有趣的东西。例如，这儿有一个函数，它确定复平面中某个函数发散所需的迭代次数：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# Determine whether the specific location diverges.
+# Solve for z = z^2 + c in the complex plane.
+def mandelconverger(real imag iters creal cimag)
+  if iters &amp;gt; 255 | (real*real + imag*imag &amp;gt; 4) then
+    iters
+  else
+    mandelconverger(real*real - imag*imag + creal,
+                    2*real*imag + cimag,
+                    iters+1, creal, cimag);
+
+# Return the number of iterations required for the iteration to escape
+def mandelconverge(real imag)
+  mandelconverger(real, imag, 0, real, imag);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个“z = z2 + c”函数是一个漂亮的little creature that 是计算 Mandelbrot 集的基础。我们的 mandelconverge 函数返回迭代次数 that 它需要一个复杂的 orbit to escape，saturating to 255。这本身不是一个有用的函数，但是如果你在二维平面上绘制它的值，你能够看到 Mandelbrot set。由于我们仅限于使用 putchard，我们惊人的图形输出是有限的，但是我们可以 whip together something 使用上面的密度 plotter：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# Compute and plot the mandelbrot set with the specified 2 dimensional range
+# info.
+def mandelhelp(xmin xmax xstep   ymin ymax ystep)
+  for y = ymin, y &amp;lt; ymax, ystep in (
+    (for x = xmin, x &amp;lt; xmax, xstep in
+       printdensity(mandelconverge(x,y)))
+    : putchard(10)
+  )
+
+# mandel - This is a convenient helper function for plotting the mandelbrot set
+# from the specified position with the specified Magnification.
+def mandel(realstart imagstart realmag imagmag)
+  mandelhelp(realstart, realstart+realmag*78, realmag,
+             imagstart, imagstart+imagmag*40, imagmag);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;有了这个，我们可以尝试 plotting out the mandelbrot set! Lets try it out:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在此刻，你可能开始意识到 Kaleidoscope 是一个真实的并且强大的语言。It may not be self-similar：），但是它可以被用来绘制那些东西！&lt;/p&gt;
+
+&lt;p&gt;我们现在总结本章。我们已经成功的扩充了我们的语言，在库中增加了扩展语言的能力，并且我们已经展示了如何在Kaleidoscope中构建一个简单有趣的 end-user 应用 in Kaleidoscope。在此刻，Kaleidoscope 可以构建各种功能性的应用并且能够调用具有 side-effects 的函数，但是它实际上无法定义和改变变量本身。&lt;/p&gt;
+
+&lt;p&gt;引人注目的是，variable mutation 在许多语言中是一个重要的特性，并且如何添加对mutable variables且没有添加一个“SSA construction” phase 在你的前端，是不明显的。在下一章节，我们将会描述如何在你的前端，在不构建SSA的情况下添加 variable mutation。&lt;/p&gt;
+
+&lt;h1 id=&#34;6-6-full-code-listing&#34;&gt;6.6 Full Code Listing&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl06.html#full-code-listing&#34;&gt;http://llvm.org/docs/tutorial/LangImpl06.html#full-code-listing&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>信号与系统-学习笔记</title>
       <link>https://l0phtg.github.io/post/class/%E4%BF%A1%E5%8F%B7%E4%B8%8E%E7%B3%BB%E7%BB%9F-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
       <pubDate>Tue, 11 Jun 2019 16:32:00 +0800</pubDate>
@@ -5747,929 +6240,6 @@ xh_core_hook_impl    -&amp;gt; xh_elf_init
     return 0;
 }
 &lt;/code&gt;&lt;/pre&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>InlineHook学习分析</title>
-      <link>https://l0phtg.github.io/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/</link>
-      <pubDate>Thu, 05 Apr 2018 02:14:31 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/inlinehook%E5%AD%A6%E4%B9%A0%E5%88%86%E6%9E%90/</guid>
-      
-        <description>&lt;p&gt;分析开源的inlineHook代码, 总结inlineHook的原理与实现.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;p&gt;本文首发于&lt;strong&gt;看雪论坛&lt;/strong&gt;, 转载请注明出处.&lt;/p&gt;
-
-&lt;h2 id=&#34;前言&#34;&gt;前言&lt;/h2&gt;
-
-&lt;p&gt;最近在面试某大厂的安全岗位时，面试官问到了一些有关hook的知识, 在简单分析了下F8大牛的开源代码之后, 有了这篇文章.&lt;/p&gt;
-
-&lt;h2 id=&#34;参考文章和项目代码&#34;&gt;参考文章和项目代码&lt;/h2&gt;
-
-&lt;p&gt;文章:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;http://ele7enxxh.com/Android-Arm-Inline-Hook.html
-http://gslab.qq.com/portal.php?mod=view&amp;amp;aid=168
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;项目:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;https://github.com/ele7enxxh/Android-Inline-Hook
-https://github.com/F8LEFT/FAInHook
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;使用方法&#34;&gt;使用方法&lt;/h2&gt;
-
-&lt;p&gt;MainActivity:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;static {
-        System.loadLibrary(&amp;quot;FHook&amp;quot;);
-    }
-    
-public native String stringFromJNI();
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;我们会将会测试Hook 这个&amp;rdquo;stringFromJNI()&amp;ldquo;函数.&lt;/p&gt;
-
-&lt;h2 id=&#34;分析&#34;&gt;分析&lt;/h2&gt;
-
-&lt;h4 id=&#34;使用&#34;&gt;使用&lt;/h4&gt;
-
-&lt;p&gt;在native层, 我们的main.cpp中&lt;/p&gt;
-
-&lt;p&gt;会在JNI_OnLoad中有一个init函数&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;jstring stringFromJNI(
-        JNIEnv *env,
-        jobject ) {
-     doInHook();
-    // doGotHook();
-    return env-&amp;gt;NewStringUTF(getStr());
-}
-
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void *reserved) {
-    JNIEnv* env = nullptr;
-    jint resultstr = -1;
-    if (vm-&amp;gt;GetEnv((void **) &amp;amp;env, JNI_VERSION_1_6) != JNI_OK) {
-        return -1;
-    }
-
-    auto jclazz = env-&amp;gt;FindClass(&amp;quot;com/example/l0phtg/hookstudyf8/MainActivity&amp;quot;);
-    JNINativeMethod natives[] = {
-            {&amp;quot;stringFromJNI&amp;quot;, &amp;quot;()Ljava/lang/String;&amp;quot;, (void*)stringFromJNI}};
-    env-&amp;gt;RegisterNatives(jclazz, natives, 1);
-    env-&amp;gt;DeleteLocalRef(jclazz);
-
-    init();
-
-    return JNI_VERSION_1_6;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;在Hook.cpp我们来看一下init函数:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool init() {
-    auto hook = FAInHook::instance();
-    hook-&amp;gt;registerHook((Elf_Addr)getStr,
-                       (Elf_Addr)inlCallback,
-                       (Elf_Addr*)&amp;amp;inlCallbackSrc);
-    auto lib = dlopen(&amp;quot;libFHook.so&amp;quot;, RTLD_NOW);
-    gotCallbackSrc = (const char* (*)())dlsym(lib, &amp;quot;_Z6getStrv&amp;quot;);
-    dlclose(lib);
-
-    return false;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以看到, 我们实例化了一个FAInHook对象, &lt;code&gt;new FAInHook()&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;并调用了&lt;code&gt;registerHook&lt;/code&gt;函数来注册对getStr的hook.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;
-FAInHook *FAInHook::instance() {
-    static FAInHook* mIns = nullptr;
-    if(mIns == nullptr) {
-        mIns = new FAInHook();
-    }
-    return mIns;
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;我们在使用是还会用到的&lt;code&gt;doInHook&lt;/code&gt;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;bool doInHook() {
-    static bool isHooked = false;
-    if (isHooked) {
-        isHooked = false;
-        FAInHook::instance()-&amp;gt;unhookAll();
-    } else {
-        isHooked = true;
-        FAInHook::instance()-&amp;gt;hookAll();
-    }
-    return true;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;现在可以看到, 我们主要的任务就是分析&lt;code&gt;registerHook&lt;/code&gt;和&lt;code&gt;doInHook&lt;/code&gt;这两个函数的实现.&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h4 id=&#34;registerhook函数&#34;&gt;registerHook函数&lt;/h4&gt;
-
-&lt;p&gt;我们现在主要分析&lt;code&gt;registerHook&lt;/code&gt;函数.&lt;/p&gt;
-
-&lt;p&gt;先来分析参数:
-在Hook之前我们首先要注册这个函数&lt;/p&gt;
-
-&lt;p&gt;函数申明:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;    HOOK_STATUS registerHook(Elf_Addr orginalFunAddr, Elf_Addr newFunAddr,
-                             Elf_Addr* callOrigin);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;参数(原始函数地址, 新函数地址, 调用原始函数).&lt;/p&gt;
-
-&lt;p&gt;函数主要流程:
-1. 注册函数信息, 计算hook stub.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;首先判断`originFunAddr`和`newFunAddr`是否是函数地址.
-
-auto info = getHookInfo(originFunAddr); 得到函数信息
-
-然后判断函数是否已经被Hook. 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;检查判断指令类型(thumb or arm or x86 &amp;hellip;)&lt;/li&gt;
-&lt;li&gt;createStub(info)     创建stub, 就是thumb下创建ldr.w pc, [pc],   addr 来执行跳转到newFuncAddr功能&lt;/li&gt;
-&lt;li&gt;createCallOriginalStub(info) 创建originalFunAddr的stub, 主要会涉及一些对pc相关指令的处理.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;//  register hook
-FAInHook::HOOK_STATUS FAInHook::registerHook(
-        Elf_Addr orginalFunAddr, Elf_Addr newFunAddr, Elf_Addr *callOrigin) {
-    // register hook information, calc hook stub at the same time.
-    if(!FAHook::MemHelper::isFunctionAddr((void *) orginalFunAddr)
-       || !FAHook::MemHelper::isFunctionAddr((void *) newFunAddr)) {
-        return FERROR_NOT_EXECUTABLE;
-    }
-
-    auto info = getHookInfo(orginalFunAddr);
-    if(nullptr != info) {
-        auto hookStatus = info-&amp;gt;getHookStatus();
-        if(FAHook::HOOKED == hookStatus) {
-            return FERROR_ALREADY_HOOKED;
-        } else if(FAHook::REGISTERED == hookStatus) {
-            delHookInfo(info);
-        }
-    }
-
-    // check for FunctionType
-    auto type = FAHook::Instruction::getFunctionType(orginalFunAddr);
-    if(FAHook::ERRTYPE == type) {
-        return FERROR_UNKNOWN;
-    }
-
-    info = new FAHook::HookInfo((void *) orginalFunAddr, (void *) newFunAddr);
-    info-&amp;gt;setOriginalFunctionType(type);
-
-    FAHook::Instruction* instruction = nullptr;
-    switch(type) {
-#if defined(__arm__)
-        case FAHook::ARM:
-            instruction = new FAHook::ArmInstruction();
-            break;
-        case FAHook::THUMB:
-            instruction = new FAHook::ThumbInstruction();
-            break;
-#elif defined(__aarch64__)
-        case FAHook::ARM64:
-            instruction = new FAHook::Arm64Instruction();
-            break;
-#elif defined(__i386__) || defined(__x86_64__)
-        case FAHook::X86:
-        case FAHook::X64:
-            instruction = new FAHook::IntelInstruction();
-            break;
-#elif defined(__mips64__)
-            case FAHook::MIPS64:
-            instruction = new FAHook::Mips64Instruction();
-            break;
-#elif defined(__mips__)
-        case FAHook::MIPS:
-            instruction = new FAHook::MipsInstruction();
-            break;
-#endif
-        default:
-            assert(false &amp;amp;&amp;amp; &amp;quot;not support abi&amp;quot;);
-            return FERROR_UNKNOWN;
-            break;
-    }
-
-    if(!instruction-&amp;gt;createStub(info)
-       || !instruction-&amp;gt;createBackStub(info)
-       || (callOrigin != nullptr) ?
-            !instruction-&amp;gt;createCallOriginalStub(info) : false  // want a callback
-       ) {
-        delete instruction;
-        delete info;
-        return FERROR_MEMORY;
-    }
-
-    addHookInfo(info);
-    info-&amp;gt;setHookStatus(FAHook::REGISTERED);
-
-    if(callOrigin != nullptr) {
-        *callOrigin = (Elf_Addr) info-&amp;gt;getCallOriginalIns();
-    }
-
-    delete instruction;
-    return FERROR_SUCCESS;
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h5 id=&#34;判断该地址是否是函数地址&#34;&gt;判断该地址是否是函数地址&lt;/h5&gt;
-
-&lt;ol&gt;
-&lt;li&gt;打开&lt;code&gt;/proc/self/maps&lt;/code&gt;， 读取每行的信息, 用strstr根据权限做出判断.(r-x, 表示可读可执行, 即为code)()&lt;/li&gt;
-&lt;li&gt;addr &amp;gt;= startAddr &amp;amp;&amp;amp; addr &amp;lt;= endAddr&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code&gt;bool FAHook::MemHelper::isFunctionAddr(void *addr) {
-    char buf[MAX_BUF];
-    auto fp = fopen(maps, &amp;quot;r&amp;quot;);
-    if(nullptr == fp) {
-        return false;
-    }
-
-    while(fgets(buf, MAX_BUF, fp)) {
-        if(strstr(buf, &amp;quot;r-xp&amp;quot;) != nullptr) {
-            void* startAddr = (void*)strtoul(strtok(buf, &amp;quot;-&amp;quot;), nullptr, 16);
-            void* endAddr = (void*)strtoul(strtok(nullptr, &amp;quot; &amp;quot;), nullptr, 16);
-            if(addr &amp;gt;= startAddr &amp;amp;&amp;amp; addr &amp;lt;= endAddr) {
-                fclose(fp);
-                return true;
-            }
-        }
-    }
-    fclose(fp);
-    FLOGE(this functionAddr is not a function!);
-    return false;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h5 id=&#34;得到hook地址的信息-是否已经hook&#34;&gt;得到Hook地址的信息, 是否已经Hook.&lt;/h5&gt;
-
-&lt;p&gt;hook_map是一个std::map&lt;Elf_Addr, FAInHook::HookInfo*&gt;的map类型. find函数会返回返回一个迭代器, 可以用&lt;code&gt;it-&amp;gt;first&lt;/code&gt;和&lt;code&gt;it-&amp;gt;second&lt;/code&gt;来访问它的成员(key和value). 这个过程其实对已经注册过的hook函数的处理.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;FAHook::HookInfo *FAInHook::getHookInfo(Elf_Addr origFunAddr) {
-    auto it = hook_map.find(origFunAddr);
-    if(it == hook_map.end()) {
-        return nullptr;
-    }
-    return it-&amp;gt;second;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h5 id=&#34;得到originlfunaddr的指令类型&#34;&gt;得到originlFunAddr的指令类型,&lt;/h5&gt;
-
-&lt;p&gt;auto type = FAHook::Instruction::getFunctionType(orginalFunAddr);&lt;/p&gt;
-
-&lt;p&gt;下面是&lt;code&gt;getFunctionAddr&lt;/code&gt;的实现, 可以看到. 判断指令类型的方式, 是通过自己定义宏来实现的. 当然, 在Arm指令中, 我们还要是否该指令为thumb指令.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;static FunctionType getFunctionType(Elf_Addr functionAddr) {
-#if defined(__arm__)
-            if(0 == functionAddr) {
-                return ERRTYPE;
-            } else if((functionAddr &amp;amp; 3) == 0) {
-                return ARM;
-            } else {
-                return THUMB;
-            }
-#elif defined(__aarch64__)
-            return ARM64;
-#elif defined(__i386__)
-            return X86;
-#elif defined(__x86_64__)
-            return X64;
-#elif defined(__mips64__)  /* mips64el-* toolchain defines __mips__ too */
-            return MIPS64;
-#elif defined(__mips__)
-            return MIPS;
-#endif
-        }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h5 id=&#34;接下来-我们分析最重要的过程&#34;&gt;接下来, 我们分析最重要的过程:&lt;/h5&gt;
-
-&lt;ol&gt;
-&lt;li&gt;info = new HookInfo(originFunAddr, newFunAddr);&lt;/li&gt;
-&lt;li&gt;info.setOriginalFunctionType(type);   设置指令类型为(Arm或者thumb)&lt;/li&gt;
-&lt;li&gt;instruction = new FAHook::ArmInstruction();        new arm或者thumb指令. 我发现无构造函数.&lt;/li&gt;
-&lt;li&gt;instruction-&amp;gt;createStub(info);        创建stub.(stub为 jump stub来jump到newFuncAddr)&lt;/li&gt;
-&lt;li&gt;instruction-&amp;gt;createCallOriginalStub(info)    创建原函数的call back stub.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;在看&lt;code&gt;HookInfo.h&lt;/code&gt;时, 我们可以看到&lt;code&gt;FAHook&lt;/code&gt;是一个&lt;code&gt;namespace&lt;/code&gt;, 而里面主要包含了一个&lt;code&gt;HookInfo&lt;/code&gt;的类:&lt;/p&gt;
-
-&lt;p&gt;我们先来分析它的构造函数:&lt;/p&gt;
-
-&lt;p&gt;这里运用了c++中的构造函数初始化列表来初始化类成员.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;        HookInfo(void* originalAddr, void* hookAddr)
-            : original_addr_(originalAddr), hook_addr_(hookAddr),
-              original_stub_back_(nullptr), back_len_(0), call_original_ins_(nullptr),
-              hook_status_(ERRSTATUS),
-              original_function_type_(ERRTYPE), hook_function_type_(ERRTYPE){}
-              
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;分析&lt;code&gt;createStub(info)&lt;/code&gt;
-我们这里分析&lt;code&gt;FAHook::ThumbInstrution::createStub(FAHook::HookInfo *info)&lt;/code&gt;:
-1. 将地址按4字节对齐.
-2. 保存我们的stub指令, (方便之后path)指令为: &lt;code&gt;LDR.W PC, [PC]&lt;/code&gt;. 可参考(&lt;a href=&#34;http://ele7enxxh.com/Android-Arm-Inline-Hook.html&#34;&gt;http://ele7enxxh.com/Android-Arm-Inline-Hook.html&lt;/a&gt;).&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;bool FAHook::ThumbInstruction::createStub(FAHook::HookInfo *info) {
-    auto stubSize = 0;
-    uint8_t *stub = nullptr;
-
-    uint32_t addr = (uint32_t)info-&amp;gt;getOriginalAddr();
-    auto clearBit0 = addr &amp;amp; 0xFFFFFFFE;
-
-    if (clearBit0 % 4 != 0) {                       // need to align 4, just patch with nop
-        stub = new uint8_t[10];
-        ((uint16_t*)stub)[stubSize++] = 0xBF00;     //NOP
-    } else {
-        stub = new uint8_t[8];
-    }
-    ((uint16_t*)stub)[stubSize++] = 0xF8DF;
-    ((uint16_t*)stub)[stubSize++] = 0xF000; // LDR.W PC, [PC]
-    ((uint16_t*)stub)[stubSize++] = (uint32_t)info-&amp;gt;getHookAddr() &amp;amp; 0xFFFF;
-    ((uint16_t*)stub)[stubSize++] = (uint32_t)info-&amp;gt;getHookAddr() &amp;gt;&amp;gt; 16;
-
-    info-&amp;gt;setJumpStubLen(stubSize * 2);
-    info-&amp;gt;setJumpStubBack(stub);
-    return true;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h5 id=&#34;下面分析-createcalloriginalstub-hookinfo-info&#34;&gt;下面分析 &lt;code&gt;createCallOriginalStub(HookInfo *info)&lt;/code&gt;:&lt;/h5&gt;
-
-&lt;p&gt;thumbInstruction.cpp的实现:&lt;/p&gt;
-
-&lt;p&gt;基础知识:&lt;/p&gt;
-
-&lt;p&gt;reinterpret_cast&lt;uint16_t*&gt;   为类型转换&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;处理ldr.w指令.&lt;/li&gt;
-&lt;li&gt;调用createExecMemory(length);              // 分配buffer空间&lt;/li&gt;
-&lt;li&gt;修正pc相关指令. (ldr liternal.  b.  b.  bl.  cbz. ldrw. add)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;code&gt;为什么要修正pc相关指令?&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;举例分析: b &amp;lt;label&amp;gt;:
-指令编码分析: [15:12] 1101 [11:8] cond [7:0] imm8
-解析时: imm32 = ZeroExtend(imm8:&#39;0&#39;, 32); 
-        BranchWritePC(PC+imm32)
-可以看到, b指令的指令编码中, 存放的立即数为imm8, 而真实的跳转地址为(pc + imm32).
-由于我们是要inlineHook, 所以我们的hook函数执行完成之后还有继续执行我们原来的函数,那么我们就要执行被patch掉的那些指令（我们已经将这些指令保存了下来），但由于存放这些指令的内存是我们mmap出来的,所以我们 要想能够在这里成功运行pc相关指令的话, 我们需要将pc相关的指令转换为其它pc无关的指令。
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;inlineHook原理图, 来源于gslab.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;http://gslab.qq.com/data/attachment/portal/201605/04/165921tz43a3sm4vi2s4s4.png&#34; alt=&#34;inlineHook原理图 ---  来源于gslab&#34; /&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool FAHook::ThumbInstruction::createCallOriginalStub(FAHook::HookInfo *info) {
-    uint16_t *area(reinterpret_cast&amp;lt;uint16_t *&amp;gt;(getOriginalAddr(info)));    // 起始地址
-
-
-    uint16_t *trail(reinterpret_cast&amp;lt;uint16_t *&amp;gt;(
-                            reinterpret_cast&amp;lt;uintptr_t &amp;gt;(area) + info-&amp;gt;getJumpStubLen())); // 结束地址
-
-    if(T$pcrel$ldrw(area[0]) &amp;amp;&amp;amp;  // 第一条指令
-        area[1] == 0xF000   // 判断第一条指令是否为 ldr pc, [pc]  
-            ) {
-        uint32_t *arm(reinterpret_cast&amp;lt;uint32_t *&amp;gt;(area));
-        info-&amp;gt;setCallOriginalIns(reinterpret_cast&amp;lt;uint8_t *&amp;gt;(arm[1]));
-        return true;
-    }
-
-    size_t required((trail - area) * sizeof(uint16_t)); // required == 需要patch多少字节
-
-    size_t used(0);
-    while (used &amp;lt; required)
-        used += MSGetInstructionWidthThumb(reinterpret_cast&amp;lt;uint8_t *&amp;gt;(area) + used);
-    used = (used + sizeof(uint16_t) - 1) / sizeof(uint16_t) * sizeof(uint16_t);
-
-    size_t blank((used - required) / sizeof(uint16_t));
-
-    uint16_t backup[used / sizeof(uint16_t)];
-    memcpy(backup, area, used);
-
-
-    size_t length(used);
-    for (unsigned offset(0); offset != used / sizeof(uint16_t); ++offset)
-        if (T$pcrel$ldr(backup[offset]))
-            length += 3 * sizeof(uint16_t);
-        else if (T$pcrel$b(backup[offset]))
-            length += 6 * sizeof(uint16_t);
-        else if (T2$pcrel$b(backup + offset)) {
-            length += 5 * sizeof(uint16_t);
-            ++offset;
-        } else if (T$pcrel$bl(backup + offset)) {
-            length += 5 * sizeof(uint16_t);
-            ++offset;
-        } else if (T$pcrel$cbz(backup[offset])) {
-            length += 16 * sizeof(uint16_t);
-        } else if (T$pcrel$ldrw(backup[offset])) {
-            length += 4 * sizeof(uint16_t);
-            ++offset;
-        } else if (T$pcrel$add(backup[offset]))
-            length += 6 * sizeof(uint16_t);
-        else if (T$32bit$i(backup[offset]))
-            ++offset;
-
-        unsigned pad((length &amp;amp; 0x2) == 0 ? 0 : 1);
-        length += (pad + 2) * sizeof(uint16_t) + 2 * sizeof(uint32_t);
-
-    uint16_t *buffer = (uint16_t *) MemHelper::createExecMemory(length);
-    if(buffer == nullptr) {
-        return false;
-    }
-
-    size_t start(pad), end(length / sizeof(uint16_t));
-    uint32_t *trailer(reinterpret_cast&amp;lt;uint32_t *&amp;gt;(buffer + end));
-    for (unsigned offset(0); offset != used / sizeof(uint16_t); ++offset) {
-        if (T$pcrel$ldr(backup[offset])) {
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t immediate : 8;
-                    uint16_t rd : 3;
-                    uint16_t : 5;
-                };
-            } bits = {backup[offset+0]};
-
-            buffer[start+0] = T$ldr_rd_$pc_im_4$(bits.rd, T$Label(start+0, end-2) / 4);
-            buffer[start+1] = T$ldr_rd_$rn_im_4$(bits.rd, bits.rd, 0);
-
-            // XXX: this code &amp;quot;works&amp;quot;, but is &amp;quot;wrong&amp;quot;: the mechanism is more complex than this
-            *--trailer = ((reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4) &amp;amp; ~0x2) + bits.immediate * 4;
-
-            start += 2;
-            end -= 2;
-        } else if (T$pcrel$b(backup[offset])) {
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t imm8 : 8;
-                    uint16_t cond : 4;
-                    uint16_t /*1101*/ : 4;
-                };
-            } bits = {backup[offset+0]};
-
-            intptr_t jump(bits.imm8 &amp;lt;&amp;lt; 1);
-            jump |= 1;
-            jump &amp;lt;&amp;lt;= 23;
-            jump &amp;gt;&amp;gt;= 23;
-
-            buffer[start+0] = T$b$_$im(bits.cond, (end-6 - (start+0)) * 2 - 4);
-
-            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
-            *--trailer = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
-            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$bx(A$pc);
-
-            start += 1;
-            end -= 6;
-        } else if (T2$pcrel$b(backup + offset)) {
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t imm6 : 6;
-                    uint16_t cond : 4;
-                    uint16_t s : 1;
-                    uint16_t : 5;
-                };
-            } bits = {backup[offset+0]};
-
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t imm11 : 11;
-                    uint16_t j2 : 1;
-                    uint16_t a : 1;
-                    uint16_t j1 : 1;
-                    uint16_t : 2;
-                };
-            } exts = {backup[offset+1]};
-
-            intptr_t jump(1);
-            jump |= exts.imm11 &amp;lt;&amp;lt; 1;
-            jump |= bits.imm6 &amp;lt;&amp;lt; 12;
-
-            if (exts.a) {
-                jump |= bits.s &amp;lt;&amp;lt; 24;
-                jump |= (~(bits.s ^ exts.j1) &amp;amp; 0x1) &amp;lt;&amp;lt; 23;
-                jump |= (~(bits.s ^ exts.j2) &amp;amp; 0x1) &amp;lt;&amp;lt; 22;
-                jump |= bits.cond &amp;lt;&amp;lt; 18;
-                jump &amp;lt;&amp;lt;= 7;
-                jump &amp;gt;&amp;gt;= 7;
-            } else {
-                jump |= bits.s &amp;lt;&amp;lt; 20;
-                jump |= exts.j2 &amp;lt;&amp;lt; 19;
-                jump |= exts.j1 &amp;lt;&amp;lt; 18;
-                jump &amp;lt;&amp;lt;= 11;
-                jump &amp;gt;&amp;gt;= 11;
-            }
-
-            buffer[start+0] = T$b$_$im(exts.a ? A$al : bits.cond, (end-6 - (start+0)) * 2 - 4);
-
-            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
-            *--trailer = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
-            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$bx(A$pc);
-
-            ++offset;
-            start += 1;
-            end -= 6;
-        } else if (T$pcrel$bl(backup + offset)) {
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t immediate : 10;
-                    uint16_t s : 1;
-                    uint16_t : 5;
-                };
-            } bits = {backup[offset+0]};
-
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t immediate : 11;
-                    uint16_t j2 : 1;
-                    uint16_t x : 1;
-                    uint16_t j1 : 1;
-                    uint16_t : 2;
-                };
-            } exts = {backup[offset+1]};
-
-            int32_t jump(0);
-            jump |= bits.s &amp;lt;&amp;lt; 24;
-            jump |= (~(bits.s ^ exts.j1) &amp;amp; 0x1) &amp;lt;&amp;lt; 23;
-            jump |= (~(bits.s ^ exts.j2) &amp;amp; 0x1) &amp;lt;&amp;lt; 22;
-            jump |= bits.immediate &amp;lt;&amp;lt; 12;
-            jump |= exts.immediate &amp;lt;&amp;lt; 1;
-            jump |= exts.x;
-            jump &amp;lt;&amp;lt;= 7;
-            jump &amp;gt;&amp;gt;= 7;
-
-            buffer[start+0] = T$push_r(1 &amp;lt;&amp;lt; A$r7);
-            buffer[start+1] = T$ldr_rd_$pc_im_4$(A$r7, ((end-2 - (start+1)) * 2 - 4 + 2) / 4);
-            buffer[start+2] = T$mov_rd_rm(A$lr, A$r7);
-            buffer[start+3] = T$pop_r(1 &amp;lt;&amp;lt; A$r7);
-            buffer[start+4] = T$blx(A$lr);
-
-            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
-
-            ++offset;
-            start += 5;
-            end -= 2;
-        } else if (T$pcrel$cbz(backup[offset])) {
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t rn : 3;
-                    uint16_t immediate : 5;
-                    uint16_t : 1;
-                    uint16_t i : 1;
-                    uint16_t : 1;
-                    uint16_t op : 1;
-                    uint16_t : 4;
-                };
-            } bits = {backup[offset+0]};
-
-            intptr_t jump(1);
-            jump |= bits.i &amp;lt;&amp;lt; 6;
-            jump |= bits.immediate &amp;lt;&amp;lt; 1;
-
-            //jump &amp;lt;&amp;lt;= 24;
-            //jump &amp;gt;&amp;gt;= 24;
-
-            unsigned rn(bits.rn);
-            unsigned rt(rn == A$r7 ? A$r6 : A$r7);
-
-            buffer[start+0] = T$push_r(1 &amp;lt;&amp;lt; rt);
-            buffer[start+1] = T1$mrs_rd_apsr(rt);
-            buffer[start+2] = T2$mrs_rd_apsr(rt);
-            buffer[start+3] = T$cbz$_rn_$im(bits.op, rn, (end-10 - (start+3)) * 2 - 4);
-            buffer[start+4] = T1$msr_apsr_nzcvqg_rn(rt);
-            buffer[start+5] = T2$msr_apsr_nzcvqg_rn(rt);
-            buffer[start+6] = T$pop_r(1 &amp;lt;&amp;lt; rt);
-
-            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4 + jump;
-            *--trailer = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
-            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$bx(A$pc);
-            *--trailer = T$nop &amp;lt;&amp;lt; 16 | T$pop_r(1 &amp;lt;&amp;lt; rt);
-            *--trailer = T$msr_apsr_nzcvqg_rn(rt);
-
-#if 0
-            if ((start &amp;amp; 0x1) == 0)
-                buffer[start++] = T$nop;
-            buffer[start++] = T$bx(A$pc);
-            buffer[start++] = T$nop;
-
-            uint32_t *arm(reinterpret_cast&amp;lt;uint32_t *&amp;gt;(buffer + start));
-            arm[0] = A$add(A$lr, A$pc, 1);
-            arm[1] = A$ldr_rd_$rn_im$(A$pc, A$pc, (trailer - arm) * sizeof(uint32_t) - 8);
-#endif
-
-            start += 7;
-            end -= 10;
-        } else if (T$pcrel$ldrw(backup[offset])) {
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t : 7;
-                    uint16_t u : 1;
-                    uint16_t : 8;
-                };
-            } bits = {backup[offset+0]};
-
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t immediate : 12;
-                    uint16_t rt : 4;
-                };
-            } exts = {backup[offset+1]};
-
-            buffer[start+0] = T1$ldr_rt_$rn_im$(exts.rt, A$pc, T$Label(start+0, end-2));
-            buffer[start+1] = T2$ldr_rt_$rn_im$(exts.rt, A$pc, T$Label(start+0, end-2));
-
-            buffer[start+2] = T1$ldr_rt_$rn_im$(exts.rt, exts.rt, 0);
-            buffer[start+3] = T2$ldr_rt_$rn_im$(exts.rt, exts.rt, 0);
-
-            // XXX: this code &amp;quot;works&amp;quot;, but is &amp;quot;wrong&amp;quot;: the mechanism is more complex than this
-            *--trailer = ((reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4) &amp;amp; ~0x2) + (bits.u == 0 ? -exts.immediate : exts.immediate);
-
-            ++offset;
-            start += 4;
-            end -= 2;
-        } else if (T$pcrel$add(backup[offset])) {
-            union {
-                uint16_t value;
-
-                struct {
-                    uint16_t rd : 3;
-                    uint16_t rm : 3;
-                    uint16_t h2 : 1;
-                    uint16_t h1 : 1;
-                    uint16_t : 8;
-                };
-            } bits = {backup[offset+0]};
-
-            if (bits.h1) {
-                return false;
-            }
-
-            unsigned rt(bits.rd == A$r7 ? A$r6 : A$r7);
-
-            buffer[start+0] = T$push_r(1 &amp;lt;&amp;lt; rt);
-            buffer[start+1] = T$mov_rd_rm(rt, (bits.h1 &amp;lt;&amp;lt; 3) | bits.rd);
-            buffer[start+2] = T$ldr_rd_$pc_im_4$(bits.rd, T$Label(start+2, end-2) / 4);
-            buffer[start+3] = T$add_rd_rm((bits.h1 &amp;lt;&amp;lt; 3) | bits.rd, rt);
-            buffer[start+4] = T$pop_r(1 &amp;lt;&amp;lt; rt);
-            *--trailer = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + offset) + 4;
-
-            start += 5;
-            end -= 2;
-        } else if (T$32bit$i(backup[offset])) {
-            buffer[start++] = backup[offset];
-            buffer[start++] = backup[++offset];
-        } else {
-            buffer[start++] = backup[offset];
-        }
-    }
-
-    buffer[start++] = T$bx(A$pc);
-    buffer[start++] = T$nop;
-
-    uint32_t *transfer = reinterpret_cast&amp;lt;uint32_t *&amp;gt;(buffer + start);
-    transfer[0] = A$ldr_rd_$rn_im$(A$pc, A$pc, 4 - 8);
-    transfer[1] = reinterpret_cast&amp;lt;uint32_t&amp;gt;(area + used / sizeof(uint16_t)) + 1;
-
-    info-&amp;gt;setCallOriginalIns(reinterpret_cast&amp;lt;uint8_t *&amp;gt;(buffer + pad) + 1);
-
-    return true;
-}
-
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h5 id=&#34;msgetinstructionwiththumb&#34;&gt;MSGetInstructionWithThumb&lt;/h5&gt;
-
-&lt;p&gt;调用    used += MSGetInstructionWithThumb(reinterpret_cast&lt;uint8_t *&gt;(area) + used);
-MSGetInstructionWithThumb: 参数为(uint16_t*).
-返回结果: 为这条指令是多少字节的指令.(4 or 2)&lt;/p&gt;
-
-&lt;p&gt;T$32bit$i的作用: (指令(ic) &amp;amp; 1110 0000 0000 0000) &amp;amp;&amp;amp; (ic &amp;amp; 0001 1000 0000 0000 != 0x0000);
-第一个判断为确定高位3个bit(即bit[15], bit[14], bit[13])为1. 第二个判断为确保bit[12], bit[11]有值(即至少这两位有 1 位为 1).&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;其实就是判断是该thumb指令是否为thumb32指令,&lt;/code&gt;
-&lt;code&gt;thumb32指令的判断依据是 b[15:11] 为 0b11101或0b11110或0b11111.&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;MSGetInstructionWithThumb:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;        static size_t MSGetInstructionWidthThumb(void *start) {
-            uint16_t *thumb(reinterpret_cast&amp;lt;uint16_t *&amp;gt;(start));   //
-            return T$32bit$i(thumb[0]) ? 4 : 2;
-        }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;T$32bit$i:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;        static inline bool T$32bit$i(uint16_t ic) {
-            return ((ic &amp;amp; 0xe000) == 0xe000 &amp;amp;&amp;amp; (ic &amp;amp; 0x1800) != 0x0000);
-        }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;分析memhelper类&#34;&gt;分析MemHelper类&lt;/h4&gt;
-
-&lt;p&gt;有4个方法:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;static bool isFunctionAddr(void* addr);&lt;/li&gt;
-&lt;li&gt;static bool unProtectMemory(void* addr, uint32_t size);  remove 写保护&lt;/li&gt;
-&lt;li&gt;static bool protectMemory(void* addr, uint32_t size);    add    写保护&lt;/li&gt;
-&lt;li&gt;static void* createExecMemory(uint32_t size);            创建一个可执行的内存&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;有4个field:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;std::vector&lt;void*&gt; all_memory_page;&lt;/li&gt;
-&lt;li&gt;void* current_page = nullptr;&lt;/li&gt;
-&lt;li&gt;uint32_t page_ptr  = 0;&lt;/li&gt;
-&lt;li&gt;static uint32_t page_size;      // 构造函数&lt;code&gt;page_size = sysconf(_SC_PAGESIZE).&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;我们现在分析一下&lt;code&gt;createExecMemory(uint32_t size)&lt;/code&gt;:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;可以看到, 分配内存的操作是通过&lt;code&gt;mmap&lt;/code&gt;实现的.&lt;/li&gt;
-&lt;li&gt;all_memory_page是一个vector, 每个单位保存一个指针, 指向mmap的内存.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;createExecMemory:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;void *FAHook::MemHelper::createExecMemory(uint32_t size) {
-    if(size &amp;amp; 1) {
-        size ++;
-    }
-    if(size &amp;gt; page_size) {
-        return nullptr;
-    }
-    if(gMemHelper.current_page != nullptr &amp;amp;&amp;amp; page_size - gMemHelper.page_ptr_ &amp;gt;= size) {
-        auto funPtr = (void*)((size_t)gMemHelper.current_page + gMemHelper.page_ptr_);
-        gMemHelper.page_ptr_ += size;
-        // Align 4
-        while(gMemHelper.page_ptr_ &amp;amp; 0x3) {
-            gMemHelper.page_ptr_ ++;
-        }
-        return funPtr;
-    }
-    // scroll to next page
-    auto newPage = mmap(nullptr, page_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-    if(newPage != MAP_FAILED) {
-        gMemHelper.alloc_memory_page_.push_back(newPage);
-
-        gMemHelper.current_page = newPage;
-        gMemHelper.page_ptr_ = 0;
-        return createExecMemory(size);
-    }
-    return nullptr;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;分析doinhook&#34;&gt;分析doInHook&lt;/h4&gt;
-
-&lt;ol&gt;
-&lt;li&gt;主要操作: FAInHook::instance()-&amp;gt;hookAll();&lt;/li&gt;
-&lt;li&gt;FAInHook::instance()-&amp;gt;unHookAll();&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;bool doInHook() {
-    static bool isHooked = false;
-    if (isHooked) {
-        isHooked = false;
-        FAInHook::instance()-&amp;gt;unhookAll();
-    } else {
-        isHooked = true;
-        FAInHook::instance()-&amp;gt;hookAll();
-    }
-    return true;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;hookAll():&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;void FAInHook::hookAll() {
-    for(auto it: hook_map) {
-        if(it.second-&amp;gt;getHookStatus() == FAHook::REGISTERED) {
-            Hook(it.second);
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;进而转到Hook函数
-1. 调用`enableJumpStub(info)
-2. info-&amp;gt;setHookStatus(FAHook::HOOKED)&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;bool FAInHook::Hook(FAHook::HookInfo *info) {
-    if(!FAHook::Instruction::enableJumpStub(info)) {
-        return false;
-    }
-    info-&amp;gt;setHookStatus(FAHook::HOOKED);
-    return true;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;分析&lt;code&gt;enableJumpStub(info)&lt;/code&gt;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;bool FAHook::Instruction::enableJumpStub(FAHook::HookInfo *info) {
-    auto origAddr = getOriginalAddr(info);
-    auto len = info-&amp;gt;getJumpStubLen();
-    auto stubAddr = info-&amp;gt;getJumpStubBack();
-    return patchMemory(origAddr, stubAddr, len);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以看到, 在得到了&lt;code&gt;origAddr&lt;/code&gt;和&lt;code&gt;stubAddr&lt;/code&gt;和&lt;code&gt;len&lt;/code&gt;之后,我们会进入到patch函数&lt;code&gt;patchMemory&lt;/code&gt;, 根据我们前面的分析, 它会patch原函数的入口指令的前(8 or 10?)个字节.&lt;/p&gt;
-
-&lt;p&gt;patchMemory:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;bool FAHook::Instruction::patchMemory(void *dest, void *src, uint32_t len) {
-    if(dest == nullptr || src == nullptr || len == 0) {
-        return false;
-    }
-    if(!MemHelper::unProtectMemory(dest, len)) {
-        return false;
-    }
-
-    memcpy(dest, src, len);
-    MemHelper::protectMemory(dest, len);
-#ifdef __arm__
-    cacheflush((Elf_Addr)dest, (Elf_Addr)dest + len, 0);
-#endif
-    return true;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;首先会调用&lt;code&gt;unProtectMemory&lt;/code&gt;函数来将对应内存修改为(rwx), 然后调用&lt;code&gt;memcpy&lt;/code&gt;来修改内存, 最后调用&lt;code&gt;protectMemory&lt;/code&gt;来修改对应内存为(r-x).&lt;/p&gt;
-
-&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
-
-&lt;p&gt;现在我们就基本对该项目进行了简单的分析, 我这里总结一下:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;registerHook
-主要操作其实就是:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;createStub:  创建代理(这个代理就是要执行跳转到我们的&lt;code&gt;newFuncAddr&lt;/code&gt;函数)&lt;/li&gt;
-&lt;li&gt;createCallOriginalStub:  call back代理(这个代理就是执行回调, 回调我们的&lt;code&gt;originalFunAddr&lt;/code&gt;.) 主要涉及处理pc相关指令(原因在文中已经有介绍).
-&lt;br /&gt;
-&lt;br /&gt;&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;doInHook&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;主要就是patchMemory. patch我们originalFunAddr的函数起始处的几个指令为&lt;code&gt;stubInstruction&lt;/code&gt;.之后函数涉及pc相关指令的修复, 方便继续执行原函数.&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;unHook&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;也是patchMemory.
-就是将我们原函数的原始指令进行复原.&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ol&gt;</description>
       
     </item>
     
