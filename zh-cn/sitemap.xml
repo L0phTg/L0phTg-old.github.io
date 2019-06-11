@@ -10,6 +10,13 @@
   </url>
   
   <url>
+    <loc>https://l0phtg.github.io/post/class/%E4%BF%A1%E5%8F%B7%E4%B8%8E%E7%B3%BB%E7%BB%9F-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</loc>
+    <lastmod>2019-06-11T16:54:27+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>https://l0phtg.github.io/post/c&#43;&#43;/c&#43;&#43;%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</loc>
     <lastmod>2019-06-08T22:26:12+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -319,7 +326,7 @@
   
   <url>
     <loc>https://l0phtg.github.io/post/</loc>
-    <lastmod>2019-06-08T22:26:12+08:00</lastmod>
+    <lastmod>2019-06-11T16:54:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -367,6 +374,13 @@
   </url>
   
   <url>
+    <loc>https://l0phtg.github.io/tags/%E4%BF%A1%E5%8F%B7%E4%B8%8E%E7%B3%BB%E7%BB%9F/</loc>
+    <lastmod>2019-06-11T16:54:27+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://l0phtg.github.io/tags/%E5%8A%A0%E5%9B%BA/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -397,6 +411,13 @@
   <url>
     <loc>https://l0phtg.github.io/categories/%E7%BB%83%E5%AD%97/</loc>
     <lastmod>2019-06-07T23:06:16+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://l0phtg.github.io/categories/%E8%AF%BE%E5%86%85%E5%AD%A6%E4%B9%A0/</loc>
+    <lastmod>2019-06-11T16:54:27+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>

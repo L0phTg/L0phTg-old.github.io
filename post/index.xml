@@ -7,10 +7,29 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Sat, 08 Jun 2019 22:22:06 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 11 Jun 2019 16:32:00 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>信号与系统-学习笔记</title>
+      <link>https://l0phtg.github.io/post/class/%E4%BF%A1%E5%8F%B7%E4%B8%8E%E7%B3%BB%E7%BB%9F-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</link>
+      <pubDate>Tue, 11 Jun 2019 16:32:00 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/class/%E4%BF%A1%E5%8F%B7%E4%B8%8E%E7%B3%BB%E7%BB%9F-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</guid>
+      <description>&lt;p&gt;昨天刚回家，停更了两天，今天继续更博客。&lt;strong&gt;先简单水一篇&amp;lt;&amp;lt;信号与系统&amp;gt;&amp;gt;的学习记录&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&amp;lt;&amp;lt;信号与系统&amp;gt;&amp;gt;是我大学期间唯一一门挂了三年的课程，所以我对它的印象不可谓不深刻。&lt;/p&gt;
+
+&lt;p&gt;为了过补考，在上个寒假时又重新学了一遍课程，并做了很多笔记，&lt;strong&gt;本文发一下我当前的笔记目录，并附上笔记pdf的github地址&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;笔记地址: &lt;a href=&#34;https://github.com/L0phTg/ClassNote&#34;&gt;https://github.com/L0phTg/ClassNote&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;本文不断更新中&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>C&#43;&#43;：设计一个抽象数据类型</title>
@@ -354,27 +373,6 @@ https://developers.google.com/android/drivers
 &lt;p&gt;主要就是&lt;strong&gt;装机的过程&lt;/strong&gt;, 以及&lt;strong&gt;装机后的效果展示&lt;/strong&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/deepin/desktop.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>thumb指令虚拟化学习(一)</title>
-      <link>https://l0phtg.github.io/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</link>
-      <pubDate>Tue, 24 Oct 2017 20:23:30 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/thumb%E6%8C%87%E4%BB%A4%E8%99%9A%E6%8B%9F%E5%8C%96%E5%AD%A6%E4%B9%A0%E4%B8%80/</guid>
-      <description>&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/thumb-vmp/thumb16.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;上半年接触过一些 &lt;strong&gt;app加固&lt;/strong&gt; 的知识, 对 &lt;strong&gt;vm&lt;/strong&gt; 这块一直空有兴趣而没有了解过;  最近, 阅读了几篇文章, &lt;code&gt;有所启发&lt;/code&gt;, 所以决定学习一下 &lt;strong&gt;vm&lt;/strong&gt; 这块的一些操作.&lt;/p&gt;
-
-&lt;p&gt;主要内容分为:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;环境搭建&lt;/li&gt;
-&lt;li&gt;提取指令&lt;/li&gt;
-&lt;li&gt;capstone处理&lt;/li&gt;
-&lt;/ul&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
