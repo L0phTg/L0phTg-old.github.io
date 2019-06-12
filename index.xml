@@ -35,7 +35,9 @@
       
       <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</guid>
       
-        <description>&lt;p&gt;发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。&lt;/p&gt;
+        <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl06.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl06.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。&lt;/p&gt;
 
 &lt;p&gt;扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。&lt;/p&gt;
 
@@ -641,13 +643,14 @@ ready&amp;gt; mandel(-0.9, -1.4, 0.02, 0.03);
                                                                     ....+++++++
 Evaluated to 0.000000
 ready&amp;gt; ^D
+
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;在此刻，你可能开始意识到 Kaleidoscope 是一个真实的并且强大的语言。It may not be self-similar：），但是它可以被用来绘制那些东西！&lt;/p&gt;
 
 &lt;p&gt;我们现在总结本章。我们已经成功的扩展了我们的语言，在库中增加了扩展语言的能力，并且我们已经展示了如何在Kaleidoscope中构建一个简单有趣的应用。在此刻，Kaleidoscope 可以构建各种功能性的应用并且能够调用具有副作用的函数，但是它实际上无法定义并改变变量。&lt;/p&gt;
 
-&lt;p&gt;引人注目的是，&lt;strong&gt;变量值的改变&lt;/strong&gt;在许多语言中是一个重要的特性，在你的前端中没有SSA构造语法时，想要实现对变量的改变是不容易的。在下一章节，我们将会描述如何在你的前端，在不构建SSA的情况下添加&lt;strong&gt;支持改变变量的值&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;引人注目的是，&lt;strong&gt;可变变量&lt;/strong&gt;在许多语言中是一个重要的特性，在你的前端中没有SSA构造语法时，想要实现对可变变量的支持是不容易的。在下一章节，我们将会描述如何在你的前端，在不构建SSA的情况下添加&lt;strong&gt;对可变变量的支持&lt;/strong&gt;。&lt;/p&gt;
 
 &lt;h1 id=&#34;6-6-full-code-listing&#34;&gt;6.6 Full Code Listing&lt;/h1&gt;
 

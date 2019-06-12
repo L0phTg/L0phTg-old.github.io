@@ -25,7 +25,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="L0phTg" />
-  <meta name="description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+  <meta name="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl06.html
+发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
 扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
 
 " />
@@ -65,16 +66,20 @@
 
 
 <meta property="og:title" content="Kaleidoscope：Extending the Language：User Defined Operators" />
-<meta property="og:description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+<meta property="og:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl06.html
+
+发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
 
 扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
 
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/" /><meta property="article:published_time" content="2019-06-11T21:53:54&#43;08:00"/>
-<meta property="article:modified_time" content="2019-06-12T10:55:57&#43;08:00"/>
+<meta property="article:modified_time" content="2019-06-12T16:38:36&#43;08:00"/>
 <meta itemprop="name" content="Kaleidoscope：Extending the Language：User Defined Operators">
-<meta itemprop="description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+<meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl06.html
+
+发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
 
 扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
 
@@ -83,14 +88,16 @@
 
 <meta itemprop="datePublished" content="2019-06-11T21:53:54&#43;08:00" />
 <meta itemprop="dateModified" content="2019-06-11T21:53:54&#43;08:00" />
-<meta itemprop="wordCount" content="5151">
+<meta itemprop="wordCount" content="5154">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Kaleidoscope：Extending the Language：User Defined Operators"/>
-<meta name="twitter:description" content="发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
+<meta name="twitter:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl06.html
+
+发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。
 
 扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。
 
@@ -253,7 +260,7 @@
               <a href="/categories/llvm/"> llvm </a>
             
           </div>
-        <span class="more-meta"> 约 5151 字 </span>
+        <span class="more-meta"> 约 5154 字 </span>
         <span class="more-meta"> 预计阅读 11 分钟 </span>
       </div>
     </header>
@@ -278,7 +285,9 @@
 
     
     <div class="post-content">
-      <p>发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。</p>
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl06.html">http://llvm.org/docs/tutorial/LangImpl06.html</a></p>
+
+<p>发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。</p>
 
 <p>扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。</p>
 
@@ -884,13 +893,14 @@ ready&gt; mandel(-0.9, -1.4, 0.02, 0.03);
                                                                     ....+++++++
 Evaluated to 0.000000
 ready&gt; ^D
+
 </code></pre>
 
 <p>在此刻，你可能开始意识到 Kaleidoscope 是一个真实的并且强大的语言。It may not be self-similar：），但是它可以被用来绘制那些东西！</p>
 
 <p>我们现在总结本章。我们已经成功的扩展了我们的语言，在库中增加了扩展语言的能力，并且我们已经展示了如何在Kaleidoscope中构建一个简单有趣的应用。在此刻，Kaleidoscope 可以构建各种功能性的应用并且能够调用具有副作用的函数，但是它实际上无法定义并改变变量。</p>
 
-<p>引人注目的是，<strong>变量值的改变</strong>在许多语言中是一个重要的特性，在你的前端中没有SSA构造语法时，想要实现对变量的改变是不容易的。在下一章节，我们将会描述如何在你的前端，在不构建SSA的情况下添加<strong>支持改变变量的值</strong>。</p>
+<p>引人注目的是，<strong>可变变量</strong>在许多语言中是一个重要的特性，在你的前端中没有SSA构造语法时，想要实现对可变变量的支持是不容易的。在下一章节，我们将会描述如何在你的前端，在不构建SSA的情况下添加<strong>对可变变量的支持</strong>。</p>
 
 <h1 id="6-6-full-code-listing">6.6 Full Code Listing</h1>
 
@@ -911,7 +921,7 @@ ready&gt; ^D
   
   <p class="copyright-item">
     <span class="item-title">许可协议</span>
-    <span class="item-content">原创文章，如需转载请注明文章作者和出处。谢谢！</span>
+    <span class="item-content">本文翻译自 http://llvm.org/docs/tutorial/LangImpl06.html. 如需转载请注明出处。</span>
   </p>
 </div>
 

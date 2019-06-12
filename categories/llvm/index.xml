@@ -18,7 +18,9 @@
       <pubDate>Tue, 11 Jun 2019 21:53:54 +0800</pubDate>
       
       <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</guid>
-      <description>&lt;p&gt;发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。&lt;/p&gt;
+      <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl06.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl06.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。&lt;/p&gt;
 
 &lt;p&gt;扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。&lt;/p&gt;
 
