@@ -226,6 +226,57 @@
     
       <article class="post bg-white">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscopeextending-the-languagemutable-variables/">Kaleidoscope：Extending the Language：Mutable Variables</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2019-06-12 </span>
+      <div class="post-category">
+          
+            <a href="/categories/llvm/"> llvm </a>
+          
+        </div>
+      <span class="more-meta"> 约 7414 字 </span>
+      <span class="more-meta"> 预计阅读 15 分钟 </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl07.html">http://llvm.org/docs/tutorial/LangImpl07.html</a></p>
+
+<p>本章为“LLVM tutorial”的第七章：为Kaleidoscope添加对<strong>改变变量</strong>功能的支持。</p>
+
+<ul>
+<li><p>改变已经存在的变量：</p>
+
+<ol>
+<li>函数参数。</li>
+<li>迭代变量。</li>
+</ol>
+
+<p>在Codegen层面，为了改变这些变量，我们会为通过调用Alloca指令为每个变量在栈上创建空间，之后想要改变该变量的值可以通过Store指令来实现对变量值的改变，使用Load指令读取Alloca内存中的值（同时，我们还要修改NamedValues映射）。</p>
+
+<p>具体到Kaleidoscope语法层面，我们通过&rsquo;=&lsquo;运算符达到对已经定义变量的改变。</p></li>
+
+<li><p>新定义一个变量：</p>
+
+<p>通过关键字var/in实现。</p></li>
+</ul>
+
+<p>这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&hellip;)
+</p>
+    </div>
+    <div class="read-more">
+      <a href="/post/llvm/kaleidoscopeextending-the-languagemutable-variables/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/">Kaleidoscope：Extending the Language：User Defined Operators</a></h1>
     
     <div class="post-meta">
@@ -325,47 +376,6 @@
     </div>
     <div class="read-more">
       <a href="/post/c&#43;&#43;/c&#43;&#43;%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E6%8A%BD%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/">习字：入门</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2019-06-07 </span>
-      <div class="post-category">
-          
-            <a href="/categories/%E7%BB%83%E5%AD%97/"> 练字 </a>
-          
-        </div>
-      <span class="more-meta"> 约 456 字 </span>
-      <span class="more-meta"> 预计阅读 1 分钟 </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p><strong>本篇是水文!!!</strong></p>
-
-<p>从小我爸就一直说我字写得不好，就这么说了二十多年，现在依然写的一般。不过经过断断续续的练字，也有了一丁点的进步。最近学校的事基本忙完了，准备每天抽出一些时间来继续练字。</p>
-
-<p>今天看了几节田舍之老师在<strong>网易云课堂</strong>的&lt;&lt;硬笔书法系列&gt;&gt;教程，发现了自己练字期间一直存在的问题：</p>
-
-<ul>
-<li>从单字来说，有些写的比较杂乱无序。这个问题在单个字时不容易暴露出来，但是从全文来看，就会很明显发现不整齐。</li>
-<li>我硬笔字写的速度一直很慢，原因是过度注重“<strong>提按顿挫</strong>”。<strong>提按顿挫</strong>在写毛笔时比较容易实现，因为笔头是软的，但是写硬笔字时，虽然这样写出来比较好看，但日常应用中写起来速度很慢，没有实用性。</li>
-</ul>
-
-<p><strong>插一句，近两个月积攒了十几篇文章。今天起，定期更新。</strong>
-</p>
-    </div>
-    <div class="read-more">
-      <a href="/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/" class="read-more-link">阅读全文</a>
     </div>
     
   </div>

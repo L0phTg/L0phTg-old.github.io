@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Kaleidoscope：Extending the Language：Mutable Variables - L0phTg&#39;s Blog</title>
+  <link rel="alternate" hreflang="zh-cn" href="https://l0phtg.github.io/" />
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl07.html
+本章为“LLVM tutorial”的第七章：为Kaleidoscope添加对改变变量功能的支持。
+ 改变已经存在的变量：
+ 函数参数。 迭代变量。  在Codegen层面，为了改变这些变量，我们会为通过调用Alloca指令为每个变量在栈上创建空间，之后想要改变该变量的值可以通过Store指令来实现对变量值的改变，使用Load指令读取Alloca内存中的值（同时，我们还要修改NamedValues映射）。
+具体到Kaleidoscope语法层面，我们通过&amp;rsquo;=&amp;lsquo;运算符达到对已经定义变量的改变。
+ 新定义一个变量：
+通过关键字var/in实现。
+  这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&amp;hellip;) " />
+
+  <meta name="keywords" content="Hugo, theme, jane" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languagemutable-variables/" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
+<link rel="stylesheet" href="/css/mermaid.css">
+
+
+<meta property="og:title" content="Kaleidoscope：Extending the Language：Mutable Variables" />
+<meta property="og:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl07.html
+
+本章为“LLVM tutorial”的第七章：为Kaleidoscope添加对改变变量功能的支持。
+
+
+改变已经存在的变量：
+
+
+函数参数。
+迭代变量。
+
+
+在Codegen层面，为了改变这些变量，我们会为通过调用Alloca指令为每个变量在栈上创建空间，之后想要改变该变量的值可以通过Store指令来实现对变量值的改变，使用Load指令读取Alloca内存中的值（同时，我们还要修改NamedValues映射）。
+
+具体到Kaleidoscope语法层面，我们通过&rsquo;=&lsquo;运算符达到对已经定义变量的改变。
+
+新定义一个变量：
+
+通过关键字var/in实现。
+
+
+这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&hellip;)
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languagemutable-variables/" /><meta property="article:published_time" content="2019-06-12T19:43:42&#43;08:00"/>
+<meta property="article:modified_time" content="2019-06-13T20:49:49&#43;08:00"/>
+<meta itemprop="name" content="Kaleidoscope：Extending the Language：Mutable Variables">
+<meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl07.html
+
+本章为“LLVM tutorial”的第七章：为Kaleidoscope添加对改变变量功能的支持。
+
+
+改变已经存在的变量：
+
+
+函数参数。
+迭代变量。
+
+
+在Codegen层面，为了改变这些变量，我们会为通过调用Alloca指令为每个变量在栈上创建空间，之后想要改变该变量的值可以通过Store指令来实现对变量值的改变，使用Load指令读取Alloca内存中的值（同时，我们还要修改NamedValues映射）。
+
+具体到Kaleidoscope语法层面，我们通过&rsquo;=&lsquo;运算符达到对已经定义变量的改变。
+
+新定义一个变量：
+
+通过关键字var/in实现。
+
+
+这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&hellip;)
+">
+
+
+<meta itemprop="datePublished" content="2019-06-12T19:43:42&#43;08:00" />
+<meta itemprop="dateModified" content="2019-06-12T19:43:42&#43;08:00" />
+<meta itemprop="wordCount" content="7414">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kaleidoscope：Extending the Language：Mutable Variables"/>
+<meta name="twitter:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl07.html
+
+本章为“LLVM tutorial”的第七章：为Kaleidoscope添加对改变变量功能的支持。
+
+
+改变已经存在的变量：
+
+
+函数参数。
+迭代变量。
+
+
+在Codegen层面，为了改变这些变量，我们会为通过调用Alloca指令为每个变量在栈上创建空间，之后想要改变该变量的值可以通过Store指令来实现对变量值的改变，使用Load指令读取Alloca内存中的值（同时，我们还要修改NamedValues映射）。
+
+具体到Kaleidoscope语法层面，我们通过&rsquo;=&lsquo;运算符达到对已经定义变量的改变。
+
+新定义一个变量：
+
+通过关键字var/in实现。
+
+
+这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&hellip;)
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a><a href="https://gohugo.io">
+        <li class="mobile-menu-item">external-link</li>
+      </a>
+  </ul>
+</nav>
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg&#39;s Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+  </ul>
+</nav>
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Kaleidoscope：Extending the Language：Mutable Variables</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-06-12 </span>
+        <div class="post-category">
+            
+              <a href="/categories/llvm/"> llvm </a>
+            
+          </div>
+        <span class="more-meta"> 约 7414 字 </span>
+        <span class="more-meta"> 预计阅读 15 分钟 </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#chapter-7-introduction">Chapter 7 Introduction</a></li>
+<li><a href="#7-2-为什么这是一个困难的问题">7.2 为什么这是一个困难的问题？</a></li>
+<li><a href="#7-3-llvm中的内存">7.3 LLVM中的内存</a></li>
+<li><a href="#7-4-kaleidoscope中可变变量">7.4 Kaleidoscope中可变变量</a></li>
+<li><a href="#7-5-改变现有的变量">7.5 改变现有的变量</a></li>
+<li><a href="#7-6-创建赋值运算符">7.6 创建赋值运算符</a></li>
+<li><a href="#7-7-用户定义变量">7.7 用户定义变量</a></li>
+<li><a href="#7-8-全部代码">7.8 全部代码</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl07.html">http://llvm.org/docs/tutorial/LangImpl07.html</a></p>
+
+<p>本章为“LLVM tutorial”的第七章：为Kaleidoscope添加对<strong>改变变量</strong>功能的支持。</p>
+
+<ul>
+<li><p>改变已经存在的变量：</p>
+
+<ol>
+<li>函数参数。</li>
+<li>迭代变量。</li>
+</ol>
+
+<p>在Codegen层面，为了改变这些变量，我们会为通过调用Alloca指令为每个变量在栈上创建空间，之后想要改变该变量的值可以通过Store指令来实现对变量值的改变，使用Load指令读取Alloca内存中的值（同时，我们还要修改NamedValues映射）。</p>
+
+<p>具体到Kaleidoscope语法层面，我们通过&rsquo;=&lsquo;运算符达到对已经定义变量的改变。</p></li>
+
+<li><p>新定义一个变量：</p>
+
+<p>通过关键字var/in实现。</p></li>
+</ul>
+
+<p>这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&hellip;)
+</p>
+
+<h1 id="chapter-7-introduction">Chapter 7 Introduction</h1>
+
+<p>欢迎来到“使用LLVM来实现一门语言”的第七章。在第一章到第六章，我们已经构建了一个简单但是功能强大的编程语言。在我们的学习过程中，我们学习了一些<strong>词法解析技巧</strong>，<strong>如何构建和表示AST</strong>，<strong>如何生成 LLVM IR</strong>，以及<strong>如何优化结果代码</strong>以及 <strong>使用JIT来编译它</strong>。</p>
+
+<p>虽然 Kaleidoscope 作为一种功能性语言是非常有趣的，但同时对于它来说产生LLVM IR的实现是很简单的。特别地，函数式语言使得<strong>直接以 SSA 形式构建 LLVM IR 变得非常容易</strong>。由于 LLVM 要求输入代码是 SSA 形式的（这是非常好的性质），但是对于新手来说不明白<strong>如何使用可变变量为命令式语言产生代码</strong>。</p>
+
+<p>本章的内容: 你不必为前端构建 SSA形式，LLVM为此提供了高度优化且经过良好测试的支持，尽管它的工作方式对某些人来说有点意外。</p>
+
+<h1 id="7-2-为什么这是一个困难的问题">7.2 为什么这是一个困难的问题？</h1>
+
+<p>为了理解为什么可变变量会<strong>导致SSA构造的复杂性</strong>*，考虑下面这个极其简单的 c 代码：</p>
+
+<pre><code class="language-c">int G, H;
+int test(_Bool Condition) {
+  int X;
+  if (Condition)
+    X = G;
+  else
+    X = H;
+  return X;
+}
+</code></pre>
+
+<p>在这个例子中，我们有变量 &ldquo;X&rdquo;，<strong>它的值依赖于程序运行时执行的路径</strong>。因为返回指令之前有两个可能的值，所以一个 PHI 节点会被插入以用来合并这两个值。它生成的LLVM IR看起来像下面这样：</p>
+
+<pre><code class="language-llvm">@G = weak global i32 0   ; type of @G is i32*
+@H = weak global i32 0   ; type of @H is i32*
+
+define i32 @test(i1 %Condition) {
+entry:
+  br i1 %Condition, label %cond_true, label %cond_false
+
+cond_true:
+  %X.0 = load i32* @G
+  br label %cond_next
+
+cond_false:
+  %X.1 = load i32* @H
+  br label %cond_next
+
+cond_next:
+  %X.2 = phi i32 [ %X.1, %cond_false ], [ %X.0, %cond_true ]
+  ret i32 %X.2
+}
+</code></pre>
+
+<p>在此例中，来自 G 和 H 全局变量的加载在 LLVM IR 中是显式的，并且他们位于 if 语句的 then/else 分支（ cond_true/cond_false）。为了合并传入的值，在 cond_next 块中根据控制流来自何处来选择要使用的正确值：如果控制流来自 cond_false 块，X.2 将会得到 X.1 的值。可选地，如果控制流来自 cond_true，它得到 X.0 的值。本章的目的不是解释 SSA 形式的细节。为了了解更多有关SSA的信息，请阅读 <a href="http://en.wikipedia.org/wiki/Static_single_assignment_form">many online references</a>.</p>
+
+<p>本篇文章的问题是“当降低可变变量的赋值时，谁会放置phi节点?”. 这里的问题是 LLVM 要求它的 IR 一定是 SSA 形式：它没有“非SSA”模式。然而，SSA构造需要 非平凡（non-trivial） 算法和数据结构，所以对于每一个前端来说必须重写这段逻辑，它是不方便并且也是浪费的。</p>
+
+<h1 id="7-3-llvm中的内存">7.3 LLVM中的内存</h1>
+
+<p>这里的“技巧”是：LLVM要求所有的寄存器值都是SSA形式，它不要求（或者允许）内存对象是 SSA 形式。在上面的例子中，注意到 G 和 H 的负载是对 G 和 H 的直接访问：他们不会重命名或者更改版本。这与其他一些会尝试改变内存对象的版本的编译器系统不同。在 LLVM 中，它不会将内存的数据流分析编码到 LLVM IR 中，而是通过<a href="http://llvm.org/docs/WritingAnLLVMPass.html">分析passes</a>来处理（按需计算）。</p>
+
+<p>考虑到这一点，高级一些的思路是我们为函数中的每个可变对象创建一个栈变量。为了利用这个技巧，我们需要讨论 LLVM 如何表示栈变量。</p>
+
+<p>在LLVM中，<strong>所有内存访问都是显式地通过使用加载/存储指令来完成的</strong>，并且它被精心设计过使它不需要“地址”运算符。注意<strong>@G/@H全局变量的类型实际上是 &ldquo;i32&rdquo;</strong>，即使该变量被定义为“i32”。这意味着@G在全局数据区域中为一个i32定义了空间，但是它的名字实际上指向该空间的地址。栈变量工作方式相同，除了不是使用全局变量定义声明，应该使用<a href="http://llvm.org/docs/LangRef.html#alloca-instruction">LLVM alloca</a>指令申明它们：</p>
+
+<pre><code class="language-llvm">define i32 @example() {
+entry:
+  %X = alloca i32           ; type of %X is i32*.
+  ...
+  %tmp = load i32* %X       ; load the stack value %X from the stack.
+  %tmp2 = add i32 %tmp, 1   ; increment it
+  store i32 %tmp2, i32* %X  ; store it back
+  ...
+</code></pre>
+
+<p>此代码展示了<strong>如何在LLVM IR中申明和操作堆栈变量</strong>。使用alloca指令分配的堆栈内存是完全通用的：你可以将堆栈槽的地址传给函数，你可以将其存储在其它变量中，等等。在我们上面的例子中，我们可以<strong>使用alloca技术重写</strong>来避免使用PHI节点：</p>
+
+<pre><code class="language-llvm">@G = weak global i32 0   ; type of @G is i32*
+@H = weak global i32 0   ; type of @H is i32*
+
+define i32 @test(i1 %Condition) {
+entry:
+  %X = alloca i32           ; type of %X is i32*.
+  br i1 %Condition, label %cond_true, label %cond_false
+
+cond_true:
+  %X.0 = load i32* @G
+  store i32 %X.0, i32* %X   ; Update X
+  br label %cond_next
+
+cond_false:
+  %X.1 = load i32* @H
+  store i32 %X.1, i32* %X   ; Update X
+  br label %cond_next
+
+cond_next:
+  %X.2 = load i32* %X       ; Read X
+  ret i32 %X.2
+}
+</code></pre>
+
+<p>通过这种方式，我们发现了一种<strong>不需要创建PHI节点就能处理任意可变变量的方法</strong>：</p>
+
+<ol>
+<li>每一个可变变量都成为栈分配；</li>
+<li>每次读取变量变成了栈中加载；</li>
+<li>变量的每次更新变成了向栈中存储；</li>
+<li>获取变量的地址只是直接使用栈地址；</li>
+</ol>
+
+<p>虽然这个解决方案解决了我们目前的问题，但是它引入了另一个问题：我们现在显然已经为非常简单和常见的操作引入了大量的栈流量，<strong>这是一个主要的性能的问题</strong>。对我们来说是幸运地是，<strong>LLVM优化器有一个名为“mem2reg”的高度优化的pass来处理这种情况</strong>，将分配提升到 SSA 寄存器中，并根据需要插入PHI节点。例如，如果你通过该pass运行此例，你将获得：</p>
+
+<pre><code class="language-llvm">$ llvm-as &lt; example.ll | opt -mem2reg | llvm-dis
+@G = weak global i32 0
+@H = weak global i32 0
+
+define i32 @test(i1 %Condition) {
+entry:
+  br i1 %Condition, label %cond_true, label %cond_false
+
+cond_true:
+  %X.0 = load i32* @G
+  br label %cond_next
+
+cond_false:
+  %X.1 = load i32* @H
+  br label %cond_next
+
+cond_next:
+  %X.01 = phi i32 [ %X.1, %cond_false ], [ %X.0, %cond_true ]
+  ret i32 %X.01
+}
+</code></pre>
+
+<p>mem2reg pass<strong>实现了用于构造SSA形式的标准“iterated dominance frontier”算法</strong>，并且具有很多非常常见的优化。mem2reg 优化 pass 是处理可变变量的实现方案，我们强烈推荐你依赖它。注意：<strong>mem2reg只对特定情况下的变量可以起作用</strong>：</p>
+
+<ol>
+<li>mem2reg 是 alloca 驱动的：它寻找allocas，如果它可以处理他们，它会促进他们。它不适用于全局变量或者堆分配变量。</li>
+<li>mem2reg 只在函数的<strong>entry block查找alloca指令</strong>。在entry block中保证alloca<strong>只执行一次</strong>（这会使分析更简单）。</li>
+<li>mem2reg 只能优化<strong>使用直接加载和存储的allocas</strong>。如果栈变量的地址被传递给一个函数，或者涉及任何有趣的指针算法，则不会优化alloca。</li>
+<li>mem2reg只对第一类值的allocas起作用（such as 指针、标量和向量），并且仅在分配的数组大小是1时有效（或者在.ll文件中缺失才有效）。mem2reg无法将结构体或者数组转换为寄存器。注意：“sroa” pass 是一个更加强大的pass，它在许多情况下可以转换结构体，“联合”，和数组为寄存器。</li>
+</ol>
+
+<p>所有这些性质属性对于命令式语言都是很适合的，我们将在下面用Kaleidoscope进行说明。你可能会问的最后一个问题是：<strong>我应该为我的前端使用mem2reg吗</strong>? <strong>如果我直接使用SSA构建，避免使用mem2reg会不会更好</strong>？简而言之，我们强烈建议你使用此技术来构建SSA形式，除非有非常好的理由不这样做。</p>
+
+<p>使用mem2reg的优点：</p>
+
+<ul>
+<li>经验证且经过充分的测试：clang对于本地可变变量会使用mem2reg。你可以确保快速找到错误并尽早修复。</li>
+<li>速度极快：mem2reg 有许多特殊的情况，可以使它在常见情况下快速完成。例如，它对于只被用于单个基本块的变量（这些变量只有一个赋值的地方）有一个快速的路径，它会避免插入不需要的phi节点，等等。</li>
+<li>需要调试信息生成：在LLVM中<a href="http://llvm.org/docs/SourceLevelDebugging.html">调试信息</a>依赖于公开变量的地址，以便可以将调试信息附加到它上面。这种技术与这种调试信息风格非常吻合。</li>
+</ul>
+
+<p>如果不出意外，这样会使你的前端更容易上手和运行，并且实现起来非常简单。现在让我们开始为Kaleidoscope添加可变变量扩展吧！</p>
+
+<h1 id="7-4-kaleidoscope中可变变量">7.4 Kaleidoscope中可变变量</h1>
+
+<p>现在我们知道了我们想要解决的问题，让我们看看在Kaleidoscope它是如何实现的。我们将会添加两个特性：</p>
+
+<ol>
+<li>使用‘=’运算符来改变变量的能力。</li>
+<li>定义新变量的能力。</li>
+</ol>
+
+<p>到目前为止，我们的变量包含<strong>传入的参数</strong>和<strong>归纳的变量（迭代变量）</strong>和<strong>重新定义的那些变量</strong>:). 此外，无论你是否改变变量，拥有定义新变量的能力都是有用的。这是一个很不错的例子，展示了我们如何使用它们：</p>
+
+<pre><code class="language-python"># Define ':' for sequencing: as a low-precedence operator that ignores operands
+# and just returns the RHS.
+def binary : 1 (x y) y;
+
+# Recursive fib, we could do this before.
+def fib(x)
+  if (x &lt; 3) then
+    1
+  else
+    fib(x-1)+fib(x-2);
+
+# Iterative fib.
+def fibi(x)
+  var a = 1, b = 1, c in
+  (for i = 3, i &lt; x in
+     c = a + b :
+     a = b :
+     b = c) :
+  b;
+
+# Call it.
+fibi(10);
+</code></pre>
+
+<p>为了改变变量，我们必须使用“alloca技巧”来实现。一旦我们实现了该功能，我们之后将会添加一个新的运算符，然后扩展Kaleidoscope来支持新的变量定义。</p>
+
+<h1 id="7-5-改变现有的变量">7.5 改变现有的变量</h1>
+
+<p>代码生成时，Kaleidoscope中的符号表通过&rdquo;NamedValues&rdquo;映射来管理。这个映射目前跟踪了LLVM的“Value”，它包含给定变量的数值。为了支持变量的改变，我们需要稍微改变一下代码，<strong>使 <em>NamedValues</em> 保存有问题变量的内存位置</strong>。注意：这种改变是一种重构：它改变了代码的结构，但是没有（本身）改变编译器的行为。所有这些改变都只在Kaleidoscope代码产生器进行。</p>
+
+<p>在Kaleidoscope的发展过程中，它目前只支持两种类型的变量：函数的传入参数和&rsquo;for&rsquo;循环的归纳（迭代）变量。为了保持一致性，除了其他用户定义的变量外，我们还允许对这些变量进行改变。这意味着这些都需要内存位置。</p>
+
+<p>为了开始我们的Kaleidoscope的转换，我们将改变NamedValues映射，使其映射到AllocaInst*而不是Value *。一旦我们这样做了， C++编译器将告诉我们代码中哪些部分需要更新。</p>
+
+<pre><code class="language-c++">static std::map&lt;std::string, AllocaInst*&gt; NamedValues;
+</code></pre>
+
+<p>此外，因为我们需要创建这些allocas，我们将使用一个辅助函数来确保在函数的入口块创建allocas：</p>
+
+<pre><code class="language-c++">/// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
+/// the function.  This is used for mutable variables etc.
+static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
+                                          const std::string &amp;VarName) {
+  IRBuilder&lt;&gt; TmpB(&amp;TheFunction-&gt;getEntryBlock(),
+                 TheFunction-&gt;getEntryBlock().begin());
+  return TmpB.CreateAlloca(Type::getDoubleTy(TheContext), 0,
+                           VarName.c_str());
+}
+</code></pre>
+
+<p>这个看起来很有趣的代码创建了一个指向入口块的第一条指令的IRBuilder对象(.begin())。它然后根据给定名称创建了一个alloca并返回它。因为在Kaleidoscope中所有的值都是doubles，因此不必传入要使用的类型。</p>
+
+<p>有了辅助函数之后，我们想要做的第一个功能改变属于<strong>变量引用</strong>。在我们新的方案中，变量存在于栈中，所以生成一个对代码的引用实际上需要从栈上产生一个加载指令：</p>
+
+<pre><code class="language-c++">Value *VariableExprAST::codegen() {
+  // Look this variable up in the function.
+  // 读取 Value
+  Value *V = NamedValues[Name];
+  if (!V)
+    return LogErrorV(&quot;Unknown variable name&quot;);
+
+  // Load the value.
+  // 加载value
+  return Builder.CreateLoad(V, Name.c_str());
+}
+</code></pre>
+
+<p>正如你看到的，这非常简单。现在我们需要更新定义变量的内容来设置alloca。我们将从 ForExprAST::codegen()开始:</p>
+
+<pre><code class="language-c++">Function *TheFunction = Builder.GetInsertBlock()-&gt;getParent();
+
+// Create an alloca for the variable in the entry block.
+// 在entry block中为变量创建Alloca指令
+AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+
+// Emit the start code first, without 'variable' in scope.
+Value *StartVal = Start-&gt;codegen();
+if (!StartVal)
+  return nullptr;
+
+// Store the value into the alloca.
+// 将值存入Alloca中
+Builder.CreateStore(StartVal, Alloca);
+...
+
+// Compute the end condition.
+Value *EndCond = End-&gt;codegen();
+if (!EndCond)
+  return nullptr;
+
+// Reload, increment, and restore the alloca.  This handles the case where
+// the body of the loop mutates the variable.
+Value *CurVar = Builder.CreateLoad(Alloca);
+Value *NextVar = Builder.CreateFAdd(CurVar, StepVal, &quot;nextvar&quot;);
+Builder.CreateStore(NextVar, Alloca);
+...
+</code></pre>
+
+<p>此代码实际上与我们之前的代码大致相同。最大的区别是我们不再需要构建一个PHI节点，并且我们使用 load/store 来根据需要获取变量。</p>
+
+<p>为了支持可变参数变量，我们还需要为它们进行分配空间。代码实现也非常简单：</p>
+
+<pre><code class="language-c++">Function *FunctionAST::codegen() {
+  ...
+  Builder.SetInsertPoint(BB);
+
+  // Record the function arguments in the NamedValues map.
+  NamedValues.clear();
+  for (auto &amp;Arg : TheFunction-&gt;args()) {
+    // Create an alloca for this variable.
+    // 为每个变量创建Alloca
+    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+
+    // Store the initial value into the alloca.
+    // 将初始值存入Alloca中
+    Builder.CreateStore(&amp;Arg, Alloca);
+
+    // Add arguments to variable symbol table.
+    更新NamedValues符号表
+    NamedValues[Arg.getName()] = Alloca;
+  }
+
+  if (Value *RetVal = Body-&gt;codegen()) {
+    ...
+</code></pre>
+
+<p>对于每个参数，我们都会创建一个alloca指令，将函数的参数（即初始值）存储到alloca分配的空间中，并将alloca注册为参数的内存位置。在为函数设置了入口基本块之后，Function::codegen()立即被调用。</p>
+
+<p>最后剩下的部分是添加mem2reg pass，这可以使我们生成的代码进行再一次的优化：</p>
+
+<pre><code class="language-c++">// Promote allocas to registers.
+TheFPM-&gt;add(createPromoteMemoryToRegisterPass());
+// Do simple &quot;peephole&quot; optimizations and bit-twiddling optzns.
+TheFPM-&gt;add(createInstructionCombiningPass());
+// Reassociate expressions.
+TheFPM-&gt;add(createReassociatePass());
+...
+</code></pre>
+
+<p>有趣的是看看mem2reg优化运行之前和之后的代码是什么样的。例如，这是我们的递归fib函数的优化前/优化后代码。在优化之前：</p>
+
+<pre><code class="language-llvm">define double @fib(double %x) {
+entry:
+  %x1 = alloca double
+  store double %x, double* %x1
+  %x2 = load double, double* %x1
+  %cmptmp = fcmp ult double %x2, 3.000000e+00
+  %booltmp = uitofp i1 %cmptmp to double
+  %ifcond = fcmp one double %booltmp, 0.000000e+00
+  br i1 %ifcond, label %then, label %else
+
+then:       ; preds = %entry
+  br label %ifcont
+
+else:       ; preds = %entry
+  %x3 = load double, double* %x1
+  %subtmp = fsub double %x3, 1.000000e+00
+  %calltmp = call double @fib(double %subtmp)
+  %x4 = load double, double* %x1
+  %subtmp5 = fsub double %x4, 2.000000e+00
+  %calltmp6 = call double @fib(double %subtmp5)
+  %addtmp = fadd double %calltmp, %calltmp6
+  br label %ifcont
+
+ifcont:     ; preds = %else, %then
+  %iftmp = phi double [ 1.000000e+00, %then ], [ %addtmp, %else ]
+  ret double %iftmp
+}
+</code></pre>
+
+<p>这里只有一个变量（x，传入的参数）但是你仍然可以看到我们正在使用的极其简单的代码生成策略。在入口基本块，一个alloca被创建，并且初始值被存储到其中。每个对变量的引用都会从栈中重新加载。注意：我们不会修改 if/then/else 表达式，因为它只插入PHI节点。虽然我们可以为它创建一个alloca，但实际上为它创建一个PHI节点是更容易的，所以我们仍然使用PHI指令。</p>
+
+<p>下面是mem2reg pass运行之后的代码：</p>
+
+<pre><code class="language-llvm">define double @fib(double %x) {
+entry:
+  %cmptmp = fcmp ult double %x, 3.000000e+00
+  %booltmp = uitofp i1 %cmptmp to double
+  %ifcond = fcmp one double %booltmp, 0.000000e+00
+  br i1 %ifcond, label %then, label %else
+
+then:
+  br label %ifcont
+
+else:
+  %subtmp = fsub double %x, 1.000000e+00
+  %calltmp = call double @fib(double %subtmp)
+  %subtmp5 = fsub double %x, 2.000000e+00
+  %calltmp6 = call double @fib(double %subtmp5)
+  %addtmp = fadd double %calltmp, %calltmp6
+  br label %ifcont
+
+ifcont:     ; preds = %else, %then
+  %iftmp = phi double [ 1.000000e+00, %then ], [ %addtmp, %else ]
+  ret double %iftmp
+}
+</code></pre>
+
+<p>这是mem2reg的一个简单案例，因为没有对变量进行重新定义。</p>
+
+<p>在剩余的优化运行之后，我们得到：</p>
+
+<pre><code class="language-llvm">define double @fib(double %x) {
+entry:
+  %cmptmp = fcmp ult double %x, 3.000000e+00
+  %booltmp = uitofp i1 %cmptmp to double
+  %ifcond = fcmp ueq double %booltmp, 0.000000e+00
+  br i1 %ifcond, label %else, label %ifcont
+
+else:
+  %subtmp = fsub double %x, 1.000000e+00
+  %calltmp = call double @fib(double %subtmp)
+  %subtmp5 = fsub double %x, 2.000000e+00
+  %calltmp6 = call double @fib(double %subtmp5)
+  %addtmp = fadd double %calltmp, %calltmp6
+  ret double %addtmp
+
+ifcont:
+  ret double 1.000000e+00
+}
+</code></pre>
+
+<p>在这里，我们看到simplifycfg pass决定将返回指令克隆到‘else’块的末尾。这允许它消除一些分支和PHI节点。</p>
+
+<p>现在所有的符号表引用都更新为使用栈变量，之后我们将添加赋值运算符。</p>
+
+<h1 id="7-6-创建赋值运算符">7.6 创建赋值运算符</h1>
+
+<p>使用我们目前的框架，添加新的赋值运算符是非常简单的。我们将会和解析其他二元操作符一样解析它，但是我们是在内部处理它（而不是允许用户定义它）。第一步是设置优先级：</p>
+
+<pre><code class="language-c++">int main() {
+  // Install standard binary operators.
+  // 1 is lowest precedence.
+  BinopPrecedence['='] = 2;
+  BinopPrecedence['&lt;'] = 10;
+  BinopPrecedence['+'] = 20;
+  BinopPrecedence['-'] = 20;
+</code></pre>
+
+<p>现在负责所有解析和AST生成的解析器知道了二元运算符的优先级。我们只需要为赋值运算符实现codegen。这看起来像：</p>
+
+<pre><code class="language-c++">Value *BinaryExprAST::codegen() {
+  // Special case '=' because we don't want to emit the LHS as an expression.
+  if (Op == '=') {
+    // Assignment requires the LHS to be an identifier.
+    VariableExprAST *LHSE = dynamic_cast&lt;VariableExprAST*&gt;(LHS.get());
+    if (!LHSE)
+      return LogErrorV(&quot;destination of '=' must be a variable&quot;);
+</code></pre>
+
+<p>与其他二元运算符不同，我们的赋值运算符不遵循“emit LHS，emit RHS，do computation”模型。因此，在其他二元运算符被处理之前，它会被当作一个特殊的例子来处理。另一个奇怪的事情是它需要<strong>将LHS作为变量</strong>。“(x + 1) = expr”无效，只允许“x = expr”之类的二元表达式。</p>
+
+<pre><code class="language-c++"> // Codegen the RHS.
+  Value *Val = RHS-&gt;codegen();
+  if (!Val)
+    return nullptr;
+
+  // Look up the name.
+  Value *Variable = NamedValues[LHSE-&gt;getName()];
+  if (!Variable)
+    return LogErrorV(&quot;Unknown variable name&quot;);
+
+  Builder.CreateStore(Val, Variable);
+  return Val;
+}
+...
+</code></pre>
+
+<p>一旦我们得到了变量，codegen的赋值就是很简单直接的：我们emit赋值的RHS，创建一个store，并且返回计算值。返回值允许链式赋值，就像“X = (Y = Z)”。</p>
+
+<p>现在我们有了一个赋值运算符，我们可以改变循环变量和参数。例如，我们现在可以运行下面的代码：</p>
+
+<pre><code class="language-python"># Function to print a double.
+extern printd(x);
+
+# Define ':' for sequencing: as a low-precedence operator that ignores operands
+# and just returns the RHS.
+def binary : 1 (x y) y;
+
+def test(x)
+  printd(x) :
+  x = 4 :
+  printd(x);
+
+test(123);
+</code></pre>
+
+<p>运行时，该代码先打印“123”，然后打印“4”，表明了我们实际上确实改变了该值。不错，我们现在正式实现了我们的目标：在一般情况下，要实现该目标需要SSA构建。然而，为了真正有用，我们希望能够定义我们自己的本地变量，让我们接下来添加它。</p>
+
+<h1 id="7-7-用户定义变量">7.7 用户定义变量</h1>
+
+<p>添加 var/in 就像我们对Kaleidoscope进行的任何其他扩展一样：我们扩展词法分析器，解析器和AST以及代码生成器。添加新的&rsquo;var/in&rsquo;结构的第一步是<strong>扩展词法分析器</strong>。和以前一样，这非常简单，代码就像下面这样：</p>
+
+<pre><code class="language-c++">enum Token {
+  ...
+  // var definition
+  tok_var = -13
+...
+}
+...
+static int gettok() {
+...
+    if (IdentifierStr == &quot;in&quot;)
+      return tok_in;
+    if (IdentifierStr == &quot;binary&quot;)
+      return tok_binary;
+    if (IdentifierStr == &quot;unary&quot;)
+      return tok_unary;
+    if (IdentifierStr == &quot;var&quot;)
+      return tok_var;
+    return tok_identifier;
+...
+</code></pre>
+
+<p>下一步是<strong>定义我们将要构造的AST节点</strong>。对于 var/in 来说，它看起来就像下面这样:</p>
+
+<pre><code class="language-c++">/// VarExprAST - Expression class for var/in
+class VarExprAST : public ExprAST {
+  std::vector&lt;std::pair&lt;std::string, std::unique_ptr&lt;ExprAST&gt;&gt;&gt; VarNames;
+  std::unique_ptr&lt;ExprAST&gt; Body;
+
+public:
+  VarExprAST(std::vector&lt;std::pair&lt;std::string, std::unique_ptr&lt;ExprAST&gt;&gt;&gt; VarNames,
+             std::unique_ptr&lt;ExprAST&gt; Body)
+    : VarNames(std::move(VarNames)), Body(std::move(Body)) {}
+
+  Value *codegen() override;
+};
+</code></pre>
+
+<p>var/in允许一次定义名称列表，每个名称可以选择是否拥有初始值。因此，我们在VarNames向量中捕获此信息。另外，var/in有一个body，this body被允许获取var/in定义的变量。</p>
+
+<p>有了这个，我们可以定义解析器片段。我们要做的第一件事是将其添加为主要表达式：</p>
+
+<pre><code class="language-c++">/// primary
+///   ::= identifierexpr
+///   ::= numberexpr
+///   ::= parenexpr
+///   ::= ifexpr
+///   ::= forexpr
+///   ::= varexpr
+static std::unique_ptr&lt;ExprAST&gt; ParsePrimary() {
+  switch (CurTok) {
+  default:
+    return LogError(&quot;unknown token when expecting an expression&quot;);
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+  case '(':
+    return ParseParenExpr();
+  case tok_if:
+    return ParseIfExpr();
+  case tok_for:
+    return ParseForExpr();
+  case tok_var:
+    return ParseVarExpr();
+  }
+}
+</code></pre>
+
+<p>现在我们定义 <em>ParseVarExpr</em>:</p>
+
+<pre><code class="language-c++">/// varexpr ::= 'var' identifier ('=' expression)?
+//                    (',' identifier ('=' expression)?)* 'in' expression
+static std::unique_ptr&lt;ExprAST&gt; ParseVarExpr() {
+  getNextToken();  // eat the var.
+
+  std::vector&lt;std::pair&lt;std::string, std::unique_ptr&lt;ExprAST&gt;&gt;&gt; VarNames;
+
+  // At least one variable name is required.
+  if (CurTok != tok_identifier)
+    return LogError(&quot;expected identifier after var&quot;);
+</code></pre>
+
+<p>此代码的第一部分将标识符/expr对列表解析为本地VarNames向量。</p>
+
+<pre><code class="language-c++">while (1) {
+  std::string Name = IdentifierStr;
+  getNextToken();  // eat identifier.
+
+  // Read the optional initializer.
+  std::unique_ptr&lt;ExprAST&gt; Init;
+  if (CurTok == '=') {
+    getNextToken(); // eat the '='.
+
+    Init = ParseExpression();
+    if (!Init) return nullptr;
+  }
+
+  VarNames.push_back(std::make_pair(Name, std::move(Init)));
+
+  // End of var list, exit loop.
+  if (CurTok != ',') break;
+  getNextToken(); // eat the ','.
+
+  if (CurTok != tok_identifier)
+    return LogError(&quot;expected identifier list after var&quot;);
+}
+</code></pre>
+
+<p>一旦解析了所有变量，我们就会解析body并创建AST节点：</p>
+
+<pre><code class="language-c++">  // At this point, we have to have 'in'.
+  if (CurTok != tok_in)
+    return LogError(&quot;expected 'in' keyword after 'var'&quot;);
+  getNextToken();  // eat 'in'.
+
+  auto Body = ParseExpression();
+  if (!Body)
+    return nullptr;
+
+  return llvm::make_unique&lt;VarExprAST&gt;(std::move(VarNames),
+                                       std::move(Body));
+}
+</code></pre>
+
+<p>现在我们可以解析并且表示代码，我们需要支持emmision of LLVM IR for it.我们可以这样开始：</p>
+
+<pre><code class="language-c++">Value *VarExprAST::codegen() {
+  std::vector&lt;AllocaInst *&gt; OldBindings;
+
+  Function *TheFunction = Builder.GetInsertBlock()-&gt;getParent();
+
+  // Register all variables and emit their initializer.
+  for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
+    const std::string &amp;VarName = VarNames[i].first;
+    ExprAST *Init = VarNames[i].second.get();
+</code></pre>
+
+<p>基本上它遍历所有变量，一次安装一个变量。对于我们放入符号表的每个变量，我们记住了我们在OldBindings中替换的以前的值。</p>
+
+<pre><code class="language-c++">  // Emit the initializer before adding the variable to scope, this prevents
+  // the initializer from referencing the variable itself, and permits stuff
+  // like this:
+  //  var a = 1 in
+  //    var a = a in ...   # refers to outer 'a'.
+  Value *InitVal;
+  if (Init) {
+    InitVal = Init-&gt;codegen();
+    if (!InitVal)
+      return nullptr;
+  } else { // If not specified, use 0.0.
+    InitVal = ConstantFP::get(TheContext, APFloat(0.0));
+  }
+
+  AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+  Builder.CreateStore(InitVal, Alloca);
+
+  // Remember the old variable binding so that we can restore the binding when
+  // we unrecurse.
+  OldBindings.push_back(NamedValues[VarName]);
+
+  // Remember this binding.
+  NamedValues[VarName] = Alloca;
+}
+</code></pre>
+
+<p>这里的注释比代码还多。基本思路是我们emit the initializer，创建alloca，然后更新符号表指向它。一旦所有的变量都安装在符号表中，我们就会评估var/in表达式的主体：</p>
+
+<pre><code class="language-c++">// Codegen the body, now that all vars are in scope.
+Value *BodyVal = Body-&gt;codegen();
+if (!BodyVal)
+  return nullptr;
+</code></pre>
+
+<p>最后，在返回之前，我们恢复以前的变量绑定：</p>
+
+<pre><code class="language-c++">  // Pop all our variables from scope.
+  for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
+    NamedValues[VarNames[i].first] = OldBindings[i];
+
+  // Return the body computation.
+  return BodyVal;
+}
+</code></pre>
+
+<p>所有这的最终结果是我们获得了适当范围的变量定义，并且我们甚至允许它们的改变。</p>
+
+<p>有了这个，我们完成了我们的要做的。我们很好的迭代fit示例来自intro编译并运行得很好。mem2reg pass将我们所有的栈变量优化到了SSA寄存器中，在需要的地方插入PHI节点，并且我们的前端仍然很简单：在任何地方都没有“iterated dominance frontier”计算。</p>
+
+<h1 id="7-8-全部代码">7.8 全部代码</h1>
+
+<p><a href="http://llvm.org/docs/tutorial/LangImpl07.html#id1">http://llvm.org/docs/tutorial/LangImpl07.html#id1</a></p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-06-13</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">本文翻译自 http://llvm.org/docs/tutorial/LangImpl07.html. 如需转载请注明出处。</span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/">
+            <span class="next-text nav-default">Kaleidoscope：Extending the Language：User Defined Operators</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+    
+  </article>
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener" type="application/rss+xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2018 -
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">l0phtg</span></span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+<script src="/js/highlight.pack.js"></script>
+
+<script src="/js/mermaid.min.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
+
+</body>
+</html>

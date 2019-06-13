@@ -29,6 +29,683 @@
     </item>
     
     <item>
+      <title>Kaleidoscope：Extending the Language：Mutable Variables</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languagemutable-variables/</link>
+      <pubDate>Wed, 12 Jun 2019 19:43:42 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languagemutable-variables/</guid>
+      
+        <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl07.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl07.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本章为“LLVM tutorial”的第七章：为Kaleidoscope添加对&lt;strong&gt;改变变量&lt;/strong&gt;功能的支持。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;改变已经存在的变量：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;函数参数。&lt;/li&gt;
+&lt;li&gt;迭代变量。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;在Codegen层面，为了改变这些变量，我们会为通过调用Alloca指令为每个变量在栈上创建空间，之后想要改变该变量的值可以通过Store指令来实现对变量值的改变，使用Load指令读取Alloca内存中的值（同时，我们还要修改NamedValues映射）。&lt;/p&gt;
+
+&lt;p&gt;具体到Kaleidoscope语法层面，我们通过&amp;rsquo;=&amp;lsquo;运算符达到对已经定义变量的改变。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;新定义一个变量：&lt;/p&gt;
+
+&lt;p&gt;通过关键字var/in实现。&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&amp;hellip;)
+&lt;/p&gt;
+
+&lt;h1 id=&#34;chapter-7-introduction&#34;&gt;Chapter 7 Introduction&lt;/h1&gt;
+
+&lt;p&gt;欢迎来到“使用LLVM来实现一门语言”的第七章。在第一章到第六章，我们已经构建了一个简单但是功能强大的编程语言。在我们的学习过程中，我们学习了一些&lt;strong&gt;词法解析技巧&lt;/strong&gt;，&lt;strong&gt;如何构建和表示AST&lt;/strong&gt;，&lt;strong&gt;如何生成 LLVM IR&lt;/strong&gt;，以及&lt;strong&gt;如何优化结果代码&lt;/strong&gt;以及 &lt;strong&gt;使用JIT来编译它&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;虽然 Kaleidoscope 作为一种功能性语言是非常有趣的，但同时对于它来说产生LLVM IR的实现是很简单的。特别地，函数式语言使得&lt;strong&gt;直接以 SSA 形式构建 LLVM IR 变得非常容易&lt;/strong&gt;。由于 LLVM 要求输入代码是 SSA 形式的（这是非常好的性质），但是对于新手来说不明白&lt;strong&gt;如何使用可变变量为命令式语言产生代码&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;本章的内容: 你不必为前端构建 SSA形式，LLVM为此提供了高度优化且经过良好测试的支持，尽管它的工作方式对某些人来说有点意外。&lt;/p&gt;
+
+&lt;h1 id=&#34;7-2-为什么这是一个困难的问题&#34;&gt;7.2 为什么这是一个困难的问题？&lt;/h1&gt;
+
+&lt;p&gt;为了理解为什么可变变量会&lt;strong&gt;导致SSA构造的复杂性&lt;/strong&gt;*，考虑下面这个极其简单的 c 代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;int G, H;
+int test(_Bool Condition) {
+  int X;
+  if (Condition)
+    X = G;
+  else
+    X = H;
+  return X;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在这个例子中，我们有变量 &amp;ldquo;X&amp;rdquo;，&lt;strong&gt;它的值依赖于程序运行时执行的路径&lt;/strong&gt;。因为返回指令之前有两个可能的值，所以一个 PHI 节点会被插入以用来合并这两个值。它生成的LLVM IR看起来像下面这样：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-llvm&#34;&gt;@G = weak global i32 0   ; type of @G is i32*
+@H = weak global i32 0   ; type of @H is i32*
+
+define i32 @test(i1 %Condition) {
+entry:
+  br i1 %Condition, label %cond_true, label %cond_false
+
+cond_true:
+  %X.0 = load i32* @G
+  br label %cond_next
+
+cond_false:
+  %X.1 = load i32* @H
+  br label %cond_next
+
+cond_next:
+  %X.2 = phi i32 [ %X.1, %cond_false ], [ %X.0, %cond_true ]
+  ret i32 %X.2
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在此例中，来自 G 和 H 全局变量的加载在 LLVM IR 中是显式的，并且他们位于 if 语句的 then/else 分支（ cond_true/cond_false）。为了合并传入的值，在 cond_next 块中根据控制流来自何处来选择要使用的正确值：如果控制流来自 cond_false 块，X.2 将会得到 X.1 的值。可选地，如果控制流来自 cond_true，它得到 X.0 的值。本章的目的不是解释 SSA 形式的细节。为了了解更多有关SSA的信息，请阅读 &lt;a href=&#34;http://en.wikipedia.org/wiki/Static_single_assignment_form&#34;&gt;many online references&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;本篇文章的问题是“当降低可变变量的赋值时，谁会放置phi节点?”. 这里的问题是 LLVM 要求它的 IR 一定是 SSA 形式：它没有“非SSA”模式。然而，SSA构造需要 非平凡（non-trivial） 算法和数据结构，所以对于每一个前端来说必须重写这段逻辑，它是不方便并且也是浪费的。&lt;/p&gt;
+
+&lt;h1 id=&#34;7-3-llvm中的内存&#34;&gt;7.3 LLVM中的内存&lt;/h1&gt;
+
+&lt;p&gt;这里的“技巧”是：LLVM要求所有的寄存器值都是SSA形式，它不要求（或者允许）内存对象是 SSA 形式。在上面的例子中，注意到 G 和 H 的负载是对 G 和 H 的直接访问：他们不会重命名或者更改版本。这与其他一些会尝试改变内存对象的版本的编译器系统不同。在 LLVM 中，它不会将内存的数据流分析编码到 LLVM IR 中，而是通过&lt;a href=&#34;http://llvm.org/docs/WritingAnLLVMPass.html&#34;&gt;分析passes&lt;/a&gt;来处理（按需计算）。&lt;/p&gt;
+
+&lt;p&gt;考虑到这一点，高级一些的思路是我们为函数中的每个可变对象创建一个栈变量。为了利用这个技巧，我们需要讨论 LLVM 如何表示栈变量。&lt;/p&gt;
+
+&lt;p&gt;在LLVM中，&lt;strong&gt;所有内存访问都是显式地通过使用加载/存储指令来完成的&lt;/strong&gt;，并且它被精心设计过使它不需要“地址”运算符。注意&lt;strong&gt;@G/@H全局变量的类型实际上是 &amp;ldquo;i32&amp;rdquo;&lt;/strong&gt;，即使该变量被定义为“i32”。这意味着@G在全局数据区域中为一个i32定义了空间，但是它的名字实际上指向该空间的地址。栈变量工作方式相同，除了不是使用全局变量定义声明，应该使用&lt;a href=&#34;http://llvm.org/docs/LangRef.html#alloca-instruction&#34;&gt;LLVM alloca&lt;/a&gt;指令申明它们：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-llvm&#34;&gt;define i32 @example() {
+entry:
+  %X = alloca i32           ; type of %X is i32*.
+  ...
+  %tmp = load i32* %X       ; load the stack value %X from the stack.
+  %tmp2 = add i32 %tmp, 1   ; increment it
+  store i32 %tmp2, i32* %X  ; store it back
+  ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;此代码展示了&lt;strong&gt;如何在LLVM IR中申明和操作堆栈变量&lt;/strong&gt;。使用alloca指令分配的堆栈内存是完全通用的：你可以将堆栈槽的地址传给函数，你可以将其存储在其它变量中，等等。在我们上面的例子中，我们可以&lt;strong&gt;使用alloca技术重写&lt;/strong&gt;来避免使用PHI节点：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-llvm&#34;&gt;@G = weak global i32 0   ; type of @G is i32*
+@H = weak global i32 0   ; type of @H is i32*
+
+define i32 @test(i1 %Condition) {
+entry:
+  %X = alloca i32           ; type of %X is i32*.
+  br i1 %Condition, label %cond_true, label %cond_false
+
+cond_true:
+  %X.0 = load i32* @G
+  store i32 %X.0, i32* %X   ; Update X
+  br label %cond_next
+
+cond_false:
+  %X.1 = load i32* @H
+  store i32 %X.1, i32* %X   ; Update X
+  br label %cond_next
+
+cond_next:
+  %X.2 = load i32* %X       ; Read X
+  ret i32 %X.2
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;通过这种方式，我们发现了一种&lt;strong&gt;不需要创建PHI节点就能处理任意可变变量的方法&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;每一个可变变量都成为栈分配；&lt;/li&gt;
+&lt;li&gt;每次读取变量变成了栈中加载；&lt;/li&gt;
+&lt;li&gt;变量的每次更新变成了向栈中存储；&lt;/li&gt;
+&lt;li&gt;获取变量的地址只是直接使用栈地址；&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;虽然这个解决方案解决了我们目前的问题，但是它引入了另一个问题：我们现在显然已经为非常简单和常见的操作引入了大量的栈流量，&lt;strong&gt;这是一个主要的性能的问题&lt;/strong&gt;。对我们来说是幸运地是，&lt;strong&gt;LLVM优化器有一个名为“mem2reg”的高度优化的pass来处理这种情况&lt;/strong&gt;，将分配提升到 SSA 寄存器中，并根据需要插入PHI节点。例如，如果你通过该pass运行此例，你将获得：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-llvm&#34;&gt;$ llvm-as &amp;lt; example.ll | opt -mem2reg | llvm-dis
+@G = weak global i32 0
+@H = weak global i32 0
+
+define i32 @test(i1 %Condition) {
+entry:
+  br i1 %Condition, label %cond_true, label %cond_false
+
+cond_true:
+  %X.0 = load i32* @G
+  br label %cond_next
+
+cond_false:
+  %X.1 = load i32* @H
+  br label %cond_next
+
+cond_next:
+  %X.01 = phi i32 [ %X.1, %cond_false ], [ %X.0, %cond_true ]
+  ret i32 %X.01
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;mem2reg pass&lt;strong&gt;实现了用于构造SSA形式的标准“iterated dominance frontier”算法&lt;/strong&gt;，并且具有很多非常常见的优化。mem2reg 优化 pass 是处理可变变量的实现方案，我们强烈推荐你依赖它。注意：&lt;strong&gt;mem2reg只对特定情况下的变量可以起作用&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;mem2reg 是 alloca 驱动的：它寻找allocas，如果它可以处理他们，它会促进他们。它不适用于全局变量或者堆分配变量。&lt;/li&gt;
+&lt;li&gt;mem2reg 只在函数的&lt;strong&gt;entry block查找alloca指令&lt;/strong&gt;。在entry block中保证alloca&lt;strong&gt;只执行一次&lt;/strong&gt;（这会使分析更简单）。&lt;/li&gt;
+&lt;li&gt;mem2reg 只能优化&lt;strong&gt;使用直接加载和存储的allocas&lt;/strong&gt;。如果栈变量的地址被传递给一个函数，或者涉及任何有趣的指针算法，则不会优化alloca。&lt;/li&gt;
+&lt;li&gt;mem2reg只对第一类值的allocas起作用（such as 指针、标量和向量），并且仅在分配的数组大小是1时有效（或者在.ll文件中缺失才有效）。mem2reg无法将结构体或者数组转换为寄存器。注意：“sroa” pass 是一个更加强大的pass，它在许多情况下可以转换结构体，“联合”，和数组为寄存器。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;所有这些性质属性对于命令式语言都是很适合的，我们将在下面用Kaleidoscope进行说明。你可能会问的最后一个问题是：&lt;strong&gt;我应该为我的前端使用mem2reg吗&lt;/strong&gt;? &lt;strong&gt;如果我直接使用SSA构建，避免使用mem2reg会不会更好&lt;/strong&gt;？简而言之，我们强烈建议你使用此技术来构建SSA形式，除非有非常好的理由不这样做。&lt;/p&gt;
+
+&lt;p&gt;使用mem2reg的优点：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;经验证且经过充分的测试：clang对于本地可变变量会使用mem2reg。你可以确保快速找到错误并尽早修复。&lt;/li&gt;
+&lt;li&gt;速度极快：mem2reg 有许多特殊的情况，可以使它在常见情况下快速完成。例如，它对于只被用于单个基本块的变量（这些变量只有一个赋值的地方）有一个快速的路径，它会避免插入不需要的phi节点，等等。&lt;/li&gt;
+&lt;li&gt;需要调试信息生成：在LLVM中&lt;a href=&#34;http://llvm.org/docs/SourceLevelDebugging.html&#34;&gt;调试信息&lt;/a&gt;依赖于公开变量的地址，以便可以将调试信息附加到它上面。这种技术与这种调试信息风格非常吻合。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;如果不出意外，这样会使你的前端更容易上手和运行，并且实现起来非常简单。现在让我们开始为Kaleidoscope添加可变变量扩展吧！&lt;/p&gt;
+
+&lt;h1 id=&#34;7-4-kaleidoscope中可变变量&#34;&gt;7.4 Kaleidoscope中可变变量&lt;/h1&gt;
+
+&lt;p&gt;现在我们知道了我们想要解决的问题，让我们看看在Kaleidoscope它是如何实现的。我们将会添加两个特性：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;使用‘=’运算符来改变变量的能力。&lt;/li&gt;
+&lt;li&gt;定义新变量的能力。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;到目前为止，我们的变量包含&lt;strong&gt;传入的参数&lt;/strong&gt;和&lt;strong&gt;归纳的变量（迭代变量）&lt;/strong&gt;和&lt;strong&gt;重新定义的那些变量&lt;/strong&gt;:). 此外，无论你是否改变变量，拥有定义新变量的能力都是有用的。这是一个很不错的例子，展示了我们如何使用它们：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# Define &#39;:&#39; for sequencing: as a low-precedence operator that ignores operands
+# and just returns the RHS.
+def binary : 1 (x y) y;
+
+# Recursive fib, we could do this before.
+def fib(x)
+  if (x &amp;lt; 3) then
+    1
+  else
+    fib(x-1)+fib(x-2);
+
+# Iterative fib.
+def fibi(x)
+  var a = 1, b = 1, c in
+  (for i = 3, i &amp;lt; x in
+     c = a + b :
+     a = b :
+     b = c) :
+  b;
+
+# Call it.
+fibi(10);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为了改变变量，我们必须使用“alloca技巧”来实现。一旦我们实现了该功能，我们之后将会添加一个新的运算符，然后扩展Kaleidoscope来支持新的变量定义。&lt;/p&gt;
+
+&lt;h1 id=&#34;7-5-改变现有的变量&#34;&gt;7.5 改变现有的变量&lt;/h1&gt;
+
+&lt;p&gt;代码生成时，Kaleidoscope中的符号表通过&amp;rdquo;NamedValues&amp;rdquo;映射来管理。这个映射目前跟踪了LLVM的“Value”，它包含给定变量的数值。为了支持变量的改变，我们需要稍微改变一下代码，&lt;strong&gt;使 &lt;em&gt;NamedValues&lt;/em&gt; 保存有问题变量的内存位置&lt;/strong&gt;。注意：这种改变是一种重构：它改变了代码的结构，但是没有（本身）改变编译器的行为。所有这些改变都只在Kaleidoscope代码产生器进行。&lt;/p&gt;
+
+&lt;p&gt;在Kaleidoscope的发展过程中，它目前只支持两种类型的变量：函数的传入参数和&amp;rsquo;for&amp;rsquo;循环的归纳（迭代）变量。为了保持一致性，除了其他用户定义的变量外，我们还允许对这些变量进行改变。这意味着这些都需要内存位置。&lt;/p&gt;
+
+&lt;p&gt;为了开始我们的Kaleidoscope的转换，我们将改变NamedValues映射，使其映射到AllocaInst*而不是Value *。一旦我们这样做了， C++编译器将告诉我们代码中哪些部分需要更新。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;static std::map&amp;lt;std::string, AllocaInst*&amp;gt; NamedValues;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;此外，因为我们需要创建这些allocas，我们将使用一个辅助函数来确保在函数的入口块创建allocas：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
+/// the function.  This is used for mutable variables etc.
+static AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
+                                          const std::string &amp;amp;VarName) {
+  IRBuilder&amp;lt;&amp;gt; TmpB(&amp;amp;TheFunction-&amp;gt;getEntryBlock(),
+                 TheFunction-&amp;gt;getEntryBlock().begin());
+  return TmpB.CreateAlloca(Type::getDoubleTy(TheContext), 0,
+                           VarName.c_str());
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个看起来很有趣的代码创建了一个指向入口块的第一条指令的IRBuilder对象(.begin())。它然后根据给定名称创建了一个alloca并返回它。因为在Kaleidoscope中所有的值都是doubles，因此不必传入要使用的类型。&lt;/p&gt;
+
+&lt;p&gt;有了辅助函数之后，我们想要做的第一个功能改变属于&lt;strong&gt;变量引用&lt;/strong&gt;。在我们新的方案中，变量存在于栈中，所以生成一个对代码的引用实际上需要从栈上产生一个加载指令：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *VariableExprAST::codegen() {
+  // Look this variable up in the function.
+  // 读取 Value
+  Value *V = NamedValues[Name];
+  if (!V)
+    return LogErrorV(&amp;quot;Unknown variable name&amp;quot;);
+
+  // Load the value.
+  // 加载value
+  return Builder.CreateLoad(V, Name.c_str());
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;正如你看到的，这非常简单。现在我们需要更新定义变量的内容来设置alloca。我们将从 ForExprAST::codegen()开始:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Function *TheFunction = Builder.GetInsertBlock()-&amp;gt;getParent();
+
+// Create an alloca for the variable in the entry block.
+// 在entry block中为变量创建Alloca指令
+AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+
+// Emit the start code first, without &#39;variable&#39; in scope.
+Value *StartVal = Start-&amp;gt;codegen();
+if (!StartVal)
+  return nullptr;
+
+// Store the value into the alloca.
+// 将值存入Alloca中
+Builder.CreateStore(StartVal, Alloca);
+...
+
+// Compute the end condition.
+Value *EndCond = End-&amp;gt;codegen();
+if (!EndCond)
+  return nullptr;
+
+// Reload, increment, and restore the alloca.  This handles the case where
+// the body of the loop mutates the variable.
+Value *CurVar = Builder.CreateLoad(Alloca);
+Value *NextVar = Builder.CreateFAdd(CurVar, StepVal, &amp;quot;nextvar&amp;quot;);
+Builder.CreateStore(NextVar, Alloca);
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;此代码实际上与我们之前的代码大致相同。最大的区别是我们不再需要构建一个PHI节点，并且我们使用 load/store 来根据需要获取变量。&lt;/p&gt;
+
+&lt;p&gt;为了支持可变参数变量，我们还需要为它们进行分配空间。代码实现也非常简单：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Function *FunctionAST::codegen() {
+  ...
+  Builder.SetInsertPoint(BB);
+
+  // Record the function arguments in the NamedValues map.
+  NamedValues.clear();
+  for (auto &amp;amp;Arg : TheFunction-&amp;gt;args()) {
+    // Create an alloca for this variable.
+    // 为每个变量创建Alloca
+    AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+
+    // Store the initial value into the alloca.
+    // 将初始值存入Alloca中
+    Builder.CreateStore(&amp;amp;Arg, Alloca);
+
+    // Add arguments to variable symbol table.
+    更新NamedValues符号表
+    NamedValues[Arg.getName()] = Alloca;
+  }
+
+  if (Value *RetVal = Body-&amp;gt;codegen()) {
+    ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于每个参数，我们都会创建一个alloca指令，将函数的参数（即初始值）存储到alloca分配的空间中，并将alloca注册为参数的内存位置。在为函数设置了入口基本块之后，Function::codegen()立即被调用。&lt;/p&gt;
+
+&lt;p&gt;最后剩下的部分是添加mem2reg pass，这可以使我们生成的代码进行再一次的优化：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;// Promote allocas to registers.
+TheFPM-&amp;gt;add(createPromoteMemoryToRegisterPass());
+// Do simple &amp;quot;peephole&amp;quot; optimizations and bit-twiddling optzns.
+TheFPM-&amp;gt;add(createInstructionCombiningPass());
+// Reassociate expressions.
+TheFPM-&amp;gt;add(createReassociatePass());
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;有趣的是看看mem2reg优化运行之前和之后的代码是什么样的。例如，这是我们的递归fib函数的优化前/优化后代码。在优化之前：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-llvm&#34;&gt;define double @fib(double %x) {
+entry:
+  %x1 = alloca double
+  store double %x, double* %x1
+  %x2 = load double, double* %x1
+  %cmptmp = fcmp ult double %x2, 3.000000e+00
+  %booltmp = uitofp i1 %cmptmp to double
+  %ifcond = fcmp one double %booltmp, 0.000000e+00
+  br i1 %ifcond, label %then, label %else
+
+then:       ; preds = %entry
+  br label %ifcont
+
+else:       ; preds = %entry
+  %x3 = load double, double* %x1
+  %subtmp = fsub double %x3, 1.000000e+00
+  %calltmp = call double @fib(double %subtmp)
+  %x4 = load double, double* %x1
+  %subtmp5 = fsub double %x4, 2.000000e+00
+  %calltmp6 = call double @fib(double %subtmp5)
+  %addtmp = fadd double %calltmp, %calltmp6
+  br label %ifcont
+
+ifcont:     ; preds = %else, %then
+  %iftmp = phi double [ 1.000000e+00, %then ], [ %addtmp, %else ]
+  ret double %iftmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里只有一个变量（x，传入的参数）但是你仍然可以看到我们正在使用的极其简单的代码生成策略。在入口基本块，一个alloca被创建，并且初始值被存储到其中。每个对变量的引用都会从栈中重新加载。注意：我们不会修改 if/then/else 表达式，因为它只插入PHI节点。虽然我们可以为它创建一个alloca，但实际上为它创建一个PHI节点是更容易的，所以我们仍然使用PHI指令。&lt;/p&gt;
+
+&lt;p&gt;下面是mem2reg pass运行之后的代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-llvm&#34;&gt;define double @fib(double %x) {
+entry:
+  %cmptmp = fcmp ult double %x, 3.000000e+00
+  %booltmp = uitofp i1 %cmptmp to double
+  %ifcond = fcmp one double %booltmp, 0.000000e+00
+  br i1 %ifcond, label %then, label %else
+
+then:
+  br label %ifcont
+
+else:
+  %subtmp = fsub double %x, 1.000000e+00
+  %calltmp = call double @fib(double %subtmp)
+  %subtmp5 = fsub double %x, 2.000000e+00
+  %calltmp6 = call double @fib(double %subtmp5)
+  %addtmp = fadd double %calltmp, %calltmp6
+  br label %ifcont
+
+ifcont:     ; preds = %else, %then
+  %iftmp = phi double [ 1.000000e+00, %then ], [ %addtmp, %else ]
+  ret double %iftmp
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这是mem2reg的一个简单案例，因为没有对变量进行重新定义。&lt;/p&gt;
+
+&lt;p&gt;在剩余的优化运行之后，我们得到：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-llvm&#34;&gt;define double @fib(double %x) {
+entry:
+  %cmptmp = fcmp ult double %x, 3.000000e+00
+  %booltmp = uitofp i1 %cmptmp to double
+  %ifcond = fcmp ueq double %booltmp, 0.000000e+00
+  br i1 %ifcond, label %else, label %ifcont
+
+else:
+  %subtmp = fsub double %x, 1.000000e+00
+  %calltmp = call double @fib(double %subtmp)
+  %subtmp5 = fsub double %x, 2.000000e+00
+  %calltmp6 = call double @fib(double %subtmp5)
+  %addtmp = fadd double %calltmp, %calltmp6
+  ret double %addtmp
+
+ifcont:
+  ret double 1.000000e+00
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在这里，我们看到simplifycfg pass决定将返回指令克隆到‘else’块的末尾。这允许它消除一些分支和PHI节点。&lt;/p&gt;
+
+&lt;p&gt;现在所有的符号表引用都更新为使用栈变量，之后我们将添加赋值运算符。&lt;/p&gt;
+
+&lt;h1 id=&#34;7-6-创建赋值运算符&#34;&gt;7.6 创建赋值运算符&lt;/h1&gt;
+
+&lt;p&gt;使用我们目前的框架，添加新的赋值运算符是非常简单的。我们将会和解析其他二元操作符一样解析它，但是我们是在内部处理它（而不是允许用户定义它）。第一步是设置优先级：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;int main() {
+  // Install standard binary operators.
+  // 1 is lowest precedence.
+  BinopPrecedence[&#39;=&#39;] = 2;
+  BinopPrecedence[&#39;&amp;lt;&#39;] = 10;
+  BinopPrecedence[&#39;+&#39;] = 20;
+  BinopPrecedence[&#39;-&#39;] = 20;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在负责所有解析和AST生成的解析器知道了二元运算符的优先级。我们只需要为赋值运算符实现codegen。这看起来像：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *BinaryExprAST::codegen() {
+  // Special case &#39;=&#39; because we don&#39;t want to emit the LHS as an expression.
+  if (Op == &#39;=&#39;) {
+    // Assignment requires the LHS to be an identifier.
+    VariableExprAST *LHSE = dynamic_cast&amp;lt;VariableExprAST*&amp;gt;(LHS.get());
+    if (!LHSE)
+      return LogErrorV(&amp;quot;destination of &#39;=&#39; must be a variable&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;与其他二元运算符不同，我们的赋值运算符不遵循“emit LHS，emit RHS，do computation”模型。因此，在其他二元运算符被处理之前，它会被当作一个特殊的例子来处理。另一个奇怪的事情是它需要&lt;strong&gt;将LHS作为变量&lt;/strong&gt;。“(x + 1) = expr”无效，只允许“x = expr”之类的二元表达式。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt; // Codegen the RHS.
+  Value *Val = RHS-&amp;gt;codegen();
+  if (!Val)
+    return nullptr;
+
+  // Look up the name.
+  Value *Variable = NamedValues[LHSE-&amp;gt;getName()];
+  if (!Variable)
+    return LogErrorV(&amp;quot;Unknown variable name&amp;quot;);
+
+  Builder.CreateStore(Val, Variable);
+  return Val;
+}
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;一旦我们得到了变量，codegen的赋值就是很简单直接的：我们emit赋值的RHS，创建一个store，并且返回计算值。返回值允许链式赋值，就像“X = (Y = Z)”。&lt;/p&gt;
+
+&lt;p&gt;现在我们有了一个赋值运算符，我们可以改变循环变量和参数。例如，我们现在可以运行下面的代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# Function to print a double.
+extern printd(x);
+
+# Define &#39;:&#39; for sequencing: as a low-precedence operator that ignores operands
+# and just returns the RHS.
+def binary : 1 (x y) y;
+
+def test(x)
+  printd(x) :
+  x = 4 :
+  printd(x);
+
+test(123);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;运行时，该代码先打印“123”，然后打印“4”，表明了我们实际上确实改变了该值。不错，我们现在正式实现了我们的目标：在一般情况下，要实现该目标需要SSA构建。然而，为了真正有用，我们希望能够定义我们自己的本地变量，让我们接下来添加它。&lt;/p&gt;
+
+&lt;h1 id=&#34;7-7-用户定义变量&#34;&gt;7.7 用户定义变量&lt;/h1&gt;
+
+&lt;p&gt;添加 var/in 就像我们对Kaleidoscope进行的任何其他扩展一样：我们扩展词法分析器，解析器和AST以及代码生成器。添加新的&amp;rsquo;var/in&amp;rsquo;结构的第一步是&lt;strong&gt;扩展词法分析器&lt;/strong&gt;。和以前一样，这非常简单，代码就像下面这样：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;enum Token {
+  ...
+  // var definition
+  tok_var = -13
+...
+}
+...
+static int gettok() {
+...
+    if (IdentifierStr == &amp;quot;in&amp;quot;)
+      return tok_in;
+    if (IdentifierStr == &amp;quot;binary&amp;quot;)
+      return tok_binary;
+    if (IdentifierStr == &amp;quot;unary&amp;quot;)
+      return tok_unary;
+    if (IdentifierStr == &amp;quot;var&amp;quot;)
+      return tok_var;
+    return tok_identifier;
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;下一步是&lt;strong&gt;定义我们将要构造的AST节点&lt;/strong&gt;。对于 var/in 来说，它看起来就像下面这样:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// VarExprAST - Expression class for var/in
+class VarExprAST : public ExprAST {
+  std::vector&amp;lt;std::pair&amp;lt;std::string, std::unique_ptr&amp;lt;ExprAST&amp;gt;&amp;gt;&amp;gt; VarNames;
+  std::unique_ptr&amp;lt;ExprAST&amp;gt; Body;
+
+public:
+  VarExprAST(std::vector&amp;lt;std::pair&amp;lt;std::string, std::unique_ptr&amp;lt;ExprAST&amp;gt;&amp;gt;&amp;gt; VarNames,
+             std::unique_ptr&amp;lt;ExprAST&amp;gt; Body)
+    : VarNames(std::move(VarNames)), Body(std::move(Body)) {}
+
+  Value *codegen() override;
+};
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;var/in允许一次定义名称列表，每个名称可以选择是否拥有初始值。因此，我们在VarNames向量中捕获此信息。另外，var/in有一个body，this body被允许获取var/in定义的变量。&lt;/p&gt;
+
+&lt;p&gt;有了这个，我们可以定义解析器片段。我们要做的第一件事是将其添加为主要表达式：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// primary
+///   ::= identifierexpr
+///   ::= numberexpr
+///   ::= parenexpr
+///   ::= ifexpr
+///   ::= forexpr
+///   ::= varexpr
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParsePrimary() {
+  switch (CurTok) {
+  default:
+    return LogError(&amp;quot;unknown token when expecting an expression&amp;quot;);
+  case tok_identifier:
+    return ParseIdentifierExpr();
+  case tok_number:
+    return ParseNumberExpr();
+  case &#39;(&#39;:
+    return ParseParenExpr();
+  case tok_if:
+    return ParseIfExpr();
+  case tok_for:
+    return ParseForExpr();
+  case tok_var:
+    return ParseVarExpr();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在我们定义 &lt;em&gt;ParseVarExpr&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;/// varexpr ::= &#39;var&#39; identifier (&#39;=&#39; expression)?
+//                    (&#39;,&#39; identifier (&#39;=&#39; expression)?)* &#39;in&#39; expression
+static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseVarExpr() {
+  getNextToken();  // eat the var.
+
+  std::vector&amp;lt;std::pair&amp;lt;std::string, std::unique_ptr&amp;lt;ExprAST&amp;gt;&amp;gt;&amp;gt; VarNames;
+
+  // At least one variable name is required.
+  if (CurTok != tok_identifier)
+    return LogError(&amp;quot;expected identifier after var&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;此代码的第一部分将标识符/expr对列表解析为本地VarNames向量。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;while (1) {
+  std::string Name = IdentifierStr;
+  getNextToken();  // eat identifier.
+
+  // Read the optional initializer.
+  std::unique_ptr&amp;lt;ExprAST&amp;gt; Init;
+  if (CurTok == &#39;=&#39;) {
+    getNextToken(); // eat the &#39;=&#39;.
+
+    Init = ParseExpression();
+    if (!Init) return nullptr;
+  }
+
+  VarNames.push_back(std::make_pair(Name, std::move(Init)));
+
+  // End of var list, exit loop.
+  if (CurTok != &#39;,&#39;) break;
+  getNextToken(); // eat the &#39;,&#39;.
+
+  if (CurTok != tok_identifier)
+    return LogError(&amp;quot;expected identifier list after var&amp;quot;);
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;一旦解析了所有变量，我们就会解析body并创建AST节点：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  // At this point, we have to have &#39;in&#39;.
+  if (CurTok != tok_in)
+    return LogError(&amp;quot;expected &#39;in&#39; keyword after &#39;var&#39;&amp;quot;);
+  getNextToken();  // eat &#39;in&#39;.
+
+  auto Body = ParseExpression();
+  if (!Body)
+    return nullptr;
+
+  return llvm::make_unique&amp;lt;VarExprAST&amp;gt;(std::move(VarNames),
+                                       std::move(Body));
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;现在我们可以解析并且表示代码，我们需要支持emmision of LLVM IR for it.我们可以这样开始：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;Value *VarExprAST::codegen() {
+  std::vector&amp;lt;AllocaInst *&amp;gt; OldBindings;
+
+  Function *TheFunction = Builder.GetInsertBlock()-&amp;gt;getParent();
+
+  // Register all variables and emit their initializer.
+  for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
+    const std::string &amp;amp;VarName = VarNames[i].first;
+    ExprAST *Init = VarNames[i].second.get();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;基本上它遍历所有变量，一次安装一个变量。对于我们放入符号表的每个变量，我们记住了我们在OldBindings中替换的以前的值。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  // Emit the initializer before adding the variable to scope, this prevents
+  // the initializer from referencing the variable itself, and permits stuff
+  // like this:
+  //  var a = 1 in
+  //    var a = a in ...   # refers to outer &#39;a&#39;.
+  Value *InitVal;
+  if (Init) {
+    InitVal = Init-&amp;gt;codegen();
+    if (!InitVal)
+      return nullptr;
+  } else { // If not specified, use 0.0.
+    InitVal = ConstantFP::get(TheContext, APFloat(0.0));
+  }
+
+  AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, VarName);
+  Builder.CreateStore(InitVal, Alloca);
+
+  // Remember the old variable binding so that we can restore the binding when
+  // we unrecurse.
+  OldBindings.push_back(NamedValues[VarName]);
+
+  // Remember this binding.
+  NamedValues[VarName] = Alloca;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里的注释比代码还多。基本思路是我们emit the initializer，创建alloca，然后更新符号表指向它。一旦所有的变量都安装在符号表中，我们就会评估var/in表达式的主体：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;// Codegen the body, now that all vars are in scope.
+Value *BodyVal = Body-&amp;gt;codegen();
+if (!BodyVal)
+  return nullptr;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后，在返回之前，我们恢复以前的变量绑定：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  // Pop all our variables from scope.
+  for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
+    NamedValues[VarNames[i].first] = OldBindings[i];
+
+  // Return the body computation.
+  return BodyVal;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;所有这的最终结果是我们获得了适当范围的变量定义，并且我们甚至允许它们的改变。&lt;/p&gt;
+
+&lt;p&gt;有了这个，我们完成了我们的要做的。我们很好的迭代fit示例来自intro编译并运行得很好。mem2reg pass将我们所有的栈变量优化到了SSA寄存器中，在需要的地方插入PHI节点，并且我们的前端仍然很简单：在任何地方都没有“iterated dominance frontier”计算。&lt;/p&gt;
+
+&lt;h1 id=&#34;7-8-全部代码&#34;&gt;7.8 全部代码&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl07.html#id1&#34;&gt;http://llvm.org/docs/tutorial/LangImpl07.html#id1&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope：Extending the Language：User Defined Operators</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</link>
       <pubDate>Tue, 11 Jun 2019 21:53:54 +0800</pubDate>
@@ -5946,437 +6623,6 @@ graph TD
 &lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/life/blog-ls-files.png&#34; alt=&#34;blog-ls-files&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;添加到版本控制的目的: 可以将它提交到我们的&lt;strong&gt;github&lt;/strong&gt;或者 &lt;strong&gt;gitee&lt;/strong&gt;上, &lt;strong&gt;方便跨平台编辑, 也可以当作一个备份&lt;/strong&gt; .&lt;/p&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>Iqiyi开源hook框架XHook分析</title>
-      <link>https://l0phtg.github.io/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/</link>
-      <pubDate>Sun, 19 Aug 2018 02:19:05 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/iqiyi%E5%BC%80%E6%BA%90hook%E6%A1%86%E6%9E%B6xhook%E5%88%86%E6%9E%90/</guid>
-      
-        <description>&lt;p&gt;Got Hook 可以使用dlsym得到目标函数的地址, 然后遍历got表进行Hook.&lt;/p&gt;
-
-&lt;p&gt;但是有时候我们不能通过dlsym得到函数地址. 这时我们需要怎么办呢? iqiyi的xhook很好的解决了这个问题, (可以参考linker的实现, &lt;strong&gt;有问题, 看源码&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;通过找到目标函数地址存放在got表中位置, 只要找到了目标symbol在got表中的offset, 想要修改或者得到目标函数的实际地址就轻松多了.&lt;/p&gt;
-
-&lt;p&gt;symbol -&amp;gt; symid -&amp;gt; 在got表中的offset  -&amp;gt; 目标函数实际地址&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;h1 id=&#34;阅读readme&#34;&gt;阅读Readme&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/iqiyi/xHook/blob/master/README.zh-CN.md&#34;&gt;https://github.com/iqiyi/xHook/blob/master/README.zh-CN.md&lt;/a&gt;
-&lt;a href=&#34;https://github.com/iqiyi/xHook/blob/master/docs/overview/android_plt_hook_overview.zh-CN.md&#34;&gt;https://github.com/iqiyi/xHook/blob/master/docs/overview/android_plt_hook_overview.zh-CN.md&lt;/a&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;//监测内存泄露
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;malloc&amp;quot;,  my_malloc,  NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;calloc&amp;quot;,  my_calloc,  NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;realloc&amp;quot;, my_realloc, NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;free&amp;quot;,    my_free,    NULL);
-
-//监控 sockets 生命周期
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;getaddrinfo&amp;quot;, my_getaddrinfo, NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;socket&amp;quot;,      my_socket,      NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;setsockopt&amp;quot;   my_setsockopt,  NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;bind&amp;quot;,        my_bind,        NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;listen&amp;quot;,      my_listen,      NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;connect&amp;quot;,     my_connect,     NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;shutdown&amp;quot;,    my_shutdown,    NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;close&amp;quot;,       my_close,       NULL);
-
-//过滤出和保存部分安卓 log 到本地文件
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_write&amp;quot;,  my_log_write,  NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_print&amp;quot;,  my_log_print,  NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_vprint&amp;quot;, my_log_vprint, NULL);
-xhook_register(&amp;quot;.*\\.so$&amp;quot;, &amp;quot;__android_log_assert&amp;quot;, my_log_assert, NULL);
-
-//追踪某些调用 (忽略 linker 和 linker64)
-xhook_register(&amp;quot;^/system/.*$&amp;quot;, &amp;quot;mmap&amp;quot;,   my_mmap,   NULL);
-xhook_register(&amp;quot;^/vendor/.*$&amp;quot;, &amp;quot;munmap&amp;quot;, my_munmap, NULL);
-xhook_ignore  (&amp;quot;.*/linker$&amp;quot;,   &amp;quot;mmap&amp;quot;);
-xhook_ignore  (&amp;quot;.*/linker$&amp;quot;,   &amp;quot;munmap&amp;quot;);
-xhook_ignore  (&amp;quot;.*/linker64$&amp;quot;, &amp;quot;mmap&amp;quot;);
-xhook_ignore  (&amp;quot;.*/linker64$&amp;quot;, &amp;quot;munmap&amp;quot;);
-
-//防御某些注入攻击
-xhook_register(&amp;quot;.*com\\.hacker.*\\.so$&amp;quot;, &amp;quot;malloc&amp;quot;,  my_malloc_always_return_NULL, NULL);
-xhook_register(&amp;quot;.*/libhacker\\.so$&amp;quot;,     &amp;quot;connect&amp;quot;, my_connect_with_recorder,     NULL);
-
-//修复某些系统 bug
-xhook_register(&amp;quot;.*some_vendor.*/libvictim\\.so$&amp;quot;, &amp;quot;bad_func&amp;quot;, my_nice_func, NULL);
-
-//忽略 libwebviewchromium.so 的所有 hook 信息
-xhook_ignore(&amp;quot;.*/libwebviewchromium.so$&amp;quot;, NULL);
-
-//现在执行 hook!
-xhook_refresh(1);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;发现重点为下面几个函数:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;xhook_register&lt;/li&gt;
-&lt;li&gt;xhook_ignore&lt;/li&gt;
-&lt;li&gt;xhook_refresh&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;接下来依次分析&lt;/p&gt;
-
-&lt;h1 id=&#34;分析&#34;&gt;分析&lt;/h1&gt;
-
-&lt;h2 id=&#34;xhook-register-hook函数注册&#34;&gt;xhook_register Hook函数注册&lt;/h2&gt;
-
-&lt;h3 id=&#34;函数申明&#34;&gt;函数申明&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;int xhook_register(const char *pathname_regex_str, const char *symbol,
-                   void *new_func, void **old_func) XHOOK_EXPORT;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;函数实现分析&#34;&gt;函数实现分析&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;int xhook_register(const char *pathname_regex_str, const char *symbol,
-                   void *new_func, void **old_func)
-{
-    return xh_core_register(pathname_regex_str, symbol, new_func, old_func);
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;xh-core-register&#34;&gt;xh_core_register&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;int xh_core_register(const char *pathname_regex_str, const char *symbol,
-                     void *new_func, void **old_func)
-{
-    xh_core_hook_info_t *hi;
-    regex_t              regex;
-
-    if(NULL == pathname_regex_str || NULL == symbol || NULL == new_func) return XH_ERRNO_INVAL;
-
-    if(xh_core_inited)
-    {
-        XH_LOG_ERROR(&amp;quot;do not register hook after refresh(): %s, %s&amp;quot;, pathname_regex_str, symbol);
-        return XH_ERRNO_INVAL;
-    }
-
-    if(0 != regcomp(&amp;amp;regex, pathname_regex_str, REG_NOSUB)) return XH_ERRNO_INVAL;
-
-    if(NULL == (hi = malloc(sizeof(xh_core_hook_info_t)))) return XH_ERRNO_NOMEM;
-    if(NULL == (hi-&amp;gt;symbol = strdup(symbol)))
-    {
-        free(hi);
-        return XH_ERRNO_NOMEM;
-    }
-#if XH_CORE_DEBUG
-    if(NULL == (hi-&amp;gt;pathname_regex_str = strdup(pathname_regex_str)))
-    {
-        free(hi-&amp;gt;symbol);
-        free(hi);
-        return XH_ERRNO_NOMEM;
-    }
-#endif
-    hi-&amp;gt;pathname_regex = regex;
-    hi-&amp;gt;new_func = new_func;
-    hi-&amp;gt;old_func = old_func;
-    
-    pthread_mutex_lock(&amp;amp;xh_core_mutex);
-    TAILQ_INSERT_TAIL(&amp;amp;xh_core_hook_info, hi, link); // 核心
-    pthread_mutex_unlock(&amp;amp;xh_core_mutex);
-
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;xh-elf-init&#34;&gt;xh_elf_init:&lt;/h4&gt;
-
-&lt;ol&gt;
-&lt;li&gt;设置 load_bias, elf_header, Program header地址.&lt;/li&gt;
-&lt;li&gt;找到第一个PT_LOAD段&lt;/li&gt;
-&lt;li&gt;找到dynamic_header. 之后解析dynamic segment, 找到strtab, symtab, rel.plt, .rel,等&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;int xh_elf_init(xh_elf_t *self, uintptr_t base_addr, const char *pathname)
-{
-    if(0 == base_addr || NULL == pathname) return XH_ERRNO_INVAL;
-
-    //always reset
-    memset(self, 0, sizeof(xh_elf_t));
-    
-    self-&amp;gt;pathname = pathname;
-    self-&amp;gt;base_addr = (ElfW(Addr))base_addr;
-    self-&amp;gt;ehdr = (ElfW(Ehdr) *)base_addr;
-    self-&amp;gt;phdr = (ElfW(Phdr) *)(base_addr + self-&amp;gt;ehdr-&amp;gt;e_phoff); //segmentation fault sometimes
-
-    //find the first load-segment with offset 0
-    ElfW(Phdr) *phdr0 = xh_elf_get_first_segment_by_type_offset(self, PT_LOAD, 0);
-    if(NULL == phdr0)
-    {
-        XH_LOG_ERROR(&amp;quot;Can NOT found the first load segment. %s&amp;quot;, pathname);
-        return XH_ERRNO_FORMAT;
-    }
-
-#if XH_ELF_DEBUG
-    if(0 != phdr0-&amp;gt;p_vaddr)
-        XH_LOG_DEBUG(&amp;quot;first load-segment vaddr NOT 0 (vaddr: %p). %s&amp;quot;,
-                     (void *)(phdr0-&amp;gt;p_vaddr), pathname);
-#endif
-
-    //save load bias addr
-    if(self-&amp;gt;base_addr &amp;lt; phdr0-&amp;gt;p_vaddr) return XH_ERRNO_FORMAT;
-    self-&amp;gt;bias_addr = self-&amp;gt;base_addr - phdr0-&amp;gt;p_vaddr;
-    
-    //find dynamic-segment
-    ElfW(Phdr) *dhdr = xh_elf_get_first_segment_by_type(self, PT_DYNAMIC);
-    if(NULL == dhdr)
-    {
-        XH_LOG_ERROR(&amp;quot;Can NOT found dynamic segment. %s&amp;quot;, pathname);
-        return XH_ERRNO_FORMAT;
-    }
-
-    //parse dynamic-segment
-    self-&amp;gt;dyn          = (ElfW(Dyn) *)(self-&amp;gt;bias_addr + dhdr-&amp;gt;p_vaddr);
-    self-&amp;gt;dyn_sz       = dhdr-&amp;gt;p_memsz;
-    ElfW(Dyn) *dyn     = self-&amp;gt;dyn;
-    ElfW(Dyn) *dyn_end = self-&amp;gt;dyn + (self-&amp;gt;dyn_sz / sizeof(ElfW(Dyn)));
-    uint32_t  *raw;
-    for(; dyn &amp;lt; dyn_end; dyn++)
-    {
-        switch(dyn-&amp;gt;d_tag) //segmentation fault sometimes
-        {
-        case DT_NULL:
-            //the end of the dynamic-section
-            dyn = dyn_end;
-            break;
-        case DT_STRTAB:
-            {
-                self-&amp;gt;strtab = (const char *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
-                if((ElfW(Addr))(self-&amp;gt;strtab) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-                break;
-            }
-        case DT_SYMTAB:
-            {
-                self-&amp;gt;symtab = (ElfW(Sym) *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
-                if((ElfW(Addr))(self-&amp;gt;symtab) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-                break;
-            }
-        case DT_PLTREL:
-            //use rel or rela?
-            self-&amp;gt;is_use_rela = (dyn-&amp;gt;d_un.d_val == DT_RELA ? 1 : 0);
-            break;
-        case DT_JMPREL:
-            {
-                self-&amp;gt;relplt = (ElfW(Addr))(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
-                if((ElfW(Addr))(self-&amp;gt;relplt) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-                break;
-            }
-        case DT_PLTRELSZ:
-            self-&amp;gt;relplt_sz = dyn-&amp;gt;d_un.d_val;
-            break;
-        case DT_REL:
-        case DT_RELA:
-            {
-                self-&amp;gt;reldyn = (ElfW(Addr))(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
-                if((ElfW(Addr))(self-&amp;gt;reldyn) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-                break;
-            }
-        case DT_RELSZ:
-        case DT_RELASZ:
-            self-&amp;gt;reldyn_sz = dyn-&amp;gt;d_un.d_val;
-            break;
-        case DT_ANDROID_REL:
-        case DT_ANDROID_RELA:
-            {
-                self-&amp;gt;relandroid = (ElfW(Addr))(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
-                if((ElfW(Addr))(self-&amp;gt;relandroid) &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-                break;
-            }
-        case DT_ANDROID_RELSZ:
-        case DT_ANDROID_RELASZ:
-            self-&amp;gt;relandroid_sz = dyn-&amp;gt;d_un.d_val;
-            break;
-        case DT_HASH:
-            {
-                raw = (uint32_t *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
-                if((ElfW(Addr))raw &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-                self-&amp;gt;bucket_cnt  = raw[0];
-                self-&amp;gt;chain_cnt   = raw[1];
-                self-&amp;gt;bucket      = &amp;amp;raw[2];
-                self-&amp;gt;chain       = &amp;amp;(self-&amp;gt;bucket[self-&amp;gt;bucket_cnt]);
-                break;
-            }
-        case DT_GNU_HASH:
-            {
-                raw = (uint32_t *)(self-&amp;gt;bias_addr + dyn-&amp;gt;d_un.d_ptr);
-                if((ElfW(Addr))raw &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-                self-&amp;gt;bucket_cnt  = raw[0];
-                self-&amp;gt;symoffset   = raw[1];
-                self-&amp;gt;bloom_sz    = raw[2];
-                self-&amp;gt;bloom_shift = raw[3];
-                self-&amp;gt;bloom       = (ElfW(Addr) *)(&amp;amp;raw[4]);
-                self-&amp;gt;bucket      = (uint32_t *)(&amp;amp;(self-&amp;gt;bloom[self-&amp;gt;bloom_sz]));
-                self-&amp;gt;chain       = (uint32_t *)(&amp;amp;(self-&amp;gt;bucket[self-&amp;gt;bucket_cnt]));
-                self-&amp;gt;is_use_gnu_hash = 1;
-                break;
-            }
-        default:
-            break;
-        }
-    }
-
-    //check android rel/rela
-    if(0 != self-&amp;gt;relandroid)
-    {
-        const char *rel = (const char *)self-&amp;gt;relandroid;
-        if(self-&amp;gt;relandroid_sz &amp;lt; 4 ||
-           rel[0] != &#39;A&#39; ||
-           rel[1] != &#39;P&#39; ||
-           rel[2] != &#39;S&#39; ||
-           rel[3] != &#39;2&#39;)
-        {
-            XH_LOG_ERROR(&amp;quot;android rel/rela format error\n&amp;quot;);
-            return XH_ERRNO_FORMAT;
-        }
-        
-        self-&amp;gt;relandroid += 4;
-        self-&amp;gt;relandroid_sz -= 4;
-    }
-
-    //check elf info
-    if(0 != xh_elf_check(self))
-    {
-        XH_LOG_ERROR(&amp;quot;elf init check failed. %s&amp;quot;, pathname);
-        return XH_ERRNO_FORMAT;
-    }
-    
-#if XH_ELF_DEBUG
-    xh_elf_dump(self);
-#endif
-
-    XH_LOG_INFO(&amp;quot;init OK: %s (%s %s PLT:%u DYN:%u ANDROID:%u)\n&amp;quot;, self-&amp;gt;pathname,
-                self-&amp;gt;is_use_rela ? &amp;quot;RELA&amp;quot; : &amp;quot;REL&amp;quot;,
-                self-&amp;gt;is_use_gnu_hash ? &amp;quot;GNU_HASH&amp;quot; : &amp;quot;ELF_HASH&amp;quot;,
-                self-&amp;gt;relplt_sz, self-&amp;gt;reldyn_sz, self-&amp;gt;relandroid_sz);
-
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;xh-refresh&#34;&gt;xh_refresh&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;xh_refresh -&amp;gt; xh_core_refresh -&amp;gt; xh_core_init_once
-
-                              -&amp;gt; xh_core_refresh_impl 
-   
-
-xh_core_refresh_impl -&amp;gt; xh_core_check_elf_header
-                     -&amp;gt; xh_core_hook             -&amp;gt; xh_core_hook_impl
-                     
-                     
-xh_core_hook_impl    -&amp;gt; xh_elf_init
-                     -&amp;gt; xh_elf_hook
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;xh-elf-hook&#34;&gt;xh_elf_hook&lt;/h3&gt;
-
-&lt;ol&gt;
-&lt;li&gt;xh_elf_find_symidx_by_name    //find symbol index by symbol name&lt;/li&gt;
-&lt;li&gt;replace.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;    //find symbol index by symbol name
-    if(0 != (r = xh_elf_find_symidx_by_name(self, symbol, &amp;amp;symidx))) return 0;
-    
-    //replace for .rel(a).plt
-    if(0 != self-&amp;gt;relplt)
-    {
-        xh_elf_plain_reloc_iterator_init(&amp;amp;plain_iter, self-&amp;gt;relplt, self-&amp;gt;relplt_sz, self-&amp;gt;is_use_rela);
-        while(NULL != (rel_common = xh_elf_plain_reloc_iterator_next(&amp;amp;plain_iter)))
-        {
-            if(0 != (r = xh_elf_find_and_replace_func(self,
-                                                      (self-&amp;gt;is_use_rela ? &amp;quot;.rela.plt&amp;quot; : &amp;quot;.rel.plt&amp;quot;), 1,
-                                                      symbol, new_func, old_func,
-                                                      symidx, rel_common, &amp;amp;found))) return r;
-            if(found) break;
-        }
-    }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;xh-elf-find-symidx-by-name&#34;&gt;xh_elf_find_symidx_by_name&lt;/h4&gt;
-
-&lt;p&gt;其中: 寻找symidx, 遍历symtab,&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;static int xh_elf_find_symidx_by_name(xh_elf_t *self, const char *symbol, uint32_t *symidx)
-{
-    if(self-&amp;gt;is_use_gnu_hash)
-        return xh_elf_gnu_hash_lookup(self, symbol, symidx);
-    else
-        return xh_elf_hash_lookup(self, symbol, symidx);
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;xh-elf-find-and-replace-func&#34;&gt;xh_elf_find_and_replace_func&lt;/h4&gt;
-
-&lt;p&gt;rel, rela表中存放这r_offset, 和symidx.&lt;/p&gt;
-
-&lt;p&gt;真正替换的流程在&lt;strong&gt;xh_elf_find_and_replace_func&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;static int xh_elf_find_and_replace_func(xh_elf_t *self, const char *section,
-                                        int is_plt, const char *symbol,
-                                        void *new_func, void **old_func,
-                                        uint32_t symidx, void *rel_common,
-                                        int *found)
-{
-    ElfW(Rela)    *rela;
-    ElfW(Rel)     *rel;
-    ElfW(Addr)     r_offset;
-    size_t         r_info;
-    size_t         r_sym;
-    size_t         r_type;
-    ElfW(Addr)     addr;
-    int            r;
-
-    if(NULL != found) *found = 0;
-    
-    if(self-&amp;gt;is_use_rela)
-    {
-        rela = (ElfW(Rela) *)rel_common;
-        r_info = rela-&amp;gt;r_info;
-        r_offset = rela-&amp;gt;r_offset;
-    }
-    else
-    {
-        rel = (ElfW(Rel) *)rel_common;
-        r_info = rel-&amp;gt;r_info;
-        r_offset = rel-&amp;gt;r_offset;
-    }
-
-    //check sym
-    r_sym = XH_ELF_R_SYM(r_info);
-    if(r_sym != symidx) return 0;
-
-    //check type
-    r_type = XH_ELF_R_TYPE(r_info);
-    if(is_plt &amp;amp;&amp;amp; r_type != XH_ELF_R_GENERIC_JUMP_SLOT) return 0;
-    if(!is_plt &amp;amp;&amp;amp; (r_type != XH_ELF_R_GENERIC_GLOB_DAT &amp;amp;&amp;amp; r_type != XH_ELF_R_GENERIC_ABS)) return 0;
-
-    //we found it
-    XH_LOG_INFO(&amp;quot;found %s at %s offset: %p\n&amp;quot;, symbol, section, (void *)r_offset);
-    if(NULL != found) *found = 1;
-
-    //do replace
-    addr = self-&amp;gt;bias_addr + r_offset;
-    if(addr &amp;lt; self-&amp;gt;base_addr) return XH_ERRNO_FORMAT;
-    if(0 != (r = xh_elf_replace_function(self, symbol, addr, new_func, old_func)))
-    {
-        XH_LOG_ERROR(&amp;quot;replace function failed: %s at %s\n&amp;quot;, symbol, section);
-        return r;
-    }
-
-    return 0;
-}
-&lt;/code&gt;&lt;/pre&gt;</description>
       
     </item>
     

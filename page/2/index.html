@@ -66,7 +66,7 @@
 <meta property="og:description" content="L0phTg&#39;s Blog" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://l0phtg.github.io/" />
-<meta property="og:updated_time" content="2019-04-15T17:58:13&#43;08:00"/>
+<meta property="og:updated_time" content="2019-06-07T18:39:03&#43;08:00"/>
 <meta itemprop="name" content="L0phTg&#39;s Blog">
 <meta itemprop="description" content="L0phTg&#39;s Blog">
 
@@ -226,6 +226,47 @@
     
       <article class="post bg-white">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/">习字：入门</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2019-06-07 </span>
+      <div class="post-category">
+          
+            <a href="/categories/%E7%BB%83%E5%AD%97/"> 练字 </a>
+          
+        </div>
+      <span class="more-meta"> 约 456 字 </span>
+      <span class="more-meta"> 预计阅读 1 分钟 </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p><strong>本篇是水文!!!</strong></p>
+
+<p>从小我爸就一直说我字写得不好，就这么说了二十多年，现在依然写的一般。不过经过断断续续的练字，也有了一丁点的进步。最近学校的事基本忙完了，准备每天抽出一些时间来继续练字。</p>
+
+<p>今天看了几节田舍之老师在<strong>网易云课堂</strong>的&lt;&lt;硬笔书法系列&gt;&gt;教程，发现了自己练字期间一直存在的问题：</p>
+
+<ul>
+<li>从单字来说，有些写的比较杂乱无序。这个问题在单个字时不容易暴露出来，但是从全文来看，就会很明显发现不整齐。</li>
+<li>我硬笔字写的速度一直很慢，原因是过度注重“<strong>提按顿挫</strong>”。<strong>提按顿挫</strong>在写毛笔时比较容易实现，因为笔头是软的，但是写硬笔字时，虽然这样写出来比较好看，但日常应用中写起来速度很慢，没有实用性。</li>
+</ul>
+
+<p><strong>插一句，近两个月积攒了十几篇文章。今天起，定期更新。</strong>
+</p>
+    </div>
+    <div class="read-more">
+      <a href="/post/handwriting/%E4%B9%A0%E5%AD%97%E5%85%A5%E9%97%A8/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscope-%E5%89%8D%E4%BA%94%E7%AB%A0%E6%80%BB%E7%BB%93/">Kaleidoscope: 前五章总结</a></h1>
     
     <div class="post-meta">
@@ -319,92 +360,6 @@
     </div>
     <div class="read-more">
       <a href="/post/llvm/kaleidoscope-extending-the-language-control-flow/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-    
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/">Kaleidoscope: Adding JIT and Optimizer Support</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2019-04-13 </span>
-      <div class="post-category">
-          
-            <a href="/categories/llvm/"> llvm </a>
-          
-        </div>
-      <span class="more-meta"> 约 6744 字 </span>
-      <span class="more-meta"> 预计阅读 14 分钟 </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl04.html">http://llvm.org/docs/tutorial/LangImpl04.html</a></p>
-
-<p>本文介绍使用LLVM Pass对产生的LLVM IR进行优化, 以及为我们的Kaleidoscope添加JIT.</p>
-
-<div class="mermaid">
-graph TB
-
-    subgraph call
-        funcall("foo(1);")
-    end
-
-    subgraph expr
-        nodeExpr("1+2;")
-    end
-    
-    jitAddModule["JIT中 添加此Module"]
-    jitRemoveModule["JIT中 删除此Module"]
-    
-    anoCodegen["执行 匿名函数Codegen"]
-    AnonymousCall["匿名函数包装"]
-    optimizeFunc["执行 Pass优化"]
-    nodeExpr --> AnonymousCall
-    funcall --> AnonymousCall
-    AnonymousCall --> anoCodegen
-    anoCodegen --> jitAddModule
-    jitAddModule --> optimizeFunc
-    optimizeFunc --> exec["JIT 运行此表达式, 并计算值"]
-    exec --> jitRemoveModule
-    
-    subgraph func definition
-        nodeFoo("def foo(x) x+1;")
-        funcCodegen["执行 函数定义Codegen"]
-        nodeFoo --> funcCodegen
-    end
-    
-    funcCodegen --> jitAddFuncModule["JIT中 添加此Module"]
-    jitAddFuncModule --> initPassManager["执行 Pass优化"]
-
-
-    subgraph extern
-        nodeExtern("extern sin(x);")
-        protoCodegen["执行 函数申明Codegen"]
-        nodeExtern --> protoCodegen
-    end
-    
-    style jitAddModule fill:#f9f
-    style jitRemoveModule fill:#f9f
-    style jitAddFuncModule fill:#f9f
-    
-    style optimizeFunc fill:#ccff66
-    style initPassManager fill:#ccff66
-    
-    style exec fill:#ff3300
-    
-
-</div>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/llvm/kaleidoscope-adding-jit-and-optimizer-support/" class="read-more-link">阅读全文</a>
     </div>
     
   </div>
