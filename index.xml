@@ -56,8 +56,7 @@
 &lt;p&gt;通过关键字var/in实现。&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;这两天任务有点重，不能做到每篇文章配一幅图，日后会继续完善内容。(7.7小节继续完善中&amp;hellip;)
-&lt;/p&gt;
+&lt;p&gt;&lt;/p&gt;
 
 &lt;h1 id=&#34;chapter-7-introduction&#34;&gt;Chapter 7 Introduction&lt;/h1&gt;
 
@@ -548,7 +547,7 @@ public:
 };
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;var/in允许一次定义名称列表，每个名称可以选择是否拥有初始值。因此，我们在VarNames向量中捕获此信息。另外，var/in有一个body，this body被允许获取var/in定义的变量。&lt;/p&gt;
+&lt;p&gt;var/in允许一次定义名称列表，每个名称可以选择是否拥有初始值。因此，我们在VarNames向量中获取此信息。另外，var/in有body，它被允许访问var/in定义的变量。&lt;/p&gt;
 
 &lt;p&gt;有了这个，我们可以定义解析器片段。我们要做的第一件事是将其添加为主要表达式：&lt;/p&gt;
 
@@ -573,7 +572,7 @@ static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParsePrimary() {
     return ParseIfExpr();
   case tok_for:
     return ParseForExpr();
-  case tok_var:
+  case tok_var:	// 此处添加了一个case
     return ParseVarExpr();
   }
 }
@@ -589,11 +588,12 @@ static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseVarExpr() {
   std::vector&amp;lt;std::pair&amp;lt;std::string, std::unique_ptr&amp;lt;ExprAST&amp;gt;&amp;gt;&amp;gt; VarNames;
 
   // At least one variable name is required.
+  // 至少有一个变量名字
   if (CurTok != tok_identifier)
     return LogError(&amp;quot;expected identifier after var&amp;quot;);
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;此代码的第一部分将标识符/expr对列表解析为本地VarNames向量。&lt;/p&gt;
+&lt;p&gt;此代码的第一部分将&lt;strong&gt;标识符/表达式列表&lt;/strong&gt;解析为&lt;strong&gt;本地VarNames向量&lt;/strong&gt;。&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;while (1) {
   std::string Name = IdentifierStr;
@@ -619,9 +619,10 @@ static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseVarExpr() {
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;一旦解析了所有变量，我们就会解析body并创建AST节点：&lt;/p&gt;
+&lt;p&gt;一旦解析完成了所有变量，我们就会解析body并创建AST节点：&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  // At this point, we have to have &#39;in&#39;.
+  // 我们有了 in 表达式
   if (CurTok != tok_in)
     return LogError(&amp;quot;expected &#39;in&#39; keyword after &#39;var&#39;&amp;quot;);
   getNextToken();  // eat &#39;in&#39;.
@@ -643,12 +644,13 @@ static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseVarExpr() {
   Function *TheFunction = Builder.GetInsertBlock()-&amp;gt;getParent();
 
   // Register all variables and emit their initializer.
+  // 注册所有的变量并且emit他们的初始化器
   for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
     const std::string &amp;amp;VarName = VarNames[i].first;
     ExprAST *Init = VarNames[i].second.get();
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;基本上它遍历所有变量，一次安装一个变量。对于我们放入符号表的每个变量，我们记住了我们在OldBindings中替换的以前的值。&lt;/p&gt;
+&lt;p&gt;它会遍历所有变量，一次记录一个变量。对于我们放入符号表的每个变量，我们保存了OldBindings中记录的以前的值。&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;  // Emit the initializer before adding the variable to scope, this prevents
   // the initializer from referencing the variable itself, and permits stuff
@@ -676,9 +678,10 @@ static std::unique_ptr&amp;lt;ExprAST&amp;gt; ParseVarExpr() {
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;这里的注释比代码还多。基本思路是我们emit the initializer，创建alloca，然后更新符号表指向它。一旦所有的变量都安装在符号表中，我们就会评估var/in表达式的主体：&lt;/p&gt;
+&lt;p&gt;代码中包含很多注释。基本思路是我们emit初始化器，创建alloca，然后更新符号表来指向它。一旦所有的变量都存放在了符号表中，我们就会计算var/in表达式的body：&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;// Codegen the body, now that all vars are in scope.
+// 对 body 进行 Codegen，现在所有的变量都在作用域中。
 Value *BodyVal = Body-&amp;gt;codegen();
 if (!BodyVal)
   return nullptr;
@@ -695,9 +698,9 @@ if (!BodyVal)
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;所有这的最终结果是我们获得了适当范围的变量定义，并且我们甚至允许它们的改变。&lt;/p&gt;
+&lt;p&gt;最终结果是我们获得了确定定义域内的变量定义，并且我们甚至允许改变他们。&lt;/p&gt;
 
-&lt;p&gt;有了这个，我们完成了我们的要做的。我们很好的迭代fit示例来自intro编译并运行得很好。mem2reg pass将我们所有的栈变量优化到了SSA寄存器中，在需要的地方插入PHI节点，并且我们的前端仍然很简单：在任何地方都没有“iterated dominance frontier”计算。&lt;/p&gt;
+&lt;p&gt;现在我们完成了我们想要做的。我们的迭代fit示例可以成功编译并运行得很好。mem2reg pass将我们所有的栈变量优化到了SSA寄存器中，在需要的地方插入PHI节点，并且我们的前端实现仍然是很简单的：在任何地方都没有“iterated dominance frontier”计算。&lt;/p&gt;
 
 &lt;h1 id=&#34;7-8-全部代码&#34;&gt;7.8 全部代码&lt;/h1&gt;
 
