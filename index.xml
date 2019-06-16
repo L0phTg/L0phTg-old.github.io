@@ -29,6 +29,179 @@
     </item>
     
     <item>
+      <title>Kaleidoscope：Compile to Object Code</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopecompile-to-object-code/</link>
+      <pubDate>Sun, 16 Jun 2019 18:42:08 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopecompile-to-object-code/</guid>
+      
+        <description>&lt;p&gt;translate from:&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl08.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl08.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本章为“LLVM Tutorial”的第八章：将代码编译为目标对象文件。&lt;/p&gt;
+
+&lt;p&gt;本章内容比较简单。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;8-1-第八章介绍&#34;&gt;8.1 第八章介绍&lt;/h1&gt;
+
+&lt;p&gt;欢迎来到&lt;strong&gt;“通过LLVM实现一个语言”&lt;/strong&gt;教程的第八章。本章描述了&lt;strong&gt;如何将我们Kaleidoscope程序编译为目标文件&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;h1 id=&#34;8-2-选择一个目标&#34;&gt;8.2 选择一个目标&lt;/h1&gt;
+
+&lt;p&gt;LLVM本身支持交叉编译。你可以将项目编译为适用于你当前机器的架构（或者其它架构）的程序，都是很容易完成的。在本教程中，我们将会编译程序为当前机器的架构。&lt;/p&gt;
+
+&lt;p&gt;为了指定我们要编译目标的架构，我们使用一个名为“target triple”的字符串。它的形式为 &amp;lt;arch&amp;gt;&amp;lt;sub&amp;gt;-&amp;lt;vendor&amp;gt;-&amp;lt;sys&amp;gt;-&amp;lt;abi&amp;gt; (阅读&lt;a href=&#34;http://clang.llvm.org/docs/CrossCompilation.html#target-triple&#34;&gt;交叉编译文档&lt;/a&gt;)。&lt;/p&gt;
+
+&lt;p&gt;举个例子，我们可以通过运行下面这条命令看到当前平台架构：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ clang --version | grep Target
+Target: x86_64-unknown-linux-gnu
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;因为你的架构和操作系统可能和我的不一样，所以在你的机器上运行该命令可能显示出不同的结果。&lt;/p&gt;
+
+&lt;p&gt;幸运地是，我们不需要硬编码一个target triple（目标三元组）来表示当前机器。LLVM提供一个函数：&lt;em&gt;sys::getDefaultTargetTriple&lt;/em&gt; ，调用该函数可以得到当前机器的target triple。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;auto TargetTriple = sys::getDefaultTargetTriple();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;LLVM不要求我们链接所有目标平台。例如，如果我们只是使用JIT，我们就不需要汇编代码生成。同样地，如果我们仅针对某些体系结构，我们可以只链接这些体系结构。&lt;/p&gt;
+
+&lt;p&gt;例如，为了生成目标对象代码，我们将初始化所有的目标：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;InitializeAllTargetInfos();
+InitializeAllTargets();
+InitializeAllTargetMCs();
+InitializeAllAsmParsers();
+InitializeAllAsmPrinters();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们现在能够使用我们target triple来获得目标平台的Target：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;std::string Error;
+auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+
+// Print an error and exit if we couldn&#39;t find the requested target.
+// This generally occurs if we&#39;ve forgotten to initialise the
+// TargetRegistry or we have a bogus target triple.
+if (!Target) {
+  errs() &amp;lt;&amp;lt; Error;
+  return 1;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;8-3-目标机器&#34;&gt;8.3 目标机器&lt;/h1&gt;
+
+&lt;p&gt;我们还需要一个&lt;em&gt;TargetMachine&lt;/em&gt;. 此类提供了我们当前机器的完整机器描述。如果我们想要指定一个特定的特性（例如SSE）或指定的CPU（例如intel的Sandylake），我们现在就可以开始了。&lt;/p&gt;
+
+&lt;p&gt;我们可以通过llc，来获得LLVM包含的特性和CPU。例如，我们指定目标架构为x86:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ llvm-as &amp;lt; /dev/null | llc -march=x86 -mattr=help
+Available CPUs for this target:
+
+  amdfam10      - Select the amdfam10 processor.
+  athlon        - Select the athlon processor.
+  athlon-4      - Select the athlon-4 processor.
+  ...
+
+Available features for this target:
+
+  16bit-mode            - 16-bit mode (i8086).
+  32bit-mode            - 32-bit mode (80386).
+  3dnow                 - Enable 3DNow! instructions.
+  3dnowa                - Enable 3DNow! Athlon instructions.
+  ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对于我们的示例，我们将使用没有任何额外特性、选项或者重定位模型的通用CPU。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;auto CPU = &amp;quot;generic&amp;quot;;
+auto Features = &amp;quot;&amp;quot;;
+
+TargetOptions opt;
+auto RM = Optional&amp;lt;Reloc::Model&amp;gt;();
+auto TargetMachine = Target-&amp;gt;createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;8-4-配置模块&#34;&gt;8.4 配置模块&lt;/h1&gt;
+
+&lt;p&gt;我们现在开始准备配置我们的模块，以指定*Target*和*data layout*数据布局。严格来说，这不是必要的，但是&lt;a href=&#34;http://llvm.org/docs/Frontend/PerformanceTips.html&#34;&gt;前端性能指南&lt;/a&gt;推荐我们这样做。在知道了*Target*目标和*data layout*数据布局后，会很大程度上帮助我们提高优化能力。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;TheModule-&amp;gt;setDataLayout(TargetMachine-&amp;gt;createDataLayout());
+TheModule-&amp;gt;setTargetTriple(TargetTriple);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;8-5-emit-object-code&#34;&gt;8.5 Emit Object Code&lt;/h1&gt;
+
+&lt;p&gt;我们现在准备生成obj代码！ 让我们定义生成的文件位置：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;auto Filename = &amp;quot;output.o&amp;quot;;
+std::error_code EC;
+raw_fd_ostream dest(Filename, EC, sys::fs::F_None);
+
+if (EC) {
+  errs() &amp;lt;&amp;lt; &amp;quot;Could not open file: &amp;quot; &amp;lt;&amp;lt; EC.message();
+  return 1;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;最后，我们定义了一个pass来生成obf代码。然后我们运行该pass:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;legacy::PassManager pass;
+auto FileType = TargetMachine::CGFT_ObjectFile;
+
+if (TargetMachine-&amp;gt;addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+  errs() &amp;lt;&amp;lt; &amp;quot;TargetMachine can&#39;t emit a file of this type&amp;quot;;
+  return 1;
+}
+
+pass.run(*TheModule);
+dest.flush();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;8-6-将它们放在一起&#34;&gt;8.6 将它们放在一起&lt;/h1&gt;
+
+&lt;p&gt;我们做的工作成功了吗？让我们测试一下！我们需要编译我们的代码，但是注意&lt;code&gt;llvm-config&lt;/code&gt;指定的参数与前面的章节是不同的：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ clang++ -g -O3 toy.cpp `llvm-config --cxxflags --ldflags --system-libs --libs all` -o toy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;让我们运行它，并定义一个计算平均值的函数。当你输入完成的时候，按 Ctrl-D。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ./toy
+ready&amp;gt; def average(x y) (x + y) * 0.5;
+^D
+Wrote output.o
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们生成了一个目标文件！为了测试它是否是生成正确，让我们编写一个简单的程序并且将它与我们的输出相链接。这里是源代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c++&#34;&gt;#include &amp;lt;iostream&amp;gt;
+
+extern &amp;quot;C&amp;quot; {
+    double average(double, double);
+}
+
+int main() {
+    std::cout &amp;lt;&amp;lt; &amp;quot;average of 3.0 and 4.0: &amp;quot; &amp;lt;&amp;lt; average(3.0, 4.0) &amp;lt;&amp;lt; std::endl;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们将我们的程序链接为output.o并且检查结果是否符合我们的预期：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ clang++ main.cpp output.o -o main
+$ ./main
+average of 3.0 and 4.0: 3.5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;full-code-listing&#34;&gt;Full Code Listing&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl08.html#full-code-listing&#34;&gt;http://llvm.org/docs/tutorial/LangImpl08.html#full-code-listing&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope：Extending the Language：Mutable Variables</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languagemutable-variables/</link>
       <pubDate>Wed, 12 Jun 2019 19:43:42 +0800</pubDate>
@@ -6256,376 +6429,6 @@ ndroid Emulator usage: emulator [options] [-qemu args]
     -help-build-images             about disk images when building Android
     -help-all                      prints all help content
 &lt;/code&gt;&lt;/pre&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>Hugo搭建博客</title>
-      <link>https://l0phtg.github.io/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/</link>
-      <pubDate>Wed, 19 Sep 2018 20:04:10 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/hugo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/</guid>
-      
-        <description>&lt;p&gt;博客半年多没更新了. 正好最近时间比较多, 想着把博客更新下, 再把几篇平时总结的文章上传在Blog里面.&lt;/p&gt;
-
-&lt;p&gt;以前使用hexo搭的, 最近发现了好多人在用&lt;code&gt;hugo&lt;/code&gt;, 自己使用hugo重新搭建了一下, 简单方便, 好感指数五颗星.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://gohugo.io/getting-started/quick-start/&#34;&gt;https://gohugo.io/getting-started/quick-start/&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;hugo 搭建&lt;/p&gt;
-
-&lt;h2 id=&#34;linux平台安装hugo&#34;&gt;linux平台安装hugo&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;源码安装&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;安装go:&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://golang.org/doc/install?download=go1.11.linux-amd64.tar.gz&#34;&gt;https://golang.org/doc/install?download=go1.11.linux-amd64.tar.gz&lt;/a&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$tar -C /usr/local -xzf go1.11.linux-amd64.tar.gz
-$ vim /etc/profile
-export PATH=$PATH:/usr/local/go/bin
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;下载源码安装hugo:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;mkdir $HOME/src
-cd $HOME/src
-git clone https://github.com/gohugoio/hugo.git
-cd hugo
-go install
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;apt安装&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$sudo apt install hugo
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;使用&#34;&gt;使用&lt;/h2&gt;
-
-&lt;h3 id=&#34;创建new-site&#34;&gt;创建New site&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$hugo new site quickstart
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;创建md&#34;&gt;创建md&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$hugo new posts/my-first-post.md
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;预览&#34;&gt;预览&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$hugo server -D 
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Navigate to your new site at &lt;a href=&#34;http://localhost:1313/&#34;&gt;http://localhost:1313/&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&#34;个性化主题&#34;&gt;个性化主题&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://themes.gohugo.io/&#34;&gt;https://themes.gohugo.io/&lt;/a&gt;&lt;/p&gt;
-
-&lt;h4 id=&#34;网站配置&#34;&gt;网站配置&lt;/h4&gt;
-
-&lt;p&gt;&lt;strong&gt;config.toml&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;baseURL = &amp;quot;https://example.org/&amp;quot;
-languageCode = &amp;quot;en-us&amp;quot;
-title = &amp;quot;My New Hugo Site&amp;quot;
-theme = &amp;quot;ananke&amp;quot;
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;post到github-pages上&#34;&gt;post到github pages上&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;升级git&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Debian/Ubuntu
-For the latest stable version for your release of Debian/Ubuntu
-
-# apt-get install git
-For Ubuntu, this PPA provides the latest stable upstream Git version
-# add-apt-repository ppa:git-core/ppa # apt update; apt install git
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;github上创建USER_NAME.github.io的repo.&lt;/li&gt;
-&lt;li&gt;clone repo到public目录&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;git submodule add -b master git@github.com:&amp;lt;USERNAME&amp;gt;/&amp;lt;USERNAME&amp;gt;.github.io.git public
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;push&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;code&gt;depl4oy.sh&lt;/code&gt;如下&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-
-echo -e &amp;quot;\033[0;32mDeploying updates to GitHub...\033[0m&amp;quot;
-
-# Build the project.
-hugo # if using a theme, replace with `hugo -t &amp;lt;YOURTHEME&amp;gt;`
-
-# Go To Public folder
-cd public
-# Add changes to git.
-git add .
-
-# Commit changes.
-msg=&amp;quot;rebuilding site `date`&amp;quot;
-if [ $# -eq 1 ]
-  then msg=&amp;quot;$1&amp;quot;
-fi
-git commit -m &amp;quot;$msg&amp;quot;
-
-# Push source and build repos.
-git push origin master
-
-# Come Back up to the Project Root
-cd ..
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;内容编写&#34;&gt;内容编写&lt;/h2&gt;
-
-&lt;h3 id=&#34;文档模板&#34;&gt;文档模板&lt;/h3&gt;
-
-&lt;p&gt;默认是&lt;code&gt;archetypes /default.md&lt;/code&gt;. new 文档时, 根据这个文档创建.&lt;/p&gt;
-
-&lt;p&gt;我的&lt;code&gt;default.md&lt;/code&gt;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-markdown&#34;&gt;---
-title: &amp;quot;{{ replace .TranslationBaseName &amp;quot;-&amp;quot; &amp;quot; &amp;quot; | title }}&amp;quot;
-date: {{ .Date }}
-lastmod: {{ .Date }}
-draft: true
-keywords: []
-description: &amp;quot;&amp;quot;
-tags: []
-categories: []
-author: &amp;quot;&amp;quot;
-
-# You can also close(false) or open(true) something for this content.
-# P.S. comment can only be closed
-comment: false
-toc: true
-autoCollapseToc: false
-# You can also define another contentCopyright. e.g. contentCopyright: &amp;quot;This is another copyright.&amp;quot;
-#contentCopyright: false
-reward: false
-mathjax: false
----
-
-&amp;lt;!--more--&amp;gt;
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;插入图片&#34;&gt;插入图片&lt;/h3&gt;
-
-&lt;p&gt;图片放在static目录下&lt;/p&gt;
-
-&lt;p&gt;例如&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;目录下的文件:
-- static
-   - deepin
-      - desktop.png
-      - splitScreen.png
-      - vimMarkdownPreview.png
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;使用的时候:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;![desktop](/deepin/desktop.png)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;文章摘要&#34;&gt;文章摘要&lt;/h3&gt;
-
-&lt;p&gt;&lt;code&gt;&amp;lt;!--more--&amp;gt;&lt;/code&gt;前面的会成为文章的摘要, 在首页显示.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;---
-title : &amp;quot;hihi&amp;quot;
-tags :  &amp;quot;blog&amp;quot;
----
-
-&amp;lt;!--more--&amp;gt;
-
-正文
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;显示toc&#34;&gt;显示toc&lt;/h3&gt;
-
-&lt;p&gt;toc : true&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;---
-title: &amp;quot;Iqiyi开源hook框架XHook分析&amp;quot;
-date: 2018-09-19T02:19:05+08:00
-lastmod: 2018-09-19T02:19:05+08:00
-draft: false
-keywords: []
-description: &amp;quot;&amp;quot;
-tags: [&amp;quot;hook&amp;quot;]
-categories: [&amp;quot;hook&amp;quot;]
-author: &amp;quot;&amp;quot;
-
-# You can also close(false) or open(true) something for this content.
-# P.S. comment can only be closed
-comment: false
-toc: true
-autoCollapseToc: false
-# You can also define another contentCopyright. e.g. contentCopyright: &amp;quot;This is another copyright.&amp;quot;
-contentCopyright: false
-reward: false
-mathjax: false
----
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;语法高亮&#34;&gt;语法高亮&lt;/h3&gt;
-
-&lt;h4 id=&#34;chroma&#34;&gt;Chroma&lt;/h4&gt;
-
-&lt;p&gt;hugo &lt;strong&gt;使用chroma默认进行语法高亮, 垃圾, 不好用, 推荐highlight.js&lt;/strong&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pygmentsCodefences = true #高亮markdown的代码块
-pygmentsCodefencesGuessSyntax = true #高亮markdown中没有标注语言的代码块
-pygmentsStyle = &#39;manni&#39; #高亮主题
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;有些主题的默认css设置了background. 会导致highlight时出现字体白色阴影. 此时我们需要将它的background-color删掉或者覆盖掉.&lt;/p&gt;
-
-&lt;p&gt;我使用的主题是&lt;code&gt;jane&lt;/code&gt;, 默认css样式是&lt;code&gt;/themes/jane/static/dist/jane.min.css&lt;/code&gt;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-css&#34;&gt;#jane.min.css
- code{padding:0 7px;background:#f8f5ec;border-radius:4px;color:#c7254e}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;把该块删掉.&lt;/p&gt;
-
-&lt;p&gt;这要就可以解决阴影的问题了.&lt;strong&gt;可能自己的主题版本太老了, 可以pull一下最新版本, 这个问题应该会被修复了&lt;/strong&gt; .&lt;/p&gt;
-
-&lt;h4 id=&#34;highlight-js&#34;&gt;highlight.js&lt;/h4&gt;
-
-&lt;p&gt;添加&lt;strong&gt;主题css&lt;/strong&gt;和&lt;strong&gt;highlight.pack.js&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-toml&#34;&gt;customCSS = [&#39;styles/dracula.css]
-customJS = [&#39;highlight.pack.js]
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;strong&gt;body&lt;/strong&gt;中添加&lt;strong&gt;script&lt;/strong&gt;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;&amp;lt;script&amp;gt;hljs.initHighlightingOnLoad();&amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;显示最后更新日期&#34;&gt;显示最后更新日期&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;enableGitInfo = true    # 开启gitinfo
-
-[frontmatter]
-date = [&amp;quot;date&amp;quot;, &amp;quot;publishDate&amp;quot;, &amp;quot;lastmod&amp;quot;]
-lastmod = [&amp;quot;:git&amp;quot;, &amp;quot;lastmod&amp;quot;, &amp;quot;date&amp;quot;, &amp;quot;publishDate&amp;quot;]
-publishDate = [&amp;quot;publishDate&amp;quot;, &amp;quot;date&amp;quot;]
-expiryDate = [&amp;quot;expiryDate&amp;quot;]
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;要实现该功能需要有&lt;strong&gt;commit记录&lt;/strong&gt; , 所以需要&lt;strong&gt;添加我们的.md到git版本控制工具&lt;/strong&gt; 中. 请阅读下面的&lt;strong&gt;博客搭建心得&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h3 id=&#34;数学公式&#34;&gt;数学公式&lt;/h3&gt;
-
-&lt;h4 id=&#34;如何开启mathjax&#34;&gt;如何开启mathjax&lt;/h4&gt;
-
-&lt;p&gt;&lt;code&gt;/layout/partical&lt;/code&gt;目录下创建&lt;code&gt;mathjax_support.html&lt;/code&gt;, 写入:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;&amp;lt;script type=&amp;quot;text/javascript&amp;quot;
-  src=&amp;quot;https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML&amp;quot;&amp;gt;
-&amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;支持内联&#34;&gt;支持内联&lt;/h4&gt;
-
-&lt;p&gt;&lt;code&gt;/layouts/partials/custom_head.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;&amp;lt;script type=&amp;quot;text/x-mathjax-config&amp;quot;&amp;gt;
-  MathJax.Hub.Config({tex2jax: {inlineMath: [[&#39;$&#39;,&#39;$&#39;], [&#39;\\(&#39;,&#39;\\)&#39;]]}});  // 内联公式
-&amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;支持color&#34;&gt;支持color&lt;/h4&gt;
-
-&lt;p&gt;&lt;code&gt;/layouts/partials/custom_head.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-js&#34;&gt;&amp;lt;script type=&amp;quot;text/x-mathjax-config&amp;quot;&amp;gt;
-  MathJax.Hub.Config({                                                      // support color
-  showProcessingMessages: false,
-  jax: [&amp;quot;input/TeX&amp;quot;, &amp;quot;output/HTML-CSS&amp;quot;],
-  TeX: {
-    TagSide: &amp;quot;left&amp;quot;,
-    Macros: {
-      RR: &#39;{\\bf R}&#39;,
-      bold: [&#39;{\\bf #1}&#39;,1]
-    }
-  }
-});
-&amp;lt;/script&amp;gt;
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;mermaid&#34;&gt;mermaid&lt;/h3&gt;
-
-&lt;p&gt;&lt;code&gt;mermaid&lt;/code&gt;支持画流程图, 甘特图等.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/knsv/mermaid/releases&#34;&gt;https://github.com/knsv/mermaid/releases&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;和使用&lt;code&gt;highlight.js&lt;/code&gt;的方法类似:&lt;/p&gt;
-
-&lt;p&gt;添加&lt;code&gt;mermaid.css&lt;/code&gt; 和 &lt;code&gt;mermaid.min.js&lt;/code&gt; .&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-toml&#34;&gt;customCSS = [&#39;styles/dracula.css&#39;, &#39;mermaid.css&#39;]            # if [&#39;custom.css&#39;], load &#39;/static/css/custom.css&#39; file
-customJS = [&#39;highlight.pack.js&#39;,&#39;mermaid.min.js&#39;]             # if [&#39;custom.js&#39;], load &#39;/static/js/custom.js&#39; file
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;script.html&lt;/code&gt;中添加&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-html&#34;&gt;&amp;lt;script&amp;gt; mermaid.initialize({ startOnLoad: true });&amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h5 id=&#34;使用-1&#34;&gt;使用&lt;/h5&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-markdown&#34;&gt;&amp;lt;div class=&amp;quot;mermaid&amp;quot;&amp;gt;
-graph TD
-    Start --&amp;gt; Stop
-&amp;lt;/div&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;生成:&lt;/p&gt;
-
-&lt;div class=&#34;mermaid&#34;&gt;
-graph TD
-    Start --&gt; Stop
-&lt;/div&gt;
-
-&lt;h1 id=&#34;博客搭建心得&#34;&gt;博客搭建心得&lt;/h1&gt;
-
-&lt;p&gt;注意到, 在上文我们&lt;strong&gt;post网站到github pages&lt;/strong&gt; 上时,  是将&lt;strong&gt;public目录作为submodule&lt;/strong&gt;  push的. (push 的就是public目录的内容 ).&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/life/blog-public.png&#34; alt=&#34;blog-public&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;我们可以将当前的hugo 目录, 按上图来说就是&lt;strong&gt;quickstart目录&lt;/strong&gt; 作为我们的博客代码编写目录添加到&lt;strong&gt;quickstart的git版本控制中&lt;/strong&gt; .&lt;/p&gt;
-
-&lt;p&gt;我添加到git仓库中的文件有: &lt;strong&gt;config.toml, content/ , deploy.sh&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/life/blog-ls-files.png&#34; alt=&#34;blog-ls-files&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;添加到版本控制的目的: 可以将它提交到我们的&lt;strong&gt;github&lt;/strong&gt;或者 &lt;strong&gt;gitee&lt;/strong&gt;上, &lt;strong&gt;方便跨平台编辑, 也可以当作一个备份&lt;/strong&gt; .&lt;/p&gt;</description>
       
     </item>
     

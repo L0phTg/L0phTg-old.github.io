@@ -7,10 +7,25 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Wed, 12 Jun 2019 19:43:42 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 16 Jun 2019 18:42:08 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/categories/llvm/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Kaleidoscope：Compile to Object Code</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopecompile-to-object-code/</link>
+      <pubDate>Sun, 16 Jun 2019 18:42:08 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopecompile-to-object-code/</guid>
+      <description>&lt;p&gt;translate from:&lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl08.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl08.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本章为“LLVM Tutorial”的第八章：将代码编译为目标对象文件。&lt;/p&gt;
+
+&lt;p&gt;本章内容比较简单。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Kaleidoscope：Extending the Language：Mutable Variables</title>
