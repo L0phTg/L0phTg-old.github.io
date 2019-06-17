@@ -320,8 +320,8 @@
             <a href="/categories/llvm/"> llvm </a>
           
         </div>
-      <span class="more-meta"> 约 5154 字 </span>
-      <span class="more-meta"> 预计阅读 11 分钟 </span>
+      <span class="more-meta"> 约 5754 字 </span>
+      <span class="more-meta"> 预计阅读 12 分钟 </span>
     </div>
   </header>
   
@@ -333,6 +333,54 @@
 <p>发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。</p>
 
 <p>扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。</p>
+
+<ul>
+<li><p>为了实现用户自定义运算符，我们采用了<strong>扩展函数申明和扩展函数定义</strong>的实现方式。</p></li>
+
+<li><p>为了实现对用户自定义运算符的表达式支持：</p>
+
+<ol>
+<li>针对用户自定义的二元运算符。因为我们之前已经支持了部分二元运算符（如+、- 等），所以我们只需要扩展BinaryExprAST来支持用户自定义的二元运算符即可；</li>
+<li>针对用户自定义的一元运算符。我们需要定义UnaryExprAST抽象语法树，并实现Codegen支持，且添加到解析表达式的逻辑中。</li>
+</ol></li>
+</ul>
+
+<div class="mermaid">
+graph TB
+
+    subgraph 二元运算符
+        binaryParser[1. 添加词法分析支持] 
+        subgraph 2. 实现用户自定义二元运算符函数
+        funcProtoExtend[扩展函数申明AST] --> funcProtoParser[扩展ParsePrototype函数]
+        end 
+        binaryParser --> funcProtoExtend
+        funcProtoParser --> binaryCodegen[3. 在BinaryExprAST的Codegen中支持自定义的二元运算符]
+    end
+
+    subgraph 一元运算符
+        unaryParser["1. 添加词法分析支持"] 
+        subgraph 2. 实现用户自定义的一元运算符函数
+            unaryFuncProtoExtend[扩展函数申明AST] --> unaryFuncProtoParser[扩展ParsePrototype函数]
+        end
+        unaryParser --> unaryFuncProtoExtend
+        subgraph 3. 实现一元运算符表达式的解析 
+            createUnaryAST[创建UnaryExprAST节点] --> parseUnary[添加解析一元运算符表达式的函数]
+            parseUnary --> parsePrimary[在ParsePrimay中添加调用ParseUnary的逻辑]
+        end
+        unaryFuncProtoParser --> createUnaryAST
+    end
+
+    style funcProtoExtend fill:#f9f
+    style funcProtoParser fill:#f9f
+    style unaryFuncProtoExtend fill:#f9f
+    style unaryFuncProtoParser fill:#f9f
+    
+    style binaryCodegen fill:#ccff66
+    style createUnaryAST fill:#ccff66
+    style parseUnary fill:#ccff66
+    style parsePrimary fill:#ccff66
+
+</div>
 
 <p></p>
     </div>

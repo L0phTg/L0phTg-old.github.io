@@ -25,7 +25,7 @@
   
   <url>
     <loc>https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/</loc>
-    <lastmod>2019-06-12T16:38:36+08:00</lastmod>
+    <lastmod>2019-06-17T21:18:15+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -199,14 +199,14 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/android/</loc>
+    <loc>https://l0phtg.github.io/tags/android/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/tags/android/</loc>
+    <loc>https://l0phtg.github.io/categories/android/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
@@ -276,14 +276,14 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/hook/</loc>
+    <loc>https://l0phtg.github.io/tags/hook/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/tags/hook/</loc>
+    <loc>https://l0phtg.github.io/categories/hook/</loc>
     <lastmod>2019-04-03T19:59:08+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
@@ -311,13 +311,6 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/life/</loc>
-    <lastmod>2019-04-15T10:27:47+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://l0phtg.github.io/tags/life/</loc>
     <lastmod>2019-04-15T10:27:47+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -325,8 +318,8 @@
   </url>
   
   <url>
-    <loc>https://l0phtg.github.io/categories/llvm/</loc>
-    <lastmod>2019-06-16T18:47:37+08:00</lastmod>
+    <loc>https://l0phtg.github.io/categories/life/</loc>
+    <lastmod>2019-04-15T10:27:47+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
@@ -334,6 +327,13 @@
   <url>
     <loc>https://l0phtg.github.io/tags/llvm/</loc>
     <lastmod>2019-04-15T19:30:50+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://l0phtg.github.io/categories/llvm/</loc>
+    <lastmod>2019-06-16T18:47:37+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0</priority>
   </url>
