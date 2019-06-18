@@ -32,7 +32,7 @@
 具体到Kaleidoscope语法层面，我们通过&amp;rsquo;=&amp;lsquo;运算符达到对已经定义变量的改变。
  新定义一个变量：
 通过关键字var/in实现。
-  
+  graph TB subgraph 添加 var/in 以支持用户自定义变量 subgraph 1.添加词法分析支持 extendParser[&#34;扩展词法分析器&#34;] end subgraph 2.构建varExprAST buildAST[&#34;定义varExprAST节点&#34;] -- parseAST[&#34;实现ParserVarExpr达到对var/in表达式的解析&#34;] end subgraph 3.添加Codegen支持 varExprCodegen[&#34;实现varExprAST的Codegen&#34;] end extendParser -- buildAST parseAST -- varExprCodegen end subgraph 添加 赋值运算符 以支持改变已有变量 subgraph 1.根据已有变量创建Alloca指令 createAlloca[&#34;为现有的变量创建Alloca指令&#34;] -- StoreInitialValue[&#34;Alloca内存中存入初始值&#34;] StoreInitialValue -- updateSymbolTable[&#34;更新NamedValues符号表&#34;] end subgraph 2.利用Alloca实现变量引用 variableCodegen[&#34;更改VariableExprAST实现变量引用&#34;] end subgraph 3.添加mem2reg Pass addMem2regPass[&#34;添加mem2reg Pass支持&#34;] end subgraph 3.定义赋值运算符实现变量修改 serPrecedence[添加赋值运算符并设置运算符优先级] -- binaryCodegen[&#34;为赋值运算符实现Codegen&#34;] end updateSymbolTable -- variableCodegen variableCodegen -- addMem2regPass addMem2regPass -- serPrecedence end style buildAST fill:#f9f style parseAST fill:#f9f style variableCodegen fill:#f9f style serPrecedence fill:#f9f style binaryCodegen fill:#f9f style varExprCodegen fill:#ccff66 style addMem2regPass fill:#ccff66  
 " />
 
   <meta name="keywords" content="Hugo, theme, jane" />
@@ -91,10 +91,54 @@
 通过关键字var/in实现。
 
 
+
+graph TB
+    subgraph 添加 var/in 以支持用户自定义变量
+        subgraph 1.添加词法分析支持
+            extendParser[&#34;扩展词法分析器&#34;]
+        end
+        subgraph 2.构建varExprAST
+            buildAST[&#34;定义varExprAST节点&#34;] --&gt; parseAST[&#34;实现ParserVarExpr达到对var/in表达式的解析&#34;]
+        end
+        subgraph 3.添加Codegen支持
+            varExprCodegen[&#34;实现varExprAST的Codegen&#34;]
+        end
+        extendParser --&gt; buildAST
+        parseAST --&gt; varExprCodegen
+    end
+    subgraph 添加 赋值运算符 以支持改变已有变量
+        subgraph 1.根据已有变量创建Alloca指令
+            createAlloca[&#34;为现有的变量创建Alloca指令&#34;] --&gt; StoreInitialValue[&#34;Alloca内存中存入初始值&#34;]
+            StoreInitialValue --&gt; updateSymbolTable[&#34;更新NamedValues符号表&#34;]
+        end
+        subgraph 2.利用Alloca实现变量引用
+            variableCodegen[&#34;更改VariableExprAST实现变量引用&#34;]
+        end
+        subgraph 3.添加mem2reg Pass
+            addMem2regPass[&#34;添加mem2reg Pass支持&#34;]
+        end
+        subgraph 3.定义赋值运算符实现变量修改
+            serPrecedence[添加赋值运算符并设置运算符优先级] --&gt; binaryCodegen[&#34;为赋值运算符实现Codegen&#34;]
+        end
+        updateSymbolTable --&gt; variableCodegen
+        variableCodegen --&gt; addMem2regPass
+        addMem2regPass --&gt; serPrecedence
+    end
+    
+    style buildAST fill:#f9f
+    style parseAST fill:#f9f
+    style variableCodegen fill:#f9f
+    style serPrecedence fill:#f9f
+    style binaryCodegen fill:#f9f
+    
+    style varExprCodegen fill:#ccff66
+    style addMem2regPass fill:#ccff66
+
+
 " />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscopeextending-the-languagemutable-variables/" /><meta property="article:published_time" content="2019-06-12T19:43:42&#43;08:00"/>
-<meta property="article:modified_time" content="2019-06-14T18:59:14&#43;08:00"/>
+<meta property="article:modified_time" content="2019-06-18T16:34:14&#43;08:00"/>
 <meta itemprop="name" content="Kaleidoscope：Extending the Language：Mutable Variables">
 <meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl07.html
 
@@ -117,12 +161,56 @@
 通过关键字var/in实现。
 
 
+
+graph TB
+    subgraph 添加 var/in 以支持用户自定义变量
+        subgraph 1.添加词法分析支持
+            extendParser[&#34;扩展词法分析器&#34;]
+        end
+        subgraph 2.构建varExprAST
+            buildAST[&#34;定义varExprAST节点&#34;] --&gt; parseAST[&#34;实现ParserVarExpr达到对var/in表达式的解析&#34;]
+        end
+        subgraph 3.添加Codegen支持
+            varExprCodegen[&#34;实现varExprAST的Codegen&#34;]
+        end
+        extendParser --&gt; buildAST
+        parseAST --&gt; varExprCodegen
+    end
+    subgraph 添加 赋值运算符 以支持改变已有变量
+        subgraph 1.根据已有变量创建Alloca指令
+            createAlloca[&#34;为现有的变量创建Alloca指令&#34;] --&gt; StoreInitialValue[&#34;Alloca内存中存入初始值&#34;]
+            StoreInitialValue --&gt; updateSymbolTable[&#34;更新NamedValues符号表&#34;]
+        end
+        subgraph 2.利用Alloca实现变量引用
+            variableCodegen[&#34;更改VariableExprAST实现变量引用&#34;]
+        end
+        subgraph 3.添加mem2reg Pass
+            addMem2regPass[&#34;添加mem2reg Pass支持&#34;]
+        end
+        subgraph 3.定义赋值运算符实现变量修改
+            serPrecedence[添加赋值运算符并设置运算符优先级] --&gt; binaryCodegen[&#34;为赋值运算符实现Codegen&#34;]
+        end
+        updateSymbolTable --&gt; variableCodegen
+        variableCodegen --&gt; addMem2regPass
+        addMem2regPass --&gt; serPrecedence
+    end
+    
+    style buildAST fill:#f9f
+    style parseAST fill:#f9f
+    style variableCodegen fill:#f9f
+    style serPrecedence fill:#f9f
+    style binaryCodegen fill:#f9f
+    
+    style varExprCodegen fill:#ccff66
+    style addMem2regPass fill:#ccff66
+
+
 ">
 
 
 <meta itemprop="datePublished" content="2019-06-12T19:43:42&#43;08:00" />
 <meta itemprop="dateModified" content="2019-06-12T19:43:42&#43;08:00" />
-<meta itemprop="wordCount" content="7415">
+<meta itemprop="wordCount" content="7974">
 
 
 
@@ -148,6 +236,50 @@
 新定义一个变量：
 
 通过关键字var/in实现。
+
+
+
+graph TB
+    subgraph 添加 var/in 以支持用户自定义变量
+        subgraph 1.添加词法分析支持
+            extendParser[&#34;扩展词法分析器&#34;]
+        end
+        subgraph 2.构建varExprAST
+            buildAST[&#34;定义varExprAST节点&#34;] --&gt; parseAST[&#34;实现ParserVarExpr达到对var/in表达式的解析&#34;]
+        end
+        subgraph 3.添加Codegen支持
+            varExprCodegen[&#34;实现varExprAST的Codegen&#34;]
+        end
+        extendParser --&gt; buildAST
+        parseAST --&gt; varExprCodegen
+    end
+    subgraph 添加 赋值运算符 以支持改变已有变量
+        subgraph 1.根据已有变量创建Alloca指令
+            createAlloca[&#34;为现有的变量创建Alloca指令&#34;] --&gt; StoreInitialValue[&#34;Alloca内存中存入初始值&#34;]
+            StoreInitialValue --&gt; updateSymbolTable[&#34;更新NamedValues符号表&#34;]
+        end
+        subgraph 2.利用Alloca实现变量引用
+            variableCodegen[&#34;更改VariableExprAST实现变量引用&#34;]
+        end
+        subgraph 3.添加mem2reg Pass
+            addMem2regPass[&#34;添加mem2reg Pass支持&#34;]
+        end
+        subgraph 3.定义赋值运算符实现变量修改
+            serPrecedence[添加赋值运算符并设置运算符优先级] --&gt; binaryCodegen[&#34;为赋值运算符实现Codegen&#34;]
+        end
+        updateSymbolTable --&gt; variableCodegen
+        variableCodegen --&gt; addMem2regPass
+        addMem2regPass --&gt; serPrecedence
+    end
+    
+    style buildAST fill:#f9f
+    style parseAST fill:#f9f
+    style variableCodegen fill:#f9f
+    style serPrecedence fill:#f9f
+    style binaryCodegen fill:#f9f
+    
+    style varExprCodegen fill:#ccff66
+    style addMem2regPass fill:#ccff66
 
 
 "/>
@@ -309,8 +441,8 @@
               <a href="/categories/llvm/"> llvm </a>
             
           </div>
-        <span class="more-meta"> 约 7415 字 </span>
-        <span class="more-meta"> 预计阅读 15 分钟 </span>
+        <span class="more-meta"> 约 7974 字 </span>
+        <span class="more-meta"> 预计阅读 16 分钟 </span>
       </div>
     </header>
 
@@ -356,6 +488,50 @@
 
 <p>通过关键字var/in实现。</p></li>
 </ul>
+
+<div class='mermaid'>
+graph TB
+    subgraph 添加 var/in 以支持用户自定义变量
+        subgraph 1.添加词法分析支持
+            extendParser["扩展词法分析器"]
+        end
+        subgraph 2.构建varExprAST
+            buildAST["定义varExprAST节点"] --> parseAST["实现ParserVarExpr达到对var/in表达式的解析"]
+        end
+        subgraph 3.添加Codegen支持
+            varExprCodegen["实现varExprAST的Codegen"]
+        end
+        extendParser --> buildAST
+        parseAST --> varExprCodegen
+    end
+    subgraph 添加 赋值运算符 以支持改变已有变量
+        subgraph 1.根据已有变量创建Alloca指令
+            createAlloca["为现有的变量创建Alloca指令"] --> StoreInitialValue["Alloca内存中存入初始值"]
+            StoreInitialValue --> updateSymbolTable["更新NamedValues符号表"]
+        end
+        subgraph 2.利用Alloca实现变量引用
+            variableCodegen["更改VariableExprAST实现变量引用"]
+        end
+        subgraph 3.添加mem2reg Pass
+            addMem2regPass["添加mem2reg Pass支持"]
+        end
+        subgraph 3.定义赋值运算符实现变量修改
+            serPrecedence[添加赋值运算符并设置运算符优先级] --> binaryCodegen["为赋值运算符实现Codegen"]
+        end
+        updateSymbolTable --> variableCodegen
+        variableCodegen --> addMem2regPass
+        addMem2regPass --> serPrecedence
+    end
+    
+    style buildAST fill:#f9f
+    style parseAST fill:#f9f
+    style variableCodegen fill:#f9f
+    style serPrecedence fill:#f9f
+    style binaryCodegen fill:#f9f
+    
+    style varExprCodegen fill:#ccff66
+    style addMem2regPass fill:#ccff66
+</div>
 
 <p></p>
 
@@ -1017,7 +1193,7 @@ if (!BodyVal)
   </p>
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
-    <span class="item-content">2019-06-14</span>
+    <span class="item-content">2019-06-18</span>
   </p>
   
   <p class="copyright-item">

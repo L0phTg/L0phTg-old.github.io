@@ -229,6 +229,50 @@ average of 3.0 and 4.0: 3.5
 &lt;p&gt;通过关键字var/in实现。&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
+&lt;div class=&#39;mermaid&#39;&gt;
+graph TB
+    subgraph 添加 var/in 以支持用户自定义变量
+        subgraph 1.添加词法分析支持
+            extendParser[&#34;扩展词法分析器&#34;]
+        end
+        subgraph 2.构建varExprAST
+            buildAST[&#34;定义varExprAST节点&#34;] --&gt; parseAST[&#34;实现ParserVarExpr达到对var/in表达式的解析&#34;]
+        end
+        subgraph 3.添加Codegen支持
+            varExprCodegen[&#34;实现varExprAST的Codegen&#34;]
+        end
+        extendParser --&gt; buildAST
+        parseAST --&gt; varExprCodegen
+    end
+    subgraph 添加 赋值运算符 以支持改变已有变量
+        subgraph 1.根据已有变量创建Alloca指令
+            createAlloca[&#34;为现有的变量创建Alloca指令&#34;] --&gt; StoreInitialValue[&#34;Alloca内存中存入初始值&#34;]
+            StoreInitialValue --&gt; updateSymbolTable[&#34;更新NamedValues符号表&#34;]
+        end
+        subgraph 2.利用Alloca实现变量引用
+            variableCodegen[&#34;更改VariableExprAST实现变量引用&#34;]
+        end
+        subgraph 3.添加mem2reg Pass
+            addMem2regPass[&#34;添加mem2reg Pass支持&#34;]
+        end
+        subgraph 3.定义赋值运算符实现变量修改
+            serPrecedence[添加赋值运算符并设置运算符优先级] --&gt; binaryCodegen[&#34;为赋值运算符实现Codegen&#34;]
+        end
+        updateSymbolTable --&gt; variableCodegen
+        variableCodegen --&gt; addMem2regPass
+        addMem2regPass --&gt; serPrecedence
+    end
+    
+    style buildAST fill:#f9f
+    style parseAST fill:#f9f
+    style variableCodegen fill:#f9f
+    style serPrecedence fill:#f9f
+    style binaryCodegen fill:#f9f
+    
+    style varExprCodegen fill:#ccff66
+    style addMem2regPass fill:#ccff66
+&lt;/div&gt;
+
 &lt;p&gt;&lt;/p&gt;
 
 &lt;h1 id=&#34;chapter-7-introduction&#34;&gt;Chapter 7 Introduction&lt;/h1&gt;
