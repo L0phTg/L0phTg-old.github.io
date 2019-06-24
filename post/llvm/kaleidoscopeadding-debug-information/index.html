@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Kaleidoscope：Adding Debug Information - L0phTg&#39;s Blog</title>
+  <link rel="alternate" hreflang="zh-cn" href="https://l0phtg.github.io/" />
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl09.html
+唔，最后两个章节有点难产。
+本章主要介绍：为Kaleidoscope添加调试信息支持。 " />
+
+  <meta name="keywords" content="Hugo, theme, jane" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/llvm/kaleidoscopeadding-debug-information/" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
+<link rel="stylesheet" href="/css/mermaid.css">
+
+
+<meta property="og:title" content="Kaleidoscope：Adding Debug Information" />
+<meta property="og:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl09.html
+
+唔，最后两个章节有点难产。
+
+本章主要介绍：为Kaleidoscope添加调试信息支持。
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscopeadding-debug-information/" /><meta property="article:published_time" content="2019-06-24T19:56:26&#43;08:00"/>
+<meta property="article:modified_time" content="2019-06-24T20:00:04&#43;08:00"/>
+<meta itemprop="name" content="Kaleidoscope：Adding Debug Information">
+<meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl09.html
+
+唔，最后两个章节有点难产。
+
+本章主要介绍：为Kaleidoscope添加调试信息支持。
+">
+
+
+<meta itemprop="datePublished" content="2019-06-24T19:56:26&#43;08:00" />
+<meta itemprop="dateModified" content="2019-06-24T19:56:26&#43;08:00" />
+<meta itemprop="wordCount" content="3792">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kaleidoscope：Adding Debug Information"/>
+<meta name="twitter:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl09.html
+
+唔，最后两个章节有点难产。
+
+本章主要介绍：为Kaleidoscope添加调试信息支持。
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a><a href="https://gohugo.io">
+        <li class="mobile-menu-item">external-link</li>
+      </a>
+  </ul>
+</nav>
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg&#39;s Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+  </ul>
+</nav>
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Kaleidoscope：Adding Debug Information</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-06-24 </span>
+        <div class="post-category">
+            
+              <a href="/categories/llvm/"> llvm </a>
+            
+          </div>
+        <span class="more-meta"> 约 3792 字 </span>
+        <span class="more-meta"> 预计阅读 8 分钟 </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#9-1-第九章介绍">9.1 第九章介绍</a></li>
+<li><a href="#9-2-为什么这是个困难的问题">9.2 为什么这是个困难的问题</a></li>
+<li><a href="#9-3-提前编译模式">9.3 提前编译模式</a></li>
+<li><a href="#9-4-编译单元">9.4 编译单元</a></li>
+<li><a href="#9-5-dwarf-emission-setup">9.5 DWARF Emission Setup</a></li>
+<li><a href="#9-6-函数">9.6 函数</a></li>
+<li><a href="#9-7-源代码位置">9.7 源代码位置</a></li>
+<li><a href="#9-8-变量">9.8 变量</a></li>
+<li><a href="#9-9-全部代码">9.9 全部代码</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl09.html">http://llvm.org/docs/tutorial/LangImpl09.html</a></p>
+
+<p>唔，最后两个章节有点难产。</p>
+
+<p>本章主要介绍：为Kaleidoscope添加调试信息支持。
+</p>
+
+<h1 id="9-1-第九章介绍">9.1 第九章介绍</h1>
+
+<p>欢迎来到“使用LLVM来实现一门语言”教程的第九章。在第一章到第八章的内容中，我们已经用函数和变量构建了一个不错的编程语言。<strong>但是如果在程序出现问题的情况下，会发生什么呢？我们该如何调试我们的程序呢？</strong></p>
+
+<p>源码级的调试会使用格式化的数据，这些数据会帮助调试器将二进制的文件和机器的状态翻译回程序员编写的代码。在LLVM中，我们使用被叫做<a href="http://dwarfstd.org/">DWARF</a>。DWARF是一种紧凑的编码，它可以表示出变量类型、源代码位置和变量的位置。</p>
+
+<p>本章的主要内容：为了获取到调试信息，并且将调试信息转换为DWARF格式，我们将看到各种各样你必须添加到编程语言中的内容。</p>
+
+<p>警告：因为现在我们无法通过JIT来对程序进行调试，所以我们需要将我们的程序编译为小的并且独立的程序。作为其中的一部分，我们将对语言的运行以及程序的编译方式做一些修改。这意味着我们将拥有一个用Kaleidoscope编写的简单程序而不是交互式的JIT程序。但是它有一个限制，即我们一次只有一个“顶级”命令来减少必要的改变次数。</p>
+
+<p>下面是我们将要编译的程序：</p>
+
+<pre><code class="language-python">def fib(x)
+  if x &lt; 3 then
+    1
+  else
+    fib(x-1)+fib(x-2);
+
+fib(10)
+</code></pre>
+
+<h1 id="9-2-为什么这是个困难的问题">9.2 为什么这是个困难的问题</h1>
+
+<p>生成调试信息是一个困难的问题，主要有几个不同的原因 &mdash;- 这些原因大多数主要围绕优化代码。</p>
+
+<ul>
+<li>第一，编译器优化<strong>使想要保持源代码的位置不变更困难</strong>。在LLVM IR中，我们记录每个IR指令的源代码位置。优化 passes 应该记录新创建指令的对应的源代码位置。但是针对合并的指令，我们只能记录一个源代码位置 &mdash;- 当跳过优化程序时，这会引发一个程序跳转。</li>
+<li>第二，优化模块会使用很多种方式来移动变量（改变变量的位置），例如与其它变量共享内存。</li>
+</ul>
+
+<p>为了达到本教程的目的，我们会避免优化（下面我们会采用一些方式来避免优化）。</p>
+
+<h1 id="9-3-提前编译模式">9.3 提前编译模式</h1>
+
+<p>为了突出对源语言增加调试信息的各个方面，而不必担心JIT的复杂性，我们将对Kaleidoscope做一些改变来支持<strong>将前端产生的IR编译为一个简单的独立程序</strong>，你可以执行、调试和查看结果。</p>
+
+<p>编译IR emitted by 前端 into 一个简单独立的程序that 你可以执行，调试 and see results。</p>
+
+<p>首先，我们将包含顶级语句的匿名函数作为我们的&rdquo;main&rdquo;函数：</p>
+
+<pre><code class="language-c++">-    auto Proto = llvm::make_unique&lt;PrototypeAST&gt;(&quot;&quot;, std::vector&lt;std::string&gt;());
++    auto Proto = llvm::make_unique&lt;PrototypeAST&gt;(&quot;main&quot;, std::vector&lt;std::string&gt;());
+</code></pre>
+
+<p>只需要简单地改变它的名字就可以了。</p>
+
+<p>然后我们要删除所有的与命令行相关的代码：</p>
+
+<pre><code class="language-bash">@@ -1129,7 +1129,6 @@ static void HandleTopLevelExpression() {
+ /// top ::= definition | external | expression | ';'
+ static void MainLoop() {
+   while (1) {
+-    fprintf(stderr, &quot;ready&gt; &quot;);
+     switch (CurTok) {
+     case tok_eof:
+       return;
+@@ -1184,7 +1183,6 @@ int main() {
+   BinopPrecedence['*'] = 40; // highest.
+
+   // Prime the first token.
+-  fprintf(stderr, &quot;ready&gt; &quot;);
+   getNextToken();
+</code></pre>
+
+<p>最后我们将会<strong>禁用所有的优化passes和JIT</strong>，以便在我们完成解析和生成代码之后唯一会发生的事情是LLVM IR将会转到标准错误：</p>
+
+<pre><code class="language-bash">@@ -1108,17 +1108,8 @@ static void HandleExtern() {
+ static void HandleTopLevelExpression() {
+   // Evaluate a top-level expression into an anonymous function.
+   if (auto FnAST = ParseTopLevelExpr()) {
+-    if (auto *FnIR = FnAST-&gt;codegen()) {
+-      // We're just doing this to make sure it executes.
+-      TheExecutionEngine-&gt;finalizeObject();
+-      // JIT the function, returning a function pointer.
+-      void *FPtr = TheExecutionEngine-&gt;getPointerToFunction(FnIR);
+-
+-      // Cast it to the right type (takes no arguments, returns a double) so we
+-      // can call it as a native function.
+-      double (*FP)() = (double (*)())(intptr_t)FPtr;
+-      // Ignore the return value for this.
+-      (void)FP;
++    if (!F-&gt;codegen()) {
++      fprintf(stderr, &quot;Error generating code for top level expr&quot;);
+     }
+   } else {
+     // Skip token for error recovery.
+@@ -1439,11 +1459,11 @@ int main() {
+   // target lays out data structures.
+   TheModule-&gt;setDataLayout(TheExecutionEngine-&gt;getDataLayout());
+   OurFPM.add(new DataLayoutPass());
++#if 0
+   OurFPM.add(createBasicAliasAnalysisPass());
+   // Promote allocas to registers.
+   OurFPM.add(createPromoteMemoryToRegisterPass());
+@@ -1218,7 +1210,7 @@ int main() {
+   OurFPM.add(createGVNPass());
+   // Simplify the control flow graph (deleting unreachable blocks, etc).
+   OurFPM.add(createCFGSimplificationPass());
+-
++  #endif
+   OurFPM.doInitialization();
+
+   // Set the global so the code gen can use this.
+</code></pre>
+
+<p>这相对较小的更改使我们能够通过此命令行将我们的Kaleidoscope语言编译为可执行程序：</p>
+
+<pre><code class="language-bash">Kaleidoscope-Ch9 &lt; fib.ks | &amp; clang -x ir -
+</code></pre>
+
+<p>运行这条命令，会在当前目录中生成a.out/ a.exe。</p>
+
+<h1 id="9-4-编译单元">9.4 编译单元</h1>
+
+<p>DWARF中一段代码的顶级容器是一个编译单元。它包含单个翻译单元的类型和函数数据（读取：源代码的一个文件）。所以我们需要做的第一件事是为fib.ks文件构造一个编译单元。</p>
+
+<h1 id="9-5-dwarf-emission-setup">9.5 DWARF Emission Setup</h1>
+
+<p>与<code>IRBuilder</code>类似，我们有一个<a href="http://llvm.org/doxygen/classllvm_1_1DIBuilder.html">DIBuilder</a>类，可以帮助构建LLVM IR文件调试所需的原始数据。<code>DIBuilder</code>与<code>IRBuilder</code>类似，只是名字更好听一点。要想使用<code>DIBuilder</code>，需要你对DWARF有所了解，但是如果你仔细阅读有关<a href="http://llvm.org/docs/SourceLevelDebugging.html">元数据格式</a>的文档，那么就对<code>DIBuilder</code>会更加了解。我们将使用该类来构造所有的我们的IR级描述。它的构造需要一个模块，所以我们需要在构建模块后不久就构建它。我们会把它作为一个全局静态变量，这样会使它更容易使用。</p>
+
+<p>接下来，我们将创建一个小容器来缓存我们的一些经常使用的数据。第一个就是我们的编译单元，我也会为我们的类型编写一些代码，因为我们不必担心多个类型表达式（我们的类型只有double）：</p>
+
+<pre><code class="language-c++">static DIBuilder *DBuilder;
+
+struct DebugInfo {
+  DICompileUnit *TheCU;
+  DIType *DblTy;
+
+  DIType *getDoubleTy();
+} KSDbgInfo;
+
+DIType *DebugInfo::getDoubleTy() {
+  if (DblTy)
+    return DblTy;
+
+  DblTy = DBuilder-&gt;createBasicType(&quot;double&quot;, 64, dwarf::DW_ATE_float);
+  return DblTy;
+}
+</code></pre>
+
+<p>然后在我们构建模块时的&rsquo;main&rsquo;中：</p>
+
+<pre><code class="language-c++">DBuilder = new DIBuilder(*TheModule);
+
+KSDbgInfo.TheCU = DBuilder-&gt;createCompileUnit(
+    dwarf::DW_LANG_C, DBuilder-&gt;createFile(&quot;fib.ks&quot;, &quot;.&quot;),
+    &quot;Kaleidoscope Compiler&quot;, 0, &quot;&quot;, 0);
+</code></pre>
+
+<p>这里有几点需要注意。</p>
+
+<ul>
+<li>第一，当我们为一种叫做Kaleidoscope的语言生成一个编译单元时，我们会用到C语言常量。这是因为调式器不一定理解它无法识别的语言的调用约定或默认ABI，并且我们在<strong>LLVM代码生成中遵循C ABI约定</strong>，因此它是最准确的。这确保了我们可以实际<strong>调用来自调试器的函数</strong>，并且让他们执行。</li>
+<li>第二，你将会在调用 <code>createCompileUnit</code> 时看到 &ldquo;fib.ks&rdquo;。这是一个默认的硬编码值，因为我们使用shell重定向来将我们的源码放入Kaleidoscope编译器中。在前端中，你通常有一个输入文件名，并且它最终即会转到那里。</li>
+</ul>
+
+<p>作为通过 <em>DIBuilder</em> 生成调试信息的一部分，最后一件事情是我们需要&rsquo;finalize&rsquo;调试信息。原因是DIBuilder底层API的一部分，但请确保在main结束时执行此操作：</p>
+
+<pre><code class="language-c++">DBuilder-&gt;finalize();
+</code></pre>
+
+<h1 id="9-6-函数">9.6 函数</h1>
+
+<p>现在我们有了我们的编译单元和源码的位置，我们可以在调试信息中添加函数定义。所以在 <code>PrototypeAST::codegen()</code>中，我们添加了几行代码来描述子程序的上下文，在该例子中上下文是&rdquo;File&rdquo;，以及函数本身的实际定义。</p>
+
+<p>所以上下文：</p>
+
+<pre><code class="language-c++">DIFile *Unit = DBuilder-&gt;createFile(KSDbgInfo.TheCU.getFilename(),
+                                    KSDbgInfo.TheCU.getDirectory());
+</code></pre>
+
+<p>给我们一个 <strong>DIFile</strong> 并且询问我们上面创建的编译单元，来获取我们当前所在的目录和文件名字。然后，现在，我们使用 0 的一些源位置（因为我们的AST当前没有源位置信息）并且构造我们的函数定义：</p>
+
+<pre><code class="language-c++">DIScope *FContext = Unit;
+unsigned LineNo = 0;
+unsigned ScopeLine = 0;
+DISubprogram *SP = DBuilder-&gt;createFunction(
+    FContext, P.getName(), StringRef(), Unit, LineNo,
+    CreateFunctionType(TheFunction-&gt;arg_size(), Unit),
+    false /* internal linkage */, true /* definition */, ScopeLine,
+    DINode::FlagPrototyped, false);
+TheFunction-&gt;setSubprogram(SP);
+</code></pre>
+
+<p>我们现在有了一个 <code>DISubprogram</code>，它包含了对该函数的所有元数据的引用。</p>
+
+<h1 id="9-7-源代码位置">9.7 源代码位置</h1>
+
+<p>对于调试信息来说，最重要的事情是<strong>准确的源代码位置</strong> &ndash; 这样就可以将源代码映射回来。我们现在有一个问题就是<strong>Kaleidoscope 在词法分析器和解析器中没有记录任何源代码位置信息</strong>，所以我们需要添加它：</p>
+
+<pre><code class="language-c++">struct SourceLocation {
+  int Line;
+  int Col;
+};
+static SourceLocation CurLoc;
+static SourceLocation LexLoc = {1, 0};
+
+static int advance() {
+  int LastChar = getchar();
+
+  if (LastChar == '\n' || LastChar == '\r') {
+    LexLoc.Line++;
+    LexLoc.Col = 0;
+  } else
+    LexLoc.Col++;
+  return LastChar;
+}
+</code></pre>
+
+<p>在这组代码中，我们添加了一些关于<strong>如何跟踪“源文件”的行和列</strong>的功能。因为我们词法分析其会记录每个token，所以我们设置我们目前的“词汇定位”设置为token开头的行和列。我们通过使用新的advance() 重载所有之前对 <em>getchar()</em> 的调用来跟踪信息，然后我们将所有AST类添加到源位置：</p>
+
+<pre><code class="language-c++">class ExprAST {
+  SourceLocation Loc;
+
+  public:
+    ExprAST(SourceLocation Loc = CurLoc) : Loc(Loc) {}
+    virtual ~ExprAST() {}
+    virtual Value* codegen() = 0;
+    int getLine() const { return Loc.Line; }
+    int getCol() const { return Loc.Col; }
+    virtual raw_ostream &amp;dump(raw_ostream &amp;out, int ind) {
+      return out &lt;&lt; ':' &lt;&lt; getLine() &lt;&lt; ':' &lt;&lt; getCol() &lt;&lt; '\n';
+    }
+</code></pre>
+
+<p>当我们创建一个新的表达式时，我们会传递下去：</p>
+
+<pre><code class="language-c++">LHS = llvm::make_unique&lt;BinaryExprAST&gt;(BinLoc, BinOp, std::move(LHS),
+                                       std::move(RHS));
+</code></pre>
+
+<p>为我们的每个表达式和变量提供了位置信息。</p>
+
+<p>无论什么时候我们到了一个新的位置时，为了确保每条指令都获得合适的定位信息，我们必须要告诉 *Builder*。这时我们会使用一个小的辅助函数：</p>
+
+<pre><code class="language-c++">void DebugInfo::emitLocation(ExprAST *AST) {
+  DIScope *Scope;
+  if (LexicalBlocks.empty())
+    Scope = TheCU;
+  else
+    Scope = LexicalBlocks.back();
+  Builder.SetCurrentDebugLocation(
+      DebugLoc::get(AST-&gt;getLine(), AST-&gt;getCol(), Scope));
+}
+</code></pre>
+
+<p>这既会告诉主要的<code>IRBuilder</code>我们现在在哪，也会告诉它我们当前的作用域范围。作用域范围可以是编译单元级别的，也可以是最近的封闭词汇块，如当前函数。为了表示这个，我们会创建一个栈来记录范围：</p>
+
+<pre><code class="language-c++">std::vector&lt;DIScope *&gt; LexicalBlocks;
+</code></pre>
+
+<p>当我们开始为每个函数生成代码时，将范围（函数）推送到堆栈的顶部：</p>
+
+<pre><code class="language-c++">KSDbgInfo.LexicalBlocks.push_back(SP);
+</code></pre>
+
+<p>同时，我们还要在函数代码产生的末尾弹出作用域：</p>
+
+<pre><code class="language-c++">// Pop off the lexical block for the function since we added it
+// unconditionally.
+KSDbgInfo.LexicalBlocks.pop_back();
+</code></pre>
+
+<p>然后，我们会确保每次我们开始为新的AST对象产生代码时emit位置：</p>
+
+<pre><code class="language-c++">KSDbgInfo.emitLocation(this);
+</code></pre>
+
+<h1 id="9-8-变量">9.8 变量</h1>
+
+<p>现在我们有了函数，我们需要能够打印作用域中的变量。让我们设置我们的函数参数，这样我们就可以获得不错的 <code>backtraces</code>（回溯） 并且看看我们的函数是如何被调用的。这并不需要写很多代码，我们通常当我们在 <code>FunctionAST::codegen</code> 创建参数allocas时处理它。</p>
+
+<pre><code class="language-c++">// Record the function arguments in the NamedValues map.
+NamedValues.clear();
+unsigned ArgIdx = 0;
+for (auto &amp;Arg : TheFunction-&gt;args()) {
+  // Create an alloca for this variable.
+  AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+
+  // Create a debug descriptor for the variable.
+  DILocalVariable *D = DBuilder-&gt;createParameterVariable(
+      SP, Arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(),
+      true);
+
+  DBuilder-&gt;insertDeclare(Alloca, D, DBuilder-&gt;createExpression(),
+                          DebugLoc::get(LineNo, 0, SP),
+                          Builder.GetInsertBlock());
+
+  // Store the initial value into the alloca.
+  Builder.CreateStore(&amp;Arg, Alloca);
+
+  // Add arguments to variable symbol table.
+  NamedValues[Arg.getName()] = Alloca;
+}
+</code></pre>
+
+<p>在这里我们首先会创建变量，给它作用域范围（SP)，名称，源位置，类型，因为它是一个参数，还需要有参数索引。下一步，我们创建一个 <code>lvm.dbg.declare</code> 调用来指示在 IR 级别我们在 alloca 中有一个变量（并且它给出了变量的起始位置），并在申明上为该范围的开头设置了一个源位置。</p>
+
+<p>此刻需要注意的一件有趣的事情是，各种调试器会根据过去为它们生成代码和调试信息进行假设。在这个例子中，我们需要做一些hack来避免产生为函数prologue产生行信息，以便于当设置断点时，调试器知道跳过这些指令。所以我们在 <code>FunctionAST::CodeGen</code> 添加一些更多的行：</p>
+
+<pre><code class="language-c++">// Unset the location for the prologue emission (leading instructions with no
+// location in a function are considered part of the prologue and the debugger
+// will run past them when breaking on a function)
+KSDbgInfo.emitLocation(nullptr);
+</code></pre>
+
+<p>然后我们实际开始为函数体生成代码时emit一个新的位置：</p>
+
+<pre><code class="language-c++">KSDbgInfo.emitLocation(Body.get());
+</code></pre>
+
+<p>有了这个，我们有足够的调试信息来设置函数中的断点，打印参数变量，并且调用函数。只需要几行简单的代码就行了！</p>
+
+<h1 id="9-9-全部代码">9.9 全部代码</h1>
+
+<pre><code class="language-bash"># Compile
+$clang++ -g toy.cpp `llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native` -O3 -o toy
+# Run
+$./toy
+</code></pre>
+
+<p><a href="http://llvm.org/docs/tutorial/LangImpl09.html#full-code-listing">http://llvm.org/docs/tutorial/LangImpl09.html#full-code-listing</a></p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-06-24</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">本文翻译自 http://llvm.org/docs/tutorial/LangImpl09.html. 如需转载请注明出处。</span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/llvm/kaleidoscopecompile-to-object-code/">
+            <span class="next-text nav-default">Kaleidoscope：Compile to Object Code</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+    
+  </article>
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener" type="application/rss+xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2018 -
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">l0phtg</span></span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+<script src="/js/highlight.pack.js"></script>
+
+<script src="/js/mermaid.min.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
+
+</body>
+</html>
