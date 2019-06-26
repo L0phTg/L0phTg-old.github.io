@@ -7,10 +7,27 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <copyright>l0phtg</copyright>
-    <lastBuildDate>Mon, 24 Jun 2019 19:56:26 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 26 Jun 2019 16:04:38 +0800</lastBuildDate>
     
 	<atom:link href="https://l0phtg.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Kaleidoscope：Conclusion and Other Useful LLVM Tidbits</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/</link>
+      <pubDate>Wed, 26 Jun 2019 16:04:38 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/</guid>
+      <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl10.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl10.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。&lt;/p&gt;
+
+&lt;p&gt;另：按照原本的计划，&amp;lt;&amp;lt;LLVM系列 * 上半年&amp;gt;&amp;gt;应该还有一篇Kaleidoscope教程的总结、和&amp;lt;&amp;lt;Pass基础知识介绍&amp;gt;&amp;gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&amp;ndash;鸽（好饭不怕晚，哈哈哈&amp;mdash;自卖自夸）。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Warnning&lt;/strong&gt;: 上午尽量少玩手机，伤眼。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Kaleidoscope：Adding Debug Information</title>
@@ -456,33 +473,6 @@ $sudo apt autoremove -f
       <description>&lt;p&gt;总结了一下自己的vim配置和zsh配置&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/customConfig/myVimPreview.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Pixel1 源码编译</title>
-      <link>https://l0phtg.github.io/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</link>
-      <pubDate>Tue, 02 Oct 2018 15:38:56 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/pixel1-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/</guid>
-      <description>&lt;p&gt;记录自己Pixel1刷机流程.&lt;/p&gt;
-
-&lt;p&gt;相关网站&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Requirements
-https://source.android.google.cn/setup/build/requirements.html#binaries
-
-https://source.android.com/setup/build/running
-
-buile numbers
-https://source.android.com/setup/start/build-numbers
-
-https://source.android.com/setup/build/downloading
-
-驱动
-https://developers.google.com/android/drivers
-&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>

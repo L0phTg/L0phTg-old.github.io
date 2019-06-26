@@ -226,6 +226,43 @@
     
       <article class="post bg-white">
   <header class="post-header">
+    <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/">Kaleidoscope：Conclusion and Other Useful LLVM Tidbits</a></h1>
+    
+    <div class="post-meta">
+      <span class="post-time"> 2019-06-26 </span>
+      <div class="post-category">
+          
+            <a href="/categories/llvm/"> llvm </a>
+          
+        </div>
+      <span class="more-meta"> 约 4136 字 </span>
+      <span class="more-meta"> 预计阅读 9 分钟 </span>
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl10.html">http://llvm.org/docs/tutorial/LangImpl10.html</a></p>
+
+<p>本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。</p>
+
+<p>另：按照原本的计划，&lt;&lt;LLVM系列 * 上半年&gt;&gt;应该还有一篇Kaleidoscope教程的总结、和&lt;&lt;Pass基础知识介绍&gt;&gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&ndash;鸽（好饭不怕晚，哈哈哈&mdash;自卖自夸）。</p>
+
+<p><strong>Warnning</strong>: 上午尽量少玩手机，伤眼。</p>
+
+<p></p>
+    </div>
+    <div class="read-more">
+      <a href="/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+    
+      <article class="post bg-white">
+  <header class="post-header">
     <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscopeadding-debug-information/">Kaleidoscope：Adding Debug Information</a></h1>
     
     <div class="post-meta">
@@ -387,89 +424,6 @@ graph TB
 </article>
 
     
-      <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title"><a class="post-link" href="/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/">Kaleidoscope：Extending the Language：User Defined Operators</a></h1>
-    
-    <div class="post-meta">
-      <span class="post-time"> 2019-06-11 </span>
-      <div class="post-category">
-          
-            <a href="/categories/llvm/"> llvm </a>
-          
-        </div>
-      <span class="more-meta"> 约 5754 字 </span>
-      <span class="more-meta"> 预计阅读 12 分钟 </span>
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl06.html">http://llvm.org/docs/tutorial/LangImpl06.html</a></p>
-
-<p>发一篇干货，接着之前的LLVM tutorial教程的翻译，本次翻译的为第六章。</p>
-
-<p>扩展我们的Kaleidoscope语言，以支持用户定义操作符（一元操作符和二元操作符）。</p>
-
-<ul>
-<li><p>为了实现用户自定义运算符，我们采用了<strong>扩展函数申明和扩展函数定义</strong>的实现方式。</p></li>
-
-<li><p>为了实现对用户自定义运算符的表达式支持：</p>
-
-<ol>
-<li>针对用户自定义的二元运算符。因为我们之前已经支持了部分二元运算符（如+、- 等），所以我们只需要扩展BinaryExprAST来支持用户自定义的二元运算符即可；</li>
-<li>针对用户自定义的一元运算符。我们需要定义UnaryExprAST抽象语法树，并实现Codegen支持，且添加到解析表达式的逻辑中。</li>
-</ol></li>
-</ul>
-
-<div class="mermaid">
-graph TB
-
-    subgraph 二元运算符
-        binaryParser[1. 添加词法分析支持] 
-        subgraph 2. 实现用户自定义二元运算符函数
-        funcProtoExtend[扩展函数申明AST] --> funcProtoParser[扩展ParsePrototype函数]
-        end 
-        binaryParser --> funcProtoExtend
-        funcProtoParser --> binaryCodegen[3. 在BinaryExprAST的Codegen中支持自定义的二元运算符]
-    end
-
-    subgraph 一元运算符
-        unaryParser["1. 添加词法分析支持"] 
-        subgraph 2. 实现用户自定义的一元运算符函数
-            unaryFuncProtoExtend[扩展函数申明AST] --> unaryFuncProtoParser[扩展ParsePrototype函数]
-        end
-        unaryParser --> unaryFuncProtoExtend
-        subgraph 3. 实现一元运算符表达式的解析 
-            createUnaryAST[创建UnaryExprAST节点] --> parseUnary[添加解析一元运算符表达式的函数]
-            parseUnary --> parsePrimary[在ParsePrimay中添加调用ParseUnary的逻辑]
-        end
-        unaryFuncProtoParser --> createUnaryAST
-    end
-
-    style funcProtoExtend fill:#f9f
-    style funcProtoParser fill:#f9f
-    style unaryFuncProtoExtend fill:#f9f
-    style unaryFuncProtoParser fill:#f9f
-    
-    style binaryCodegen fill:#ccff66
-    style createUnaryAST fill:#ccff66
-    style parseUnary fill:#ccff66
-    style parsePrimary fill:#ccff66
-
-</div>
-
-<p></p>
-    </div>
-    <div class="read-more">
-      <a href="/post/llvm/kaleidoscopeextending-the-languageuser-defined-operators/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-    
   </section>
 
   
@@ -520,6 +474,10 @@ graph TB
     
     <li >
       <a href="/page/7/">7</a>
+    </li>
+    
+    <li >
+      <a href="/page/8/">8</a>
     </li>
     
   </nav>

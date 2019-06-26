@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Kaleidoscope：Conclusion and Other Useful LLVM Tidbits - L0phTg&#39;s Blog</title>
+  <link rel="alternate" hreflang="zh-cn" href="https://l0phtg.github.io/" />
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="L0phTg" />
+  <meta name="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl10.html
+本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。
+另：按照原本的计划，&amp;lt;&amp;lt;LLVM系列 * 上半年&amp;gt;&amp;gt;应该还有一篇Kaleidoscope教程的总结、和&amp;lt;&amp;lt;Pass基础知识介绍&amp;gt;&amp;gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&amp;ndash;鸽（好饭不怕晚，哈哈哈&amp;mdash;自卖自夸）。
+Warnning: 上午尽量少玩手机，伤眼。
+
+" />
+<meta name="keywords" content="总结, LLVM" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.49-DEV" />
+
+
+<link rel="canonical" href="https://l0phtg.github.io/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" href="/favicon.ico" />
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+<link href="/lib/fancybox/jquery.fancybox-3.1.20.min.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/styles/dracula.css">
+
+<link rel="stylesheet" href="/css/mermaid.css">
+
+
+<meta property="og:title" content="Kaleidoscope：Conclusion and Other Useful LLVM Tidbits" />
+<meta property="og:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl10.html
+
+本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。
+
+另：按照原本的计划，&lt;&lt;LLVM系列 * 上半年&gt;&gt;应该还有一篇Kaleidoscope教程的总结、和&lt;&lt;Pass基础知识介绍&gt;&gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&ndash;鸽（好饭不怕晚，哈哈哈&mdash;自卖自夸）。
+
+Warnning: 上午尽量少玩手机，伤眼。
+
+" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://l0phtg.github.io/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/" /><meta property="article:published_time" content="2019-06-26T16:04:38&#43;08:00"/>
+<meta property="article:modified_time" content="2019-06-26T16:08:54&#43;08:00"/>
+<meta itemprop="name" content="Kaleidoscope：Conclusion and Other Useful LLVM Tidbits">
+<meta itemprop="description" content="translate from: http://llvm.org/docs/tutorial/LangImpl10.html
+
+本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。
+
+另：按照原本的计划，&lt;&lt;LLVM系列 * 上半年&gt;&gt;应该还有一篇Kaleidoscope教程的总结、和&lt;&lt;Pass基础知识介绍&gt;&gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&ndash;鸽（好饭不怕晚，哈哈哈&mdash;自卖自夸）。
+
+Warnning: 上午尽量少玩手机，伤眼。
+
+">
+
+
+<meta itemprop="datePublished" content="2019-06-26T16:04:38&#43;08:00" />
+<meta itemprop="dateModified" content="2019-06-26T16:04:38&#43;08:00" />
+<meta itemprop="wordCount" content="4136">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kaleidoscope：Conclusion and Other Useful LLVM Tidbits"/>
+<meta name="twitter:description" content="translate from: http://llvm.org/docs/tutorial/LangImpl10.html
+
+本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。
+
+另：按照原本的计划，&lt;&lt;LLVM系列 * 上半年&gt;&gt;应该还有一篇Kaleidoscope教程的总结、和&lt;&lt;Pass基础知识介绍&gt;&gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&ndash;鸽（好饭不怕晚，哈哈哈&mdash;自卖自夸）。
+
+Warnning: 上午尽量少玩手机，伤眼。
+
+"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});  // 内联公式
+  MathJax.Hub.Config({                                                      // support color
+  showProcessingMessages: false,
+  jax: ["input/TeX", "output/HTML-CSS"],
+  TeX: {
+    TagSide: "left",
+    Macros: {
+      RR: '{\\bf R}',
+      bold: ['{\\bf #1}',1]
+    }
+  }
+});
+</script>
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">L0phTg&#39;s Blog</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a><a href="https://gohugo.io">
+        <li class="mobile-menu-item">external-link</li>
+      </a>
+  </ul>
+</nav>
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      L0phTg&#39;s Blog
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">Home</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Archives</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">Tags</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">Categories</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://gohugo.io" rel="noopener" target="_blank">
+              external-link
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+  </ul>
+</nav>
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Kaleidoscope：Conclusion and Other Useful LLVM Tidbits</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2019-06-26 </span>
+        <div class="post-category">
+            
+              <a href="/categories/llvm/"> llvm </a>
+            
+          </div>
+        <span class="more-meta"> 约 4136 字 </span>
+        <span class="more-meta"> 预计阅读 9 分钟 </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#10-1-教程结论">10.1 教程结论</a></li>
+<li><a href="#10-2-llvm-ir的属性">10.2 LLVM IR的属性</a>
+<ul>
+<li><a href="#10-2-1-target-independence-目标独立性">10.2.1 Target Independence/目标独立性</a></li>
+<li><a href="#10-2-2-安全保障">10.2.2 安全保障</a></li>
+<li><a href="#10-2-3-针对特定语言的优化">10.2.3 针对特定语言的优化</a></li>
+</ul></li>
+<li><a href="#10-3-技巧和窍门">10.3 技巧和窍门</a>
+<ul>
+<li><a href="#10-3-1-实现轻便的-offsetof-sizeof">10.3.1 实现轻便的 offsetof/sizeof</a></li>
+<li><a href="#10-3-2-垃圾收集栈">10.3.2 垃圾收集栈</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>translate from: <a href="http://llvm.org/docs/tutorial/LangImpl10.html">http://llvm.org/docs/tutorial/LangImpl10.html</a></p>
+
+<p>本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。</p>
+
+<p>另：按照原本的计划，&lt;&lt;LLVM系列 * 上半年&gt;&gt;应该还有一篇Kaleidoscope教程的总结、和&lt;&lt;Pass基础知识介绍&gt;&gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&ndash;鸽（好饭不怕晚，哈哈哈&mdash;自卖自夸）。</p>
+
+<p><strong>Warnning</strong>: 上午尽量少玩手机，伤眼。</p>
+
+<p></p>
+
+<h1 id="10-1-教程结论">10.1 教程结论</h1>
+
+<p>欢迎来到“<a href="http://llvm.org/docs/tutorial/index.html">使用LLVM来实现一门语言</a>”的最后一章。在本教程中，我们已经将我们的Kaleidoscope语言从一个无用的玩具改造成了一个有趣的玩具（虽然仍然可能是无用的，hhh）。</p>
+
+<p>我们现在回头看我们走了多远以及实现它的代码有多少，这件事是非常有趣的。我们构建了完整的词法分析器，抽象语法树，代码产生器，和一个交互式的运行终端（通过JIT实现），并且还可以在可执行文件中生成调试信息 &mdash;- 对于小于1000行的代码。</p>
+
+<p>我们的语言支持很多有趣的特性：它支持用户自定义二元和一元运算符，它可以JIT执行，并且它还支持很多包含SSA结构的控制流。</p>
+
+<p>本教程的一部分想法是向你展示定义，构建和使用语言是多么容易和有趣。构建一个编译器不是一个可怕的或者神秘的过程！既然你已经看过了一些基础知识，我强烈建议你<strong>take the code and hack on it</strong>. 例如，试图添加下面这些功能：</p>
+
+<ul>
+<li><strong>全局变量</strong> - 虽然全局变量在现代软件工程中有一些问题，但是他们在组合像Kaleidscope编译器本身这样的小工具时很有用。幸运地是，我们当前的代码使得添加全局变量变得非常容易：只需要进行值检查，看看是否未解析的变量在全局变量符号表中。为了创建一个新的全局变量，创建LLVM <code>GlobalVariables</code> 类的实例。</li>
+<li><strong>类型变量</strong> - Kaleidoscope目前只支持浮点类型的变量。这使语言非常简单优雅，因为只支持一个类型意味着你从来不需要指定类型。不同的语言有不同的方式来处理有类型的变量。最简单的方式是要求用户在每一个变量定义时指定类型，并且在符号表中记录它的类型（和值放在一起）。</li>
+<li><strong>数组，结构，向量，etc</strong> - 一旦你添加了类型，你可以以各种有趣的方式来扩展类型系统。对于许多不同的应用来说，拥有简单的数组是非常有用的。添加它是一个对学习LLVM <a href="http://llvm.org/docs/LangRef.html#getelementptr-instruction">getelementptr</a> 指令如何工作的一个练习：它是非常漂亮/非常规的。<a href="http://llvm.org/docs/GetElementPtr.html">http://llvm.org/docs/GetElementPtr.html</a></li>
+<li><strong>标准运行时</strong> - 我们当前的语言允许用户来获取任意的外部函数，我们可以像使用“printd”和“putchard”一样来使用它。当你扩展语言来添加高级别的构造时，通常，如果将这些构造降低到语言提供的运行时，这些构造最有意义。例如，如果你在语言中添加哈希表，将例程添加到运行时将可能是有意义的，而不是一直将它们内联。</li>
+<li><strong>内存管理</strong> - 目前我们只能访问Kaleidoscope中的堆栈。能够通过调用标准库的 <code>malloc/free</code> 接口或垃圾收集器来分配堆内存也是很有用的。如果你想使用垃圾收集，请注意LLVM完全支持<a href="http://llvm.org/docs/GarbageCollection.html">精确垃圾收集</a>，包括移动对象并需要扫描/更新堆栈的算法。</li>
+<li><strong>异常处理支持</strong> - LLVM支持<a href="http://llvm.org/docs/ExceptionHandling.html">zero cost exceptions</a>，它是与使用其他语言编译的代码相互交互。你可以通过隐式地使每个函数返回一个错误值并检查它来产生代码。你也能够使用 <code>setjmp/longjmp</code>。当然有许多不同的方式。</li>
+<li><strong>面向对象，泛型，数据库访问，复数，几何编程</strong>，&hellip; - 真的，你可以添加到语言中的功能没有尽头。</li>
+<li><strong>unusual domains</strong> - 我们一直在讨论将LLVM应用到很多人都感兴趣的领域：对特定的语言构建一个编译器。然而，有许多其他的领域可以使用编译器技术，但是通常确不被考虑。例如，LLVM已经被用于实现OpenGL图形加速，将 c++ 代码翻译为 ActionScript，和许多其他可爱的和有趣的项目。或许你将会是第一个使用LLVM正则表达式解释器编译成本机代码JIT的程序员？</li>
+</ul>
+
+<p>玩得开心 - 试图使用LLVM做一些疯狂和不同寻常的事情。像其他人一样构建一门语言，没有什么比尝试一些有点疯狂的东西或看到它的结果更有趣。如果你遇到困难或者想要交流，可以给<a href="http://lists.llvm.org/mailman/listinfo/llvm-dev">llvm-dev mailing list</a>发邮件：有很多人对语言感兴趣并且经常愿意提供帮助。</p>
+
+<p>在我们结束本教程之前，我想要谈谈生成LLVM IR的一些“技巧和窍门”。这些是一些可能不太明显的更微妙的事情，但对你利用LLVM的功能做事情非常有用。</p>
+
+<h1 id="10-2-llvm-ir的属性">10.2 LLVM IR的属性</h1>
+
+<p>我们很多关于LLVM IR中常见的问题 - 让我们现在就把它们弄清除，shall we?</p>
+
+<h2 id="10-2-1-target-independence-目标独立性">10.2.1 Target Independence/目标独立性</h2>
+
+<p>Kaleidoscope是“便捷式语言”的一个例子：所有被使用Kaleidoscope的程序都会以相同的方式运行在它运行的任何目标上。许多其他语言也有这个属性，E.g. lisp，java，haskell，javascript，python，etc（注意这些语言是可移植的，但他们的库不一定可移植）。</p>
+
+<p>LLVM的一个不错的方面是它通常能够<strong>保持IR的目标独立性</strong>：你能够将LLVM IR用于Kaleidoscope编译的程序，并在LLVM支持的任何目标上运行它，甚至是生成 C 代码并且在LLVM本身不支持的目标上编译它。你可以简单地告诉Kaleidoscope编译器生成与目标无关的代码，因为它在生成代码时从不查询任何特定于目标的信息。</p>
+
+<p>LLVM提供了一个紧凑的、目标独立的代码表示，这让很多人兴奋不已。不幸地是，当这些人在询问有关语言可移植性的问题时，通常会考虑C语言或者C家族的语言。我说“不幸”，是因为几乎没有办法让C代码可移植，除了发送源代码(hhh，当然了，C源代码实际上也是不可移植的 - 例如将一个相当古老的32位应用移植到64位系统上？)</p>
+
+<p>C的问题（再次，完全普遍性）是它充满了目标特定的假设。作为一个简单的例子，预处理器在处理输入文本时，经常破坏性地从代码中移除目标独立性：</p>
+
+<pre><code class="language-c">#ifdef __i386__
+  int X = 1;
+#else
+  int X = 42;
+#endif
+</code></pre>
+
+<p>虽然可以为这样的问题设计越来越复杂的解决方案，但是它不能以一种比拷贝实际源代码更好的方式完全解决。</p>
+
+<p>也就是说，有一些C的子集是可移植的。如果你愿意将原始类型修复为固定的大小（例如 int = 32-bits，long = 64-bits），不要关心ABI与现有二进制文件的兼容性，并愿意放弃其他一些小功能，你可以拥有可移植的代码。这对于诸如内核语言之类的专用域是有意义的。</p>
+
+<h2 id="10-2-2-安全保障">10.2.2 安全保障</h2>
+
+<p>上面许多语言也是“安全”的语言：对于一个使用Java编译的程序来说，想要破坏其地址空间并且使进程崩溃是不可能的（假设JVM没有bugs）。安全性是一个有趣的属性，它需要结合语言设计，运行时支持，和操作系统支持。在LLVM中，实现一个安全的语言当然是可能的，但是LLVM IR本身并不能保证安全。LLVM IR允许不安全的指针类型转换，UAF bugs，缓冲区溢出，和大量其他的问题。安全性需要被作为LLVM的顶级层的一个实现，几个小组已经对这进行了调查。如果你想要了解更多的细节，可以在 <a href="Http://lists.llvm.org/mailman/listinfo/llvm-dev">llvm-dev 邮件列表</a> 中询问。</p>
+
+<h2 id="10-2-3-针对特定语言的优化">10.2.3 针对特定语言的优化</h2>
+
+<p>导致很多人离开LLVM的很重要的事情是：它并没有解决我们的系统上相关的所有的问题。一个具体的示例就是人们认为LLVM无法执行特定的高级语言的优化：“LLVM失去了太多的信息”。以下是对此的一些观察：</p>
+
+<p>第一，LLVM的确会丢失信息。例如，截至到目前写这篇文章为止，在LLVM中无法区分SSA值是来自32位机器中的C&rdquo;int&rdquo;还是C&rdquo;long&rdquo;（调试信息除外）。两者都被编译为&rdquo;i32&rdquo;值，并且有关它的来源的信息已经丢失了。更普遍的问题是，LLVM类型系统使用“结构等价”而不是“名称等价”。令人惊讶的另一个地方是：如果你在高级语言中有两种类型，并且它们有相同的结构（例如：两个不同的结构体都只包含int域）：这些类型将编译为单个LLVM类型，并且无法分辨它的来源。</p>
+
+<p>第二，虽然LLVM确实丢失了信息，但LLVM并不是不变的：我们会用多种不同的方式继续增强和改进它。除了添加新特性外（LLVM不总是支持异常和调试信息），我们也可以扩展IR来捕获重要的信息和优化（例如，无论参数是符号扩展还是零扩展，关于指针别名的信息，等）。许多添加的功能都是用户驱动的：人们希望LLVM包含一些特定的功能，他们会一起添加并扩展它。</p>
+
+<p>第三，添加特定语言的优化是*可能*的，也是*容易*的，并且你有大量的选择如何做。一个简单的例子，添加特定语言的优化是很容易的，这些优化只是对特定编译的代码适用。针对C系语言，有一个优化pass，该pass对标准C库函数很了解。如果你在main()函数中调用&rdquo;exit(0)&ldquo;，它知道将其优化为&rdquo;return 0&rdquo;是安全的。因为C指定了exit(0)函数会做什么。</p>
+
+<p>除了简单的知识外，可以将各种特定其他语言的信息嵌入到LLVM IR中。如果你有一个特定的需要，但是遇到问题了，请将主题放在 llvm-dev 列表。最糟糕的情况下，你能总是将LLVM视为 &ldquo;dumb code generator&rdquo;，并且在你的前端的AST上实现针对特定高级语言的优化。</p>
+
+<h1 id="10-3-技巧和窍门">10.3 技巧和窍门</h1>
+
+<p>在使用LLVM之后，你可以了解到各种各样有用的提示和技巧，这些提示和技巧表面上并不明显。本节并不是让每个人重新发现它们，而是讨论其中的一些问题。</p>
+
+<h2 id="10-3-1-实现轻便的-offsetof-sizeof">10.3.1 实现轻便的 offsetof/sizeof</h2>
+
+<p>一个有趣的事情，如果你试图保持编译器生成“目标独立”的代码，那么有一件有趣的事情是，你经常需要知道某些LLVM类型的大小或LLVM结构中某些字段的偏移量。例如，你可能需要向一个函数传递一个类型的大小，来分配内存。</p>
+
+<p>不幸地是，这可能会因目标而异，例如：指针的宽度通常是特定于目标的。然而，有一个<a href="http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt">聪明的方法来使用getelementptr函数</a>，这允许你以一种简单的方式来解决该问题。</p>
+
+<h2 id="10-3-2-垃圾收集栈">10.3.2 垃圾收集栈</h2>
+
+<p>有些语言希望明确管理其堆栈帧，经常使它们被垃圾收集或允许容易地实现闭包。与显示堆栈帧相比，通常有更好的方法来实现这些功能，<a href="http://nondot.org/sabre/LLVMNotes/ExplicitlyManagedStackFrames.txt">llvm支持它们</a>，如果你想要的话。它需要你的前端将代码转换为对 <a href="http://en.wikipedia.org/wiki/Continuation-passing_style">Continuation Passing Style</a>和(LLVM支持的)尾调用的使用。</p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">L0phTg</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">2019-06-26</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content">本文翻译自 http://llvm.org/docs/tutorial/LangImpl10.html. 如需转载请注明出处。</span>
+  </p>
+</div>
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/llvm/kaleidoscopeadding-debug-information/">
+            <span class="next-text nav-default">Kaleidoscope：Adding Debug Information</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+    
+  </article>
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="l0phtg:l0phtg@163.com" rel="me noopener" class="iconfont icon-email"
+        title="email" target="_blank">
+      </a>
+      <a href="https://google.com" rel="me noopener" class="iconfont icon-google"
+        title="google" target="_blank">
+      </a>
+      <a href="https://github.com/l0phtg" rel="me noopener" class="iconfont icon-github"
+        title="github" target="_blank">
+      </a>
+  <a href="https://l0phtg.github.io/index.xml" rel="noopener" type="application/rss+xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+      2018 -
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">l0phtg</span></span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox-3.1.20.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+<script src="/js/highlight.pack.js"></script>
+
+<script src="/js/mermaid.min.js"></script>
+
+
+<script>hljs.initHighlightingOnLoad();</script>
+<script> mermaid.initialize({ startOnLoad: true });</script>
+
+</body>
+</html>

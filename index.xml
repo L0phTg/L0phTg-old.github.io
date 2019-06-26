@@ -29,6 +29,105 @@
     </item>
     
     <item>
+      <title>Kaleidoscope：Conclusion and Other Useful LLVM Tidbits</title>
+      <link>https://l0phtg.github.io/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/</link>
+      <pubDate>Wed, 26 Jun 2019 16:04:38 +0800</pubDate>
+      
+      <guid>https://l0phtg.github.io/post/llvm/kaleidoscopeconclusion-and-other-useful-llvm-tidbits/</guid>
+      
+        <description>&lt;p&gt;translate from: &lt;a href=&#34;http://llvm.org/docs/tutorial/LangImpl10.html&#34;&gt;http://llvm.org/docs/tutorial/LangImpl10.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;本文是LLVM教程（Kaleidoscope）的最后一章：介绍教程结论和一些有用的LLVM技巧。&lt;/p&gt;
+
+&lt;p&gt;另：按照原本的计划，&amp;lt;&amp;lt;LLVM系列 * 上半年&amp;gt;&amp;gt;应该还有一篇Kaleidoscope教程的总结、和&amp;lt;&amp;lt;Pass基础知识介绍&amp;gt;&amp;gt;一篇文章，和三篇编写Pass的文章。但是预计近三个月刚入职，事情会比较多，所以这个系列文章的更新时间会推迟&amp;ndash;鸽（好饭不怕晚，哈哈哈&amp;mdash;自卖自夸）。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Warnning&lt;/strong&gt;: 上午尽量少玩手机，伤眼。&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;10-1-教程结论&#34;&gt;10.1 教程结论&lt;/h1&gt;
+
+&lt;p&gt;欢迎来到“&lt;a href=&#34;http://llvm.org/docs/tutorial/index.html&#34;&gt;使用LLVM来实现一门语言&lt;/a&gt;”的最后一章。在本教程中，我们已经将我们的Kaleidoscope语言从一个无用的玩具改造成了一个有趣的玩具（虽然仍然可能是无用的，hhh）。&lt;/p&gt;
+
+&lt;p&gt;我们现在回头看我们走了多远以及实现它的代码有多少，这件事是非常有趣的。我们构建了完整的词法分析器，抽象语法树，代码产生器，和一个交互式的运行终端（通过JIT实现），并且还可以在可执行文件中生成调试信息 &amp;mdash;- 对于小于1000行的代码。&lt;/p&gt;
+
+&lt;p&gt;我们的语言支持很多有趣的特性：它支持用户自定义二元和一元运算符，它可以JIT执行，并且它还支持很多包含SSA结构的控制流。&lt;/p&gt;
+
+&lt;p&gt;本教程的一部分想法是向你展示定义，构建和使用语言是多么容易和有趣。构建一个编译器不是一个可怕的或者神秘的过程！既然你已经看过了一些基础知识，我强烈建议你&lt;strong&gt;take the code and hack on it&lt;/strong&gt;. 例如，试图添加下面这些功能：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;全局变量&lt;/strong&gt; - 虽然全局变量在现代软件工程中有一些问题，但是他们在组合像Kaleidscope编译器本身这样的小工具时很有用。幸运地是，我们当前的代码使得添加全局变量变得非常容易：只需要进行值检查，看看是否未解析的变量在全局变量符号表中。为了创建一个新的全局变量，创建LLVM &lt;code&gt;GlobalVariables&lt;/code&gt; 类的实例。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;类型变量&lt;/strong&gt; - Kaleidoscope目前只支持浮点类型的变量。这使语言非常简单优雅，因为只支持一个类型意味着你从来不需要指定类型。不同的语言有不同的方式来处理有类型的变量。最简单的方式是要求用户在每一个变量定义时指定类型，并且在符号表中记录它的类型（和值放在一起）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数组，结构，向量，etc&lt;/strong&gt; - 一旦你添加了类型，你可以以各种有趣的方式来扩展类型系统。对于许多不同的应用来说，拥有简单的数组是非常有用的。添加它是一个对学习LLVM &lt;a href=&#34;http://llvm.org/docs/LangRef.html#getelementptr-instruction&#34;&gt;getelementptr&lt;/a&gt; 指令如何工作的一个练习：它是非常漂亮/非常规的。&lt;a href=&#34;http://llvm.org/docs/GetElementPtr.html&#34;&gt;http://llvm.org/docs/GetElementPtr.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;标准运行时&lt;/strong&gt; - 我们当前的语言允许用户来获取任意的外部函数，我们可以像使用“printd”和“putchard”一样来使用它。当你扩展语言来添加高级别的构造时，通常，如果将这些构造降低到语言提供的运行时，这些构造最有意义。例如，如果你在语言中添加哈希表，将例程添加到运行时将可能是有意义的，而不是一直将它们内联。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;内存管理&lt;/strong&gt; - 目前我们只能访问Kaleidoscope中的堆栈。能够通过调用标准库的 &lt;code&gt;malloc/free&lt;/code&gt; 接口或垃圾收集器来分配堆内存也是很有用的。如果你想使用垃圾收集，请注意LLVM完全支持&lt;a href=&#34;http://llvm.org/docs/GarbageCollection.html&#34;&gt;精确垃圾收集&lt;/a&gt;，包括移动对象并需要扫描/更新堆栈的算法。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;异常处理支持&lt;/strong&gt; - LLVM支持&lt;a href=&#34;http://llvm.org/docs/ExceptionHandling.html&#34;&gt;zero cost exceptions&lt;/a&gt;，它是与使用其他语言编译的代码相互交互。你可以通过隐式地使每个函数返回一个错误值并检查它来产生代码。你也能够使用 &lt;code&gt;setjmp/longjmp&lt;/code&gt;。当然有许多不同的方式。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;面向对象，泛型，数据库访问，复数，几何编程&lt;/strong&gt;，&amp;hellip; - 真的，你可以添加到语言中的功能没有尽头。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;unusual domains&lt;/strong&gt; - 我们一直在讨论将LLVM应用到很多人都感兴趣的领域：对特定的语言构建一个编译器。然而，有许多其他的领域可以使用编译器技术，但是通常确不被考虑。例如，LLVM已经被用于实现OpenGL图形加速，将 c++ 代码翻译为 ActionScript，和许多其他可爱的和有趣的项目。或许你将会是第一个使用LLVM正则表达式解释器编译成本机代码JIT的程序员？&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;玩得开心 - 试图使用LLVM做一些疯狂和不同寻常的事情。像其他人一样构建一门语言，没有什么比尝试一些有点疯狂的东西或看到它的结果更有趣。如果你遇到困难或者想要交流，可以给&lt;a href=&#34;http://lists.llvm.org/mailman/listinfo/llvm-dev&#34;&gt;llvm-dev mailing list&lt;/a&gt;发邮件：有很多人对语言感兴趣并且经常愿意提供帮助。&lt;/p&gt;
+
+&lt;p&gt;在我们结束本教程之前，我想要谈谈生成LLVM IR的一些“技巧和窍门”。这些是一些可能不太明显的更微妙的事情，但对你利用LLVM的功能做事情非常有用。&lt;/p&gt;
+
+&lt;h1 id=&#34;10-2-llvm-ir的属性&#34;&gt;10.2 LLVM IR的属性&lt;/h1&gt;
+
+&lt;p&gt;我们很多关于LLVM IR中常见的问题 - 让我们现在就把它们弄清除，shall we?&lt;/p&gt;
+
+&lt;h2 id=&#34;10-2-1-target-independence-目标独立性&#34;&gt;10.2.1 Target Independence/目标独立性&lt;/h2&gt;
+
+&lt;p&gt;Kaleidoscope是“便捷式语言”的一个例子：所有被使用Kaleidoscope的程序都会以相同的方式运行在它运行的任何目标上。许多其他语言也有这个属性，E.g. lisp，java，haskell，javascript，python，etc（注意这些语言是可移植的，但他们的库不一定可移植）。&lt;/p&gt;
+
+&lt;p&gt;LLVM的一个不错的方面是它通常能够&lt;strong&gt;保持IR的目标独立性&lt;/strong&gt;：你能够将LLVM IR用于Kaleidoscope编译的程序，并在LLVM支持的任何目标上运行它，甚至是生成 C 代码并且在LLVM本身不支持的目标上编译它。你可以简单地告诉Kaleidoscope编译器生成与目标无关的代码，因为它在生成代码时从不查询任何特定于目标的信息。&lt;/p&gt;
+
+&lt;p&gt;LLVM提供了一个紧凑的、目标独立的代码表示，这让很多人兴奋不已。不幸地是，当这些人在询问有关语言可移植性的问题时，通常会考虑C语言或者C家族的语言。我说“不幸”，是因为几乎没有办法让C代码可移植，除了发送源代码(hhh，当然了，C源代码实际上也是不可移植的 - 例如将一个相当古老的32位应用移植到64位系统上？)&lt;/p&gt;
+
+&lt;p&gt;C的问题（再次，完全普遍性）是它充满了目标特定的假设。作为一个简单的例子，预处理器在处理输入文本时，经常破坏性地从代码中移除目标独立性：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;#ifdef __i386__
+  int X = 1;
+#else
+  int X = 42;
+#endif
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;虽然可以为这样的问题设计越来越复杂的解决方案，但是它不能以一种比拷贝实际源代码更好的方式完全解决。&lt;/p&gt;
+
+&lt;p&gt;也就是说，有一些C的子集是可移植的。如果你愿意将原始类型修复为固定的大小（例如 int = 32-bits，long = 64-bits），不要关心ABI与现有二进制文件的兼容性，并愿意放弃其他一些小功能，你可以拥有可移植的代码。这对于诸如内核语言之类的专用域是有意义的。&lt;/p&gt;
+
+&lt;h2 id=&#34;10-2-2-安全保障&#34;&gt;10.2.2 安全保障&lt;/h2&gt;
+
+&lt;p&gt;上面许多语言也是“安全”的语言：对于一个使用Java编译的程序来说，想要破坏其地址空间并且使进程崩溃是不可能的（假设JVM没有bugs）。安全性是一个有趣的属性，它需要结合语言设计，运行时支持，和操作系统支持。在LLVM中，实现一个安全的语言当然是可能的，但是LLVM IR本身并不能保证安全。LLVM IR允许不安全的指针类型转换，UAF bugs，缓冲区溢出，和大量其他的问题。安全性需要被作为LLVM的顶级层的一个实现，几个小组已经对这进行了调查。如果你想要了解更多的细节，可以在 &lt;a href=&#34;Http://lists.llvm.org/mailman/listinfo/llvm-dev&#34;&gt;llvm-dev 邮件列表&lt;/a&gt; 中询问。&lt;/p&gt;
+
+&lt;h2 id=&#34;10-2-3-针对特定语言的优化&#34;&gt;10.2.3 针对特定语言的优化&lt;/h2&gt;
+
+&lt;p&gt;导致很多人离开LLVM的很重要的事情是：它并没有解决我们的系统上相关的所有的问题。一个具体的示例就是人们认为LLVM无法执行特定的高级语言的优化：“LLVM失去了太多的信息”。以下是对此的一些观察：&lt;/p&gt;
+
+&lt;p&gt;第一，LLVM的确会丢失信息。例如，截至到目前写这篇文章为止，在LLVM中无法区分SSA值是来自32位机器中的C&amp;rdquo;int&amp;rdquo;还是C&amp;rdquo;long&amp;rdquo;（调试信息除外）。两者都被编译为&amp;rdquo;i32&amp;rdquo;值，并且有关它的来源的信息已经丢失了。更普遍的问题是，LLVM类型系统使用“结构等价”而不是“名称等价”。令人惊讶的另一个地方是：如果你在高级语言中有两种类型，并且它们有相同的结构（例如：两个不同的结构体都只包含int域）：这些类型将编译为单个LLVM类型，并且无法分辨它的来源。&lt;/p&gt;
+
+&lt;p&gt;第二，虽然LLVM确实丢失了信息，但LLVM并不是不变的：我们会用多种不同的方式继续增强和改进它。除了添加新特性外（LLVM不总是支持异常和调试信息），我们也可以扩展IR来捕获重要的信息和优化（例如，无论参数是符号扩展还是零扩展，关于指针别名的信息，等）。许多添加的功能都是用户驱动的：人们希望LLVM包含一些特定的功能，他们会一起添加并扩展它。&lt;/p&gt;
+
+&lt;p&gt;第三，添加特定语言的优化是*可能*的，也是*容易*的，并且你有大量的选择如何做。一个简单的例子，添加特定语言的优化是很容易的，这些优化只是对特定编译的代码适用。针对C系语言，有一个优化pass，该pass对标准C库函数很了解。如果你在main()函数中调用&amp;rdquo;exit(0)&amp;ldquo;，它知道将其优化为&amp;rdquo;return 0&amp;rdquo;是安全的。因为C指定了exit(0)函数会做什么。&lt;/p&gt;
+
+&lt;p&gt;除了简单的知识外，可以将各种特定其他语言的信息嵌入到LLVM IR中。如果你有一个特定的需要，但是遇到问题了，请将主题放在 llvm-dev 列表。最糟糕的情况下，你能总是将LLVM视为 &amp;ldquo;dumb code generator&amp;rdquo;，并且在你的前端的AST上实现针对特定高级语言的优化。&lt;/p&gt;
+
+&lt;h1 id=&#34;10-3-技巧和窍门&#34;&gt;10.3 技巧和窍门&lt;/h1&gt;
+
+&lt;p&gt;在使用LLVM之后，你可以了解到各种各样有用的提示和技巧，这些提示和技巧表面上并不明显。本节并不是让每个人重新发现它们，而是讨论其中的一些问题。&lt;/p&gt;
+
+&lt;h2 id=&#34;10-3-1-实现轻便的-offsetof-sizeof&#34;&gt;10.3.1 实现轻便的 offsetof/sizeof&lt;/h2&gt;
+
+&lt;p&gt;一个有趣的事情，如果你试图保持编译器生成“目标独立”的代码，那么有一件有趣的事情是，你经常需要知道某些LLVM类型的大小或LLVM结构中某些字段的偏移量。例如，你可能需要向一个函数传递一个类型的大小，来分配内存。&lt;/p&gt;
+
+&lt;p&gt;不幸地是，这可能会因目标而异，例如：指针的宽度通常是特定于目标的。然而，有一个&lt;a href=&#34;http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt&#34;&gt;聪明的方法来使用getelementptr函数&lt;/a&gt;，这允许你以一种简单的方式来解决该问题。&lt;/p&gt;
+
+&lt;h2 id=&#34;10-3-2-垃圾收集栈&#34;&gt;10.3.2 垃圾收集栈&lt;/h2&gt;
+
+&lt;p&gt;有些语言希望明确管理其堆栈帧，经常使它们被垃圾收集或允许容易地实现闭包。与显示堆栈帧相比，通常有更好的方法来实现这些功能，&lt;a href=&#34;http://nondot.org/sabre/LLVMNotes/ExplicitlyManagedStackFrames.txt&#34;&gt;llvm支持它们&lt;/a&gt;，如果你想要的话。它需要你的前端将代码转换为对 &lt;a href=&#34;http://en.wikipedia.org/wiki/Continuation-passing_style&#34;&gt;Continuation Passing Style&lt;/a&gt;和(LLVM支持的)尾调用的使用。&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Kaleidoscope：Adding Debug Information</title>
       <link>https://l0phtg.github.io/post/llvm/kaleidoscopeadding-debug-information/</link>
       <pubDate>Mon, 24 Jun 2019 19:56:26 +0800</pubDate>
@@ -6091,486 +6190,6 @@ hook等.&lt;/p&gt;
 &lt;li&gt;总结了很多android加固方法.&lt;/li&gt;
 &lt;li&gt;实现了一个加固demo.&lt;/li&gt;
 &lt;/ul&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>我的zsh和vim配置</title>
-      <link>https://l0phtg.github.io/post/%E6%88%91%E7%9A%84zsh%E5%92%8Cvim%E9%85%8D%E7%BD%AE/</link>
-      <pubDate>Wed, 24 Oct 2018 00:14:31 +0800</pubDate>
-      
-      <guid>https://l0phtg.github.io/post/%E6%88%91%E7%9A%84zsh%E5%92%8Cvim%E9%85%8D%E7%BD%AE/</guid>
-      
-        <description>&lt;p&gt;总结了一下自己的vim配置和zsh配置&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/customConfig/myVimPreview.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;zsh配置&#34;&gt;zsh配置&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/robbyrussell/oh-my-zsh&#34;&gt;https://github.com/robbyrussell/oh-my-zsh&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&#34;powerline字体设置&#34;&gt;powerline字体设置&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/&#34;&gt;https://dwijaybane.wordpress.com/2017/12/04/oh-my-zsh-and-powerline-fonts-setup-for-awesome-terminal-in-ubuntu-16-04/&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&#34;我的插件&#34;&gt;我的插件&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;plugins=(git autojump web-search last-working-dir zsh-syntax-highlighting colored-man-pages extract zsh-proxychains-ng adb pip npm python)
-#plugins=(git autojump last-working-dir adb pip npm python)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;vim配置&#34;&gt;vim配置&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;p&gt;当你使用&lt;code&gt;vim&lt;/code&gt;时, 可以在&lt;code&gt;~/.vimrc&lt;/code&gt;中编写你的vim配置文件.&lt;/p&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;p&gt;当你使用&lt;code&gt;neovim&lt;/code&gt;时, 可以在&lt;code&gt;~/.config/nvim/init.vim&lt;/code&gt;中编写你的vim配置文件.&lt;/p&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&#34;插件&#34;&gt;插件&lt;/h3&gt;
-
-&lt;ol&gt;
-&lt;li&gt;插件管理&lt;code&gt;vim-plug&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;tagbar&lt;/li&gt;
-&lt;li&gt;airline&lt;/li&gt;
-&lt;li&gt;vimfilter&lt;/li&gt;
-&lt;li&gt;vim-bufabline buffer窗口&lt;/li&gt;
-&lt;li&gt;fzf和ag 搜索&lt;/li&gt;
-&lt;li&gt;括号补全&amp;rsquo;Raimondi/delimitMate&amp;rsquo;&lt;/li&gt;
-&lt;li&gt;include补全 neoinclude&lt;/li&gt;
-&lt;li&gt;语法补全jedi-vim(python)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h4 id=&#34;vim-plug-vim插件管理工具&#34;&gt;&lt;code&gt;vim-plug&lt;/code&gt; vim插件管理工具&lt;/h4&gt;
-
-&lt;p&gt;README: &lt;a href=&#34;https://github.com/junegunn/vim-plug&#34;&gt;https://github.com/junegunn/vim-plug&lt;/a&gt;.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;安装&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;a. 当你使用&lt;code&gt;vim&lt;/code&gt;时.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;b. 当你使用`neovim时.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;使用&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;a. 可以使用git链接&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Plug &#39;https://github.com/junegunn/vim-github-dashboard.git&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;b. 使用git&lt;code&gt;UserName/Project&lt;/code&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Plug &#39;junegunn/vim-easy-align&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;更多可以参考文档.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;安装插件&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;只是把要安装的插件写在配置文件中是不够的, 还需要安装.&lt;/p&gt;
-
-&lt;p&gt;写好配置文件后, 重新打开vim, 运行&lt;code&gt;PlugInstall&lt;/code&gt;.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;例子:(我的部分配置)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code&gt;call plug#begin()
-
-Plug &#39;NLKNguyen/papercolor-theme&#39;
-Plug &#39;vim-airline/vim-airline&#39;
-Plug &#39;vim-airline/vim-airline-themes&#39;
-Plug &#39;Shougo/denite.nvim&#39;
-Plug &#39;Shougo/unite.vim&#39;
-Plug &#39;Shougo/vimfiler&#39;
-Plug &#39;majutsushi/tagbar&#39;
-Plug &#39;ap/vim-buftabline&#39;
-Plug &#39;Shougo/deoplete.nvim&#39;, { &#39;do&#39;: &#39;:UpdateRemotePlugins&#39; }
-Plug &#39;rip-rip/clang_complete&#39;
-Plug &#39;SirVer/ultisnips&#39;           &amp;quot; 代码片段补全  模板补全
-Plug &#39;honza/vim-snippets&#39;
-Plug &#39;zchee/deoplete-jedi&#39;
-
-Plug &#39;scrooloose/nerdcommenter&#39;   &amp;quot; 自动注释   &amp;lt;leader&amp;gt;cc  注释当先选中文本  
-Plug &#39;ctrlpvim/ctrlp.vim&#39;
-
-Plug &#39;lvht/tagbar-markdown&#39;       &amp;quot; markdown  tagbar显示
-
-Plug &#39;~/.fzf&#39;
-Plug &#39;junegunn/fzf.vim&#39;
-
-call plug#end()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;tagbar&#34;&gt;&lt;code&gt;tagbar&lt;/code&gt;&lt;/h4&gt;
-
-&lt;p&gt;README: &lt;a href=&#34;https://github.com/majutsushi/tagbar&#34;&gt;https://github.com/majutsushi/tagbar&lt;/a&gt;.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;安装&lt;code&gt;ctags&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code&gt;$sudo apt install ctags
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;vim中配置&lt;code&gt;tagbar&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code&gt;call plug#begin()
-Plug &#39;majutsushi/tagbar&#39;
-call plug#end()
-
-let g:tagbar_width=30
-let g:tagbar_left=1
-
-&amp;quot;映射F2快捷键为打开tagbar
-nnoremap &amp;lt;F2&amp;gt; :TagbarToggle &amp;lt;CR&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;airline-主题&#34;&gt;&lt;code&gt;airline&lt;/code&gt; 主题&lt;/h4&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/vim-airline/vim-airline&#34;&gt;https://github.com/vim-airline/vim-airline&lt;/a&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;call plug#begin()
-
-Plug &#39;NLKNguyen/papercolor-theme&#39;           // 这是我自己的主题
-Plug &#39;vim-airline/vim-airline&#39;
-Plug &#39;vim-airline/vim-airline-themes&#39;
-
-call plug#end()
-
-let g:airline_theme=&#39;papercolor&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;vimfilter-文件树&#34;&gt;&lt;code&gt;vimfilter&lt;/code&gt; 文件树&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code&gt;call plug#begin()
-Plug &#39;Shougo/vimfiler&#39;
-call plug#end()
-
-&amp;quot;我设置的打开vimfilter的对应快捷键为F3
-nnoremap &amp;lt;F3&amp;gt; :VimFilerExplorer -split -direction=rightbelow &amp;lt;CR&amp;gt;          
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;vim-bufabline-buffer窗口&#34;&gt;&lt;code&gt;vim-bufabline&lt;/code&gt; buffer窗口&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code&gt;call plug#begin()
-Plug &#39;ap/vim-buftabline&#39;
-call plug#end()
-
-&amp;quot;映射对应的快捷键为打开对应的buffer
-nmap &amp;lt;leader&amp;gt;1 &amp;lt;Plug&amp;gt;BufTabLine.Go(1)
-nmap &amp;lt;leader&amp;gt;2 &amp;lt;Plug&amp;gt;BufTabLine.Go(2)
-nmap &amp;lt;leader&amp;gt;3 &amp;lt;Plug&amp;gt;BufTabLine.Go(3)
-nmap &amp;lt;leader&amp;gt;4 &amp;lt;Plug&amp;gt;BufTabLine.Go(4)
-nmap &amp;lt;leader&amp;gt;5 &amp;lt;Plug&amp;gt;BufTabLine.Go(5)
-nmap &amp;lt;leader&amp;gt;6 &amp;lt;Plug&amp;gt;BufTabLine.Go(6)
-nmap &amp;lt;leader&amp;gt;7 &amp;lt;Plug&amp;gt;BufTabLine.Go(7)
-nmap &amp;lt;leader&amp;gt;8 &amp;lt;Plug&amp;gt;BufTabLine.Go(8)
-nmap &amp;lt;leader&amp;gt;9 &amp;lt;Plug&amp;gt;BufTabLine.Go(9)
-nmap &amp;lt;leader&amp;gt;0 &amp;lt;Plug&amp;gt;BufTabLine.Go(10)
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;fzf-和-ag&#34;&gt;fzf 和 ag&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://l0phtg.github.io/customConfig/fileContentSearch.png&#34; alt=&#34;目录下的全部文件内容搜索&#34; /&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;下载安装fzf&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;pre&gt;&lt;code&gt;git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;vim 中配置fzf&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;插件使用&lt;code&gt;vim-plug&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Plug &#39;~/.fzf&#39;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;ag安装&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;ubuntu&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;$sudo apt-get install silversearcher-ag
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;快捷键映射&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;在我的vim中, &lt;leader&gt;映射为了&lt;code&gt;space&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;noremap &amp;lt;leader&amp;gt;sff :Files&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;ssf :Lines&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;sbf :BLines&amp;lt;CR&amp;gt; 
-noremap &amp;lt;leader&amp;gt;ss  :Ag&amp;lt;CR&amp;gt;
-
-noremap &amp;lt;leader&amp;gt;gls :GFiles&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;gss :GFiles?&amp;lt;CR&amp;gt;   
-
-noremap &amp;lt;leader&amp;gt;btag :Tags&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;stag :BTags&amp;lt;CR&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ol&gt;
-&lt;li&gt;使用&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;code&gt;:BTags&lt;/code&gt; 可以在当前目录下build tags, &lt;code&gt;前提系统已经ctags&lt;/code&gt;(apt install ctags)&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;:Tags&lt;/code&gt; 可以搜索tag. 在搜索前, 要先build tags. (可以自行阅读fzf doc, 应该可以在vim启动时自动build tags).&lt;/p&gt;
-
-&lt;p&gt;当前文件内容搜索:
-&lt;img src=&#34;https://l0phtg.github.io/customConfig/singleFileContentSearch.png&#34; alt=&#34;当前文件内容搜索&#34; /&gt;
-当前目录的文件搜索:
-&lt;img src=&#34;https://l0phtg.github.io/customConfig/searchFile.png&#34; alt=&#34;当前目录的文件搜索&#34; /&gt;&lt;/p&gt;
-
-&lt;h4 id=&#34;括号补全-raimondi-delimitmate&#34;&gt;括号补全&amp;rsquo;Raimondi/delimitMate&amp;rsquo;&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code&gt;call plug#begin()
-Plug &#39;Raimondi/delimitMate&#39;       &amp;quot; 补全, \&amp;quot; \( 等.
-call plug#end()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;c-c-llvm头文件补全-neoinclude&#34;&gt;c/c++/llvm头文件补全 neoinclude&lt;/h4&gt;
-
-&lt;p&gt;头文件补全需要设置头文件path, (&lt;strong&gt;注意, 是vim配置文件中的path, 而不是系统环境变量的path&lt;/strong&gt;)&lt;/p&gt;
-
-&lt;p&gt;我使用的是nvim, 配置文件是~/config/nvim/init.vim&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;&amp;quot; ~/.config/nvim/init.vim
-
-set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
-
-call plug#begin()
-Plug &#39;Shougo/neoinclude.vim&#39;
-call plug#end()
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&#34;我的配置&#34;&gt;我的配置&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;set nu
-
-let mapleader= &#39; &#39;
-let g:mapleader = &#39; &#39;
-
-
-syntax on
-
-filetype on
-
-filetype indent on
-
-filetype plugin on
-
-filetype plugin indent on
-
-&amp;quot; 标签页
-set tabpagemax=20
-set showtabline=2
-
-&amp;quot; 设置文件浏览器目录为当前目录
-set bsdir=buffer
-
-
-&amp;quot; 突出显示当前行
-set cursorline
-
-&amp;quot; 突出显示当前列
-&amp;quot; set cursorcolumn
-
-&amp;quot; 括号配对情况, 跳转并高亮匹配的括号
-set showmatch
-&amp;quot;
-set matchtime=2
-
-&amp;quot; 相对行号: 行号变成相对
-set relativenumber number
-
-set encoding=utf-8
-
-set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
-set helplang=cn
-
-set rtp+=~/.fzf                  &amp;quot; fzf 
-
-set path=.,/usr/include/c++/5,/usr/include,/home/l0phtg/tools/llvm-project/llvm/include
-
-
-
-&amp;quot;plug插件
-
-call plug#begin()
-
-Plug &#39;NLKNguyen/papercolor-theme&#39;
-Plug &#39;vim-airline/vim-airline&#39;
-Plug &#39;vim-airline/vim-airline-themes&#39;
-
-Plug &#39;Shougo/denite.nvim&#39;
-Plug &#39;Shougo/unite.vim&#39;
-Plug &#39;Shougo/vimfiler&#39;
-
-
-Plug &#39;Shougo/deoplete.nvim&#39;, { &#39;do&#39;: &#39;:UpdateRemotePlugins&#39; }
-
-Plug &#39;Shougo/neoinclude.vim&#39;
-
-Plug &#39;majutsushi/tagbar&#39;
-&amp;quot;&amp;quot;Plug &#39;https://github.com/fholgado/minibufexpl.vim.git&#39;
-Plug &#39;ap/vim-buftabline&#39;
-
-
-Plug &#39;justmao945/vim-clang&#39;
-&amp;quot;Plug &#39;Valloric/YouCompleteMe&#39;     &amp;quot; YCM补全
-
-&amp;quot;Plug &#39;SirVer/ultisnips&#39;           &amp;quot; 代码片段补全  模板补全
-
-&amp;quot;Plug &#39;zchee/deoplete-jedi&#39;       &amp;quot; Python补全
-
-Plug &#39;Raimondi/delimitMate&#39;       &amp;quot; 不全, \&amp;quot; \( 等.
-
-Plug &#39;scrooloose/nerdcommenter&#39;   &amp;quot; 自动注释   &amp;lt;leader&amp;gt;cc  注释当先选中文本  &amp;lt;leader&amp;gt;cu 取消选中文本块的注释
-
-Plug &#39;lvht/tagbar-markdown&#39;       &amp;quot; markdown  tagbar显示
-
-Plug &#39;~/.fzf&#39;
-Plug &#39;junegunn/fzf.vim&#39;
-
-call plug#end()
-
-set background=dark
-colorscheme PaperColor
-
-let g:airline_theme=&#39;papercolor&#39;
-
-
-&amp;quot; 设置tagbar
-let g:tagbar_width=30
-let g:tagbar_left=1
-
-
-&amp;quot; 配置fzf  和 ag
-noremap &amp;lt;leader&amp;gt;sff :Files&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;ssf :Lines&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;sbf :BLines&amp;lt;CR&amp;gt; 
-noremap &amp;lt;leader&amp;gt;ss  :Ag&amp;lt;CR&amp;gt;
-
-noremap &amp;lt;leader&amp;gt;gls :GFiles&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;gss :GFiles?&amp;lt;CR&amp;gt;   
-
-noremap &amp;lt;leader&amp;gt;btag :Tags&amp;lt;CR&amp;gt;
-noremap &amp;lt;leader&amp;gt;stag :BTags&amp;lt;CR&amp;gt;
-
-
-&amp;quot; 配置vimbuftabline
-let g:buftabline_numbers=2
-
-noremap &amp;lt;leader&amp;gt;&amp;lt;Tab&amp;gt; :bnext&amp;lt;CR&amp;gt;
-
-nmap &amp;lt;leader&amp;gt;1 &amp;lt;Plug&amp;gt;BufTabLine.Go(1)
-nmap &amp;lt;leader&amp;gt;2 &amp;lt;Plug&amp;gt;BufTabLine.Go(2)
-nmap &amp;lt;leader&amp;gt;3 &amp;lt;Plug&amp;gt;BufTabLine.Go(3)
-nmap &amp;lt;leader&amp;gt;4 &amp;lt;Plug&amp;gt;BufTabLine.Go(4)
-nmap &amp;lt;leader&amp;gt;5 &amp;lt;Plug&amp;gt;BufTabLine.Go(5)
-nmap &amp;lt;leader&amp;gt;6 &amp;lt;Plug&amp;gt;BufTabLine.Go(6)
-nmap &amp;lt;leader&amp;gt;7 &amp;lt;Plug&amp;gt;BufTabLine.Go(7)
-nmap &amp;lt;leader&amp;gt;8 &amp;lt;Plug&amp;gt;BufTabLine.Go(8)
-nmap &amp;lt;leader&amp;gt;9 &amp;lt;Plug&amp;gt;BufTabLine.Go(9)
-nmap &amp;lt;leader&amp;gt;0 &amp;lt;Plug&amp;gt;BufTabLine.Go(10)
-
-&amp;quot; 设置 deoplete.nvim
-let g:deoplete#enable_at_startup = 1
-
-&amp;quot;设置Tab为补全
-inoremap &amp;lt;expr&amp;gt; &amp;lt;Tab&amp;gt; pumvisible() ? &amp;quot;\&amp;lt;C-n&amp;gt;&amp;quot; : &amp;quot;\&amp;lt;Tab&amp;gt;&amp;quot;                
-&amp;quot;inoremap &amp;lt;expr&amp;gt; &amp;lt;S-Tab&amp;gt; pumvisible() ? &amp;quot;\&amp;lt;C-p&amp;gt;&amp;quot; : &amp;quot;\&amp;lt;S-Tab&amp;gt;&amp;quot;
-&amp;quot;inoremap &amp;lt;expr&amp;gt; &amp;lt;cr&amp;gt; pumvisible() ? &amp;quot;\&amp;lt;C-y&amp;gt;&amp;quot; : &amp;quot;\&amp;lt;cr&amp;gt;&amp;quot;
-
-
-&amp;quot; 设置vim-clang
-let g:clang_cpp_options = &#39;-std=c++11&#39;
-let g:clang_check_syntax_auto = 1
-let g:clang_cpp_completeopt = &#39;menuone,longest&#39;
-
-
-
-&amp;quot;快捷键只在常规模式下有用 nnoremap
-&amp;quot;设置 F3 为打开vimfiler
-&amp;quot;设置 &amp;quot; &amp;quot;fs 为保存文件
-&amp;quot;function vimfilertoRight()
-&amp;quot;endfunction
-
-nnoremap &amp;lt;F2&amp;gt; :TagbarToggle &amp;lt;CR&amp;gt;
-nnoremap &amp;lt;F3&amp;gt; :VimFilerExplorer -split -direction=rightbelow &amp;lt;CR&amp;gt;          
-nnoremap &amp;lt;leader&amp;gt;fs :w &amp;lt;CR&amp;gt;
-nnoremap &amp;lt;leader&amp;gt;fS :wall &amp;lt;CR&amp;gt;
-
-nnoremap &amp;lt;leader&amp;gt;qq :wq &amp;lt;CR&amp;gt;
-&amp;quot;vim windows窗口左右
-nnoremap &amp;lt;C-h&amp;gt; &amp;lt;C-w&amp;gt;h &amp;lt;CR&amp;gt;
-nnoremap &amp;lt;C-l&amp;gt; &amp;lt;C-w&amp;gt;l &amp;lt;CR&amp;gt;
-nnoremap &amp;lt;C-j&amp;gt; &amp;lt;C-w&amp;gt;j &amp;lt;CR&amp;gt;
-nnoremap &amp;lt;C-k&amp;gt; &amp;lt;C-w&amp;gt;k &amp;lt;CR&amp;gt;
-
-&amp;quot;分割窗口
-nnoremap &amp;lt;leader&amp;gt;wj :split&amp;lt;CR&amp;gt;
-nnoremap &amp;lt;leader&amp;gt;wl :vsplit&amp;lt;CR&amp;gt;
-
-
-&amp;quot;set hidden &amp;quot; 避免必须保存才可以跳转buffer
-
-&amp;quot; my settings 对vimfiler的配置
-let g:vimfiler_as_default_explorer = 1
-let g:vimfiler_safe_mode_by_default = 0
-let g:vimfiler_tree_leaf_icon = &#39; &#39;
-let g:vimfiler_tree_opened_icon = &#39;▾&#39;
-let g:vimfiler_tree_closed_icon = &#39;▸&#39;
-let g:vimfiler_enable_auto_cd = 1
-let g:vimfiler_file_icon = &#39;-&#39;
-let g:vimfiler_marked_file_icon = &#39;✓&#39;
-let g:vimfiler_readonly_file_icon = &#39;✗&#39;
-let g:vimfiler_time_format = &#39;%m-%d-%y %H:%M:%S&#39;
-let g:vimfiler_expand_jump_to_first_child = 0
-let g:vimfiler_ignore_pattern = &#39;\.git\|\.DS_Store\|\.pyc&#39;
-
-
-&amp;quot; 文件类型设置 FileType Settings
-set sw=4
-set ts=4
-autocmd FileType markdown set tabstop=4 shiftwidth=4 expandtab ai
-autocmd FileType c++ set tabstop=4 shiftwidth=4 expandtab ai
-autocmd FileType c set tabstop=4 shiftwidth=4 expandtab ai
-
-autocmd FileType python set tabstop=4 shiftwidth=4 expandtab ai
-autocmd FileType ruby,javascript,html,css,xml set tabstop=2 shiftwidth=2 softtabstop=2 expandtab ai
-
-
-&lt;/code&gt;&lt;/pre&gt;</description>
       
     </item>
     
